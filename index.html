@@ -432,6 +432,12 @@ var userPrefs = { satellite: false };
 function isMobile() { return window.innerWidth <= 768; }
 
 async function init() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('code')) {
+    await db.auth.exchangeCodeForSession(params.get('code'));
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
   map = L.map('map', { zoomControl: false }).setView([46.603354, 1.888334], 6);
   layerStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
   layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 19 });
