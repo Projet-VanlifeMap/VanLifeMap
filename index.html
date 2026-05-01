@@ -151,6 +151,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .c-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;}
 .c-input:focus{border-color:var(--accent);}
 .c-send{background:var(--accent);border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#000;}
+.stars{display:flex;gap:3px;align-items:center;}
+.star{font-size:20px;cursor:pointer;color:var(--border);transition:color 0.15s;line-height:1;}
+.star.on{color:#fbbf24;}
+.star:hover,.star:hover~.star{color:var(--border);}
+.stars:hover .star{color:#fbbf24;}
+.stars .star:hover~.star{color:var(--border);}
+.rating-zone{padding:10px 16px;border-top:1px solid var(--border);}
+.rating-zone h4{font-size:12px;color:var(--text2);margin-bottom:6px;}
+.rating-avg{font-size:12px;color:var(--text2);margin-top:4px;}
+.rating-avg span{color:#fbbf24;font-weight:600;}
 .leaflet-bar{display:none !important;}
 .radius-circle{stroke:var(--accent);stroke-width:2;fill:rgba(110,231,183,0.08);}
 
@@ -961,7 +971,7 @@ function makePopup(p) {
     + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',false)">&#128078; Ferm\u00e9</button>'
     + '<button class="vote-btn" onclick="openReport(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'" ) + '\')" style="color:var(--danger);border-color:var(--danger)">&#9888;&#65039; Signaler</button>'
     + '</div>'
-    + '<div class="popup-nav" id="nav-' + p.id + '" style="display:none;padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;">'
+    + '<div class="popup-nav" id="nav-' + p.id + '" style="display:none;padding:8px 16px;border-top:1px solid var(--border);gap:6px;flex-wrap:wrap;">'
     + '<a href="https://waze.com/ul?ll=' + p.latitude + ',' + p.longitude + '&navigate=yes" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128663; Waze</a>'
     + '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128506; Google Maps</a>'
     + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#127758; Apple Plans</a>'
@@ -969,11 +979,55 @@ function makePopup(p) {
     + '<div style="padding:0 16px 10px;border-top:1px solid var(--border);margin-top:0;">'
     + '<button onclick="toggleNav(\'' + p.id + '\')" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;">&#128205; M\'y rendre</button>'
     + '</div></div>'
+    + '<div class="rating-zone">'
+    + '<h4>&#11088; Note</h4>'
+    + '<div class="stars" id="stars-' + p.id + '">'
+    + [1,2,3,4,5].map(function(n) { return '<span class="star" onclick="ratePlace(\'' + p.id + '\',' + n + ')" onmouseover="hoverStars(\'' + p.id + '\',' + n + ')" onmouseout="resetStars(\'' + p.id + '\')">&#9733;</span>'; }).join('')
+    + '</div>'
+    + '<div class="rating-avg" id="rating-avg-' + p.id + '">Chargement...</div>'
+    + '</div>'
     + '<div class="comment-section"><h4>&#128172; Commentaires</h4>'
     + '<div id="cmt-' + p.id + '">Chargement...</div>'
     + cmtZone + '</div>';
   loadCmts(p.id);
+  loadRating(p.id);
   return el;
+}
+
+async function loadRating(pid) {
+  var res = await db.from('ratings').select('score').eq('place_id', pid);
+  var el = document.getElementById('rating-avg-' + pid);
+  if (!el) return;
+  var data = res.data || [];
+  if (!data.length) { el.innerHTML = 'Aucune note encore'; return; }
+  var avg = data.reduce(function(s, r) { return s + r.score; }, 0) / data.length;
+  el.innerHTML = '<span>' + avg.toFixed(1) + ' / 5</span> (' + data.length + ' avis)';
+  if (currentUser) {
+    var myRating = await db.from('ratings').select('score').eq('place_id', pid).eq('user_id', currentUser.id).single();
+    if (myRating.data) highlightStars(pid, myRating.data.score);
+  }
+}
+
+function highlightStars(pid, score) {
+  var stars = document.querySelectorAll('#stars-' + pid + ' .star');
+  stars.forEach(function(s, i) { s.classList.toggle('on', i < score); });
+}
+
+function hoverStars(pid, score) {
+  var stars = document.querySelectorAll('#stars-' + pid + ' .star');
+  stars.forEach(function(s, i) { s.classList.toggle('on', i < score); });
+}
+
+function resetStars(pid) {
+  loadRating(pid);
+}
+
+async function ratePlace(pid, score) {
+  if (!currentUser) { showToast('Connectez-vous pour noter', 'error'); openModal('modal-auth'); return; }
+  await db.from('ratings').upsert({ place_id: pid, user_id: currentUser.id, score: score }, { onConflict: 'place_id,user_id' });
+  highlightStars(pid, score);
+  loadRating(pid);
+  showToast('&#11088; Note enregistrée !', 'success');
 }
 
 function toggleNav(pid) {
