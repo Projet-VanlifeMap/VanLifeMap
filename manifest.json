@@ -2,7 +2,7 @@
   "name": "MapLibre",
   "short_name": "MapLibre",
   "description": "Carte communautaire des services en libre-service 24h/24",
-  "start_url": "/",
+  "start_url": "/MapLibre/",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#0f1117",
