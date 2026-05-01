@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Distributeurs Pizza</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: monospace; background: #0f1117; color: #e8eaf0; padding: 24px; }
+h1 { color: #6ee7b7; font-size: 20px; margin-bottom: 6px; }
+p { color: #8b91a8; font-size: 13px; margin-bottom: 20px; }
+.section { margin-bottom: 24px; }
+.section h2 { font-size: 15px; color: #e8eaf0; margin-bottom: 12px; border-bottom: 1px solid #2e3348; padding-bottom: 8px; }
+textarea {
+  width: 100%; background: #1a1d27; border: 1px solid #2e3348;
+  border-radius: 8px; padding: 12px; color: #e8eaf0;
+  font-family: monospace; font-size: 12px; outline: none;
+  resize: vertical; min-height: 200px;
+}
+textarea:focus { border-color: #6ee7b7; }
+.btn { background: #6ee7b7; color: #000; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-sec { background: transparent; border: 1px solid #2e3348; color: #e8eaf0; }
+.log { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 16px; height: 300px; overflow-y: auto; font-size: 12px; line-height: 1.8; margin-top: 12px; }
+.log-ok { color: #6ee7b7; }
+.log-err { color: #f87171; }
+.log-info { color: #f59e0b; }
+.log-gray { color: #8b91a8; }
+.progress-bar { background: #2e3348; border-radius: 4px; height: 8px; margin: 12px 0; overflow: hidden; }
+.progress-fill { background: #6ee7b7; height: 100%; border-radius: 4px; transition: width 0.3s; width: 0%; }
+.info-box { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 12px; color: #8b91a8; line-height: 1.8; }
+.info-box b { color: #6ee7b7; }
+select { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 8px 12px; color: #e8eaf0; font-size: 13px; outline: none; margin-bottom: 12px; width: 100%; max-width: 400px; display: block; }
+</style>
+</head>
+<body>
+
+<h1>🍕 Import Distributeurs de Pizza</h1>
+<p>Colle une liste d'adresses pour les géocoder et les importer automatiquement dans ta carte</p>
+
+<div class="section">
+  <h2>📋 Instructions</h2>
+  <div class="info-box">
+    <b>Comment utiliser :</b><br>
+    1. Va sur <a href="https://www.gangofpizza.com/distributeurs/" target="_blank" style="color:#6ee7b7">gangofpizza.com/distributeurs</a> ou <a href="https://mon-distributeur.fr/distributeur-pizza/" target="_blank" style="color:#6ee7b7">mon-distributeur.fr</a><br>
+    2. Copie les adresses des distributeurs<br>
+    3. Colle-les ci-dessous, <b>une adresse par ligne</b><br>
+    4. Clique sur "Géocoder et Importer"<br><br>
+    <b>Format accepté (exemples) :</b><br>
+    • Gang of Pizza - 16 rue de la Paix, 75001 Paris<br>
+    • Avenue Guynemer, Station service Intermarché, 78530 Buc<br>
+    • 32 Rte de Versailles, 78114 Magny-Les-Hameaux
+  </div>
+
+  <label style="font-size:12px;color:#8b91a8;margin-bottom:6px;display:block">Enseigne / Source</label>
+  <select id="source-select">
+    <option value="Gang of Pizza">🍕 Gang of Pizza</option>
+    <option value="Just Queen">🍕 Just Queen</option>
+    <option value="Domino's Pizza">🍕 Domino's Pizza</option>
+    <option value="Distributeur de pizzas">🍕 Autre distributeur de pizzas</option>
+  </select>
+
+  <label style="font-size:12px;color:#8b91a8;margin-bottom:6px;display:block">Liste d'adresses (une par ligne)</label>
+  <textarea id="addresses" placeholder="Avenue Guynemer, Station service Intermarché, 78530 Buc&#10;32 Rte de Versailles, 78114 Magny-Les-Hameaux&#10;6 route De La Noue, 91190 Gif Sur Yvette&#10;51 Rue de Rambouillet, 78460 Chevreuse"></textarea>
+
+  <div style="margin-top:12px">
+    <button class="btn" onclick="startImport()">🚀 Géocoder et Importer</button>
+    <button class="btn btn-sec" onclick="clearAll()">🗑️ Effacer</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  <div class="log" id="log"><span class="log-gray">En attente... Colle tes adresses et clique sur "Géocoder et Importer".</span></div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+
+var catId = null;
+var mainCatId = null;
+
+function log(msg, type) {
+  var el = document.getElementById('log');
+  var line = document.createElement('div');
+  line.className = 'log-' + (type || 'gray');
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(pct) {
+  document.getElementById('progress').style.width = Math.min(pct, 100) + '%';
+}
+
+function clearAll() {
+  document.getElementById('addresses').value = '';
+  document.getElementById('log').innerHTML = '';
+  setProgress(0);
+}
+
+async function loadCatIds() {
+  var resM = await db.from('main_categories').select('id, name');
+  var resS = await db.from('categories').select('id, name, main_category_id');
+  var mains = resM.data || [];
+  var subs = resS.data || [];
+  var distCat = mains.find(function(m) { return m.name === 'Distributeurs & Casiers'; });
+  if (!distCat) { log('ERREUR : Categorie "Distributeurs & Casiers" introuvable !', 'err'); return false; }
+  mainCatId = distCat.id;
+  var pizzaCat = subs.find(function(s) { return s.name === 'Distributeur de pizzas' && s.main_category_id === distCat.id; });
+  if (!pizzaCat) { log('ERREUR : Sous-categorie "Distributeur de pizzas" introuvable !', 'err'); return false; }
+  catId = pizzaCat.id;
+  log('Categories chargees : Distributeur de pizzas (ID: ' + catId + ')', 'ok');
+  return true;
+}
+
+async function geocode(address) {
+  var url = NOMINATIM + '?q=' + encodeURIComponent(address + ', France') + '&format=json&limit=1&countrycodes=fr';
+  var resp = await fetch(url, { headers: { 'Accept-Language': 'fr', 'User-Agent': 'MapLibre-Community-Map/1.0' } });
+  var data = await resp.json();
+  if (data && data.length > 0) {
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };
+  }
+  return null;
+}
+
+async function startImport() {
+  var raw = document.getElementById('addresses').value.trim();
+  if (!raw) { log('Colle des adresses d\'abord !', 'err'); return; }
+
+  var lines = raw.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
+  if (lines.length === 0) { log('Aucune adresse trouvée !', 'err'); return; }
+
+  document.getElementById('log').innerHTML = '';
+  setProgress(0);
+
+  log('Chargement des categories...', 'info');
+  var ok = await loadCatIds();
+  if (!ok) return;
+
+  var source = document.getElementById('source-select').value;
+  var total = lines.length;
+  var imported = 0;
+  var failed = 0;
+
+  log(total + ' adresses a traiter...', 'info');
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    // Extraire le nom si format "Nom - Adresse"
+    var name = source;
+    var address = line;
+    if (line.indexOf(' - ') > -1) {
+      var parts = line.split(' - ');
+      name = parts[0].trim();
+      address = parts.slice(1).join(' - ').trim();
+    }
+
+    log('Geocodage : ' + address + '...', 'gray');
+
+    try {
+      var coords = await geocode(address);
+
+      if (!coords) {
+        log('ECHEC geocodage : ' + address, 'err');
+        failed++;
+      } else {
+        log('Trouve : ' + coords.lat.toFixed(4) + ', ' + coords.lng.toFixed(4) + ' → ' + name, 'ok');
+
+        var res = await db.from('places').insert({
+          name: name,
+          description: address,
+          latitude: coords.lat,
+          longitude: coords.lng,
+          main_category_id: mainCatId,
+          category_id: catId,
+          user_name: source,
+          disponible_24h: true,
+          approved: true
+        });
+
+        if (res.error) {
+          log('Erreur insertion : ' + res.error.message, 'err');
+          failed++;
+        } else {
+          imported++;
+        }
+      }
+    } catch(e) {
+      log('Erreur : ' + e.message, 'err');
+      failed++;
+    }
+
+    setProgress(Math.round(((i + 1) / total) * 100));
+    // Respecter les limites de Nominatim (1 requête/seconde)
+    await new Promise(function(r) { setTimeout(r, 1100); });
+  }
+
+  log('', 'gray');
+  log('=== IMPORT TERMINE ===', 'ok');
+  log('Importes : ' + imported, 'ok');
+  log('Echecs geocodage : ' + failed, failed > 0 ? 'err' : 'gray');
+  log('Va sur ton app et coche "Distributeur de pizzas" pour voir !', 'info');
+}
+</script>
+</body>
+</html>

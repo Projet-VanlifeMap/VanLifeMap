@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1117">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MapLibre">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>MapLibre</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3348;
+  --accent:#6ee7b7;--text:#e8eaf0;--text2:#8b91a8;--danger:#f87171;
+  --nav-h:64px;--safe-bottom:env(safe-area-inset-bottom,0px);
+  --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --radius:16px;--radius-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);background:var(--bg);color:var(--text);}
+#app{display:flex;width:100vw;height:100vh;}
+
+/* SIDEBAR */
+#sidebar{width:320px;min-width:320px;height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow:hidden;}
+#sidebar-header{padding:20px 18px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+#sidebar-header h1{font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--accent);}
+#sidebar-header p{font-size:11px;color:var(--text2);margin-top:3px;}
+#search-box{margin:12px 14px;position:relative;flex-shrink:0;}
+#search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px 9px 34px;color:var(--text);font-family:var(--font-body);font-size:13px;outline:none;}
+#search-input:focus{border-color:var(--accent);}
+#search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.5;}
+#categories-list{flex:1;overflow-y:auto;padding:8px 0;}
+#categories-list::-webkit-scrollbar{width:4px;}
+#categories-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.main-cat{margin:4px 10px;}
+.main-cat-header{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.15s;}
+.main-cat-header:hover{background:var(--surface2);}
+.main-cat-icon{font-size:16px;width:24px;text-align:center;}
+.main-cat-name{font-size:13px;font-weight:500;flex:1;cursor:pointer;}
+.main-cat-arrow{font-size:10px;color:var(--text2);transition:transform 0.2s;}
+.main-cat-arrow.open{transform:rotate(90deg);}
+.chk{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-size:9px;font-weight:700;color:transparent;}
+.chk.on{background:var(--accent);border-color:var(--accent);color:#000;}
+.sub-cats{display:none;padding:0 6px 6px 6px;}
+.sub-cats.open{display:block;}
+.sub-cat-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.15s;}
+.sub-cat-item:hover{background:var(--surface2);}
+.sub-cat-icon{font-size:14px;width:20px;text-align:center;}
+.sub-cat-name{font-size:12px;color:var(--text2);flex:1;cursor:pointer;}
+.chk-sm{width:12px;height:12px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:transparent;transition:all 0.15s;}
+.chk-sm.on{background:var(--accent);border-color:var(--accent);color:#000;}
+#sidebar-footer{padding:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+#btn-add-desk{width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:10px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;}
+#auth-zone{display:flex;align-items:center;gap:8px;}
+#auth-info{font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#btn-auth{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;cursor:pointer;font-family:var(--font-body);white-space:nowrap;}
+#btn-auth:hover{border-color:var(--accent);color:var(--accent);}
+
+/* MAP */
+#map-wrap{flex:1;height:100vh;position:relative;}
+#map{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;}
+#places-count{position:absolute;top:14px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;color:var(--text2);}
+#places-count span{color:var(--accent);font-weight:600;}
+#btn-satellite{position:absolute;bottom:140px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:40px;height:40px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+#btn-locate{position:absolute;bottom:90px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+#info-adding{display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:999;background:var(--accent);color:#000;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:600;font-family:var(--font-head);white-space:nowrap;}
+
+/* RADIUS PICKER */
+#radius-bar{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;display:none;align-items:center;gap:6px;font-size:12px;color:var(--text2);}
+#radius-bar select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;outline:none;}
+#radius-bar button{background:var(--accent);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#000;}
+#radius-bar .btn-clear{background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+
+/* HINT */
+#hint-empty{display:flex;position:absolute;inset:0;z-index:500;align-items:center;justify-content:center;pointer-events:none;flex-direction:column;gap:12px;transition:opacity 0.8s ease;}
+#hint-box{background:transparent;border:none;border-radius:var(--radius);padding:28px 36px;text-align:center;pointer-events:none;}
+#hint-box .hint-icon{font-size:48px;margin-bottom:10px;}
+#hint-box h3{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--accent);margin-bottom:6px;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
+#hint-box p{font-size:13px;color:#fff;line-height:1.5;text-shadow:-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000;}
+
+/* BOTTOM NAV */
+#bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));background:var(--surface);border-top:1px solid var(--border);z-index:1000;padding-bottom:var(--safe-bottom);}
+#bottom-nav-inner{display:flex;height:var(--nav-h);align-items:stretch;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;color:var(--text2);font-family:var(--font-body);font-size:10px;font-weight:500;transition:color 0.15s;padding:8px 4px;}
+.nav-item.active{color:var(--accent);}
+.nav-item-icon{font-size:22px;line-height:1;}
+.nav-item-add{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-family:var(--font-body);font-size:10px;font-weight:500;}
+.nav-add-btn{width:48px;height:48px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#000;font-weight:700;margin-top:-16px;box-shadow:0 4px 20px rgba(110,231,183,0.4);}
+.nav-item-add span{color:var(--text2);font-size:10px;}
+
+/* SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1500;display:none;align-items:flex-end;}
+.sheet-overlay.open{display:flex;}
+.sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);max-height:85vh;display:flex;flex-direction:column;animation:slideUp 0.3s ease;padding-bottom:var(--safe-bottom);}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;flex-shrink:0;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.sheet-title{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--accent);}
+.sheet-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;}
+.sheet-content{flex:1;overflow-y:auto;padding:12px 0;}
+.sheet-content::-webkit-scrollbar{display:none;}
+
+/* SETTINGS SHEET */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.setting-label{font-size:14px;color:var(--text);}
+.setting-desc{font-size:11px;color:var(--text2);margin-top:2px;}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+.toggle.on::after{left:23px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:460px;max-height:90vh;overflow-y:auto;padding:24px;}
+.modal h2{font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:18px;color:var(--accent);}
+.modal-close{float:right;background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;margin-top:-4px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;-webkit-appearance:none;}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);}
+.form-group textarea{min-height:80px;resize:vertical;}
+.form-group select option{background:var(--surface2);}
+.btn-p{width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-s{width:100%;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:var(--font-body);font-size:13px;cursor:pointer;margin-top:8px;}
+.btn-s:hover{border-color:var(--accent);color:var(--accent);}
+.info-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2);margin-bottom:14px;}
+.info-box span{color:var(--accent);}
+
+/* POPUP */
+.leaflet-popup-content-wrapper{background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:var(--radius) !important;box-shadow:0 8px 32px rgba(0,0,0,0.5) !important;color:var(--text) !important;padding:0 !important;}
+.leaflet-popup-tip{background:var(--surface) !important;}
+.leaflet-popup-content{margin:0 !important;width:280px !important;}
+.popup-inner{padding:16px;}
+.popup-cat{font-size:11px;color:var(--text2);margin-bottom:6px;}
+.popup-name{font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:6px;}
+.popup-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
+.popup-meta{font-size:11px;color:var(--text2);margin-bottom:8px;}
+.popup-meta span{color:var(--accent);}
+.popup-actions{display:flex;gap:6px;border-top:1px solid var(--border);padding-top:10px;}
+.vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px;}
+.comment-section{border-top:1px solid var(--border);padding:12px 16px;}
+.comment-section h4{font-size:12px;color:var(--text2);margin-bottom:8px;}
+.comment-item{margin-bottom:8px;}
+.comment-author{font-size:11px;font-weight:500;color:var(--accent);}
+.comment-text{font-size:12px;color:var(--text2);margin-top:2px;}
+.comment-input-zone{display:flex;gap:6px;margin-top:8px;}
+.c-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;}
+.c-input:focus{border-color:var(--accent);}
+.c-send{background:var(--accent);border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#000;}
+.leaflet-bar{display:none !important;}
+.radius-circle{stroke:var(--accent);stroke-width:2;fill:rgba(110,231,183,0.08);}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;z-index:9999;transition:transform 0.3s ease;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.success{border-color:var(--accent);color:var(--accent);}
+#toast.error{border-color:var(--danger);color:var(--danger);}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9998;flex-direction:column;gap:14px;}
+#loading h2{font-family:var(--font-head);font-size:22px;color:var(--accent);font-weight:800;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* MOBILE */
+@media(max-width:768px){
+  #sidebar{display:none !important;}
+  #bottom-nav{display:block;}
+  #map-wrap{height:100vh;}
+  #btn-locate{bottom:calc(var(--nav-h) + var(--safe-bottom) + 14px);}
+  #btn-satellite{bottom:calc(var(--nav-h) + var(--safe-bottom) + 64px);}
+  #places-count{top:10px;right:10px;font-size:11px;padding:5px 10px;}
+  #toast{bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);}
+  #radius-bar{top:auto;bottom:calc(var(--nav-h) + var(--safe-bottom) + 120px);left:50%;transform:translateX(-50%);}
+}
+</style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div><h2>&#128205; Chargement...</h2></div>
+
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>&#128205; MapLibre</h1>
+      <p>Carte communautaire des vacanciers</p>
+    </div>
+    <div id="search-box">
+      <span id="search-icon">&#128269;</span>
+      <input type="text" id="search-input" placeholder="Rechercher un lieu...">
+    </div>
+    <div id="categories-list"></div>
+    <div id="sidebar-footer">
+      <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
+      <div id="auth-zone">
+        <span id="auth-info">Non connect&#233;</span>
+        <button id="btn-auth">Connexion</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="hint-empty">
+      <div id="hint-box">
+        <div class="hint-icon">&#128205;</div>
+        <h3>Choisis une cat&#233;gorie</h3>
+        <p>Coche ce que tu cherches dans<br>le menu pour voir les lieux</p>
+      </div>
+    </div>
+    <div id="info-adding">&#128205; Clique sur la carte pour placer le lieu</div>
+    <div id="radius-bar">
+      <span>&#127992; P&#233;rim&#232;tre :</span>
+      <select id="radius-select">
+        <option value="1">1 km</option>
+        <option value="2">2 km</option>
+        <option value="5" selected>5 km</option>
+        <option value="10">10 km</option>
+        <option value="25">25 km</option>
+        <option value="50">50 km</option>
+        <option value="100">100 km</option>
+        <option value="99999">&#127467;&#127479; Toute la France</option>
+      </select>
+      <button onclick="applyRadius()">Appliquer</button>
+      <button class="btn-clear" onclick="clearRadius()">&#10005;</button>
+    </div>
+    <button id="btn-satellite" onclick="toggleSat()" title="Vue satellite">&#128752;</button>
+    <button id="btn-locate">&#128205;</button>
+    <div id="places-count">Lieux : <span id="count-num">0</span></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div id="bottom-nav">
+  <div id="bottom-nav-inner">
+    <button class="nav-item active" id="nav-map" onclick="navTo('map')">
+      <span class="nav-item-icon">&#128506;</span><span>Carte</span>
+    </button>
+    <button class="nav-item" id="nav-cats" onclick="navTo('cats')">
+      <span class="nav-item-icon">&#128193;</span><span>Cat&#233;gories</span>
+    </button>
+    <div class="nav-item-add" onclick="onAddBtn()">
+      <div class="nav-add-btn">&#65291;</div>
+      <span>Ajouter</span>
+    </div>
+    <button class="nav-item" id="nav-search" onclick="navTo('search')">
+      <span class="nav-item-icon">&#128269;</span><span>Recherche</span>
+    </button>
+    <button class="nav-item" id="nav-profile" onclick="navTo('profile')">
+      <span class="nav-item-icon">&#128100;</span><span>Profil</span>
+    </button>
+  </div>
+</div>
+
+<!-- SHEETS -->
+<div class="sheet-overlay" id="sheet-cats" onclick="closeSheet('sheet-cats')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">&#128193; Cat&#233;gories</span>
+      <button class="sheet-close" onclick="closeSheet('sheet-cats')">&#10005;</button>
+    </div>
+    <div class="sheet-content" id="sheet-cats-content"></div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="sheet-search" onclick="closeSheet('sheet-search')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">&#128269; Recherche</span>
+      <button class="sheet-close" onclick="closeSheet('sheet-search')">&#10005;</button>
+    </div>
+    <div class="sheet-content" style="padding:16px">
+      <input type="text" id="search-mobile" placeholder="Rechercher un lieu..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none;font-family:var(--font-body)">
+      <div style="margin-top:12px">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:8px">&#127992; Rechercher autour d'un point :</p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button onclick="activateRadiusMode()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#000;">&#128205; Choisir un point sur la carte</button>
+          <button onclick="locateMeRadius()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;color:var(--text);">&#127759; Ma position</button>
+        </div>
+      </div>
+      <div id="search-results" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="sheet-profile" onclick="closeSheet('sheet-profile')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">&#128100; Profil</span>
+      <button class="sheet-close" onclick="closeSheet('sheet-profile')">&#10005;</button>
+    </div>
+    <div class="sheet-content" style="padding:16px">
+      <div id="profile-content"></div>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="sheet-settings" onclick="closeSheet('sheet-settings')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">&#9881;&#65039; Param&#232;tres</span>
+      <button class="sheet-close" onclick="closeSheet('sheet-settings')">&#10005;</button>
+    </div>
+    <div class="sheet-content">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">&#128752; Vue satellite hybride</div>
+          <div class="setting-desc">Affiche la carte en vue a&#233;rienne avec noms de rues<br><small style="color:var(--accent)">R&#233;serv&#233; aux membres connect&#233;s</small></div>
+        </div>
+        <div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="modal-auth" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-auth')">&#10005;</button>
+    <h2 id="auth-title">Connexion</h2>
+    <div class="form-group"><label>Email</label><input type="email" id="auth-email" placeholder="votre@email.com"></div>
+    <div class="form-group"><label>Mot de passe</label><input type="password" id="auth-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
+    <button class="btn-p" onclick="handleAuth()">Se connecter</button>
+    <button class="btn-s" onclick="switchAuthMode()">Cr&#233;er un compte</button>
+  </div>
+</div>
+
+<div id="modal-add" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add')">&#10005;</button>
+    <h2>&#128205; Ajouter un lieu</h2>
+    <div class="info-box">Position : <span id="coord-display">Clique sur la carte !</span></div>
+    <div class="form-group"><label>Nom du lieu *</label><input type="text" id="add-name" placeholder="Ex: Distributeur de pain de la mairie"></div>
+    <div class="form-group"><label>Grande cat&#233;gorie *</label><select id="add-main-cat" onchange="loadSubCats()"><option value="">-- Choisir --</option></select></div>
+    <div class="form-group"><label>Sous-cat&#233;gorie *</label><select id="add-sub-cat"><option value="">-- Choisir la cat&#233;gorie d'abord --</option></select></div>
+    <div class="form-group"><label>Description</label><textarea id="add-desc" placeholder="Infos utiles : horaires, &#233;tat, prix..."></textarea></div>
+    <div class="form-group"><label>Disponible 24h/24 ?</label><select id="add-24h"><option value="true">Oui</option><option value="false">Non</option></select></div>
+    <button class="btn-p" onclick="submitPlace()">Publier le lieu</button>
+    <button class="btn-s" onclick="closeModal('modal-add')">Annuler</button>
+  </div>
+</div>
+
+<div id="modal-report" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-report')">&#10005;</button>
+    <h2>&#9888;&#65039; Signaler un lieu</h2>
+    <div class="info-box">Lieu : <span id="report-place-name"></span></div>
+    <div class="form-group">
+      <label>Motif du signalement *</label>
+      <select id="report-reason">
+        <option value="">-- Choisir --</option>
+        <option value="closed">Lieu fermé définitivement</option>
+        <option value="wrong_location">Emplacement incorrect</option>
+        <option value="duplicate">Doublon</option>
+        <option value="wrong_info">Informations incorrectes</option>
+        <option value="inappropriate">Contenu inapproprié</option>
+        <option value="other">Autre</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Précisions (optionnel)</label>
+      <textarea id="report-details" placeholder="Décrivez le problème..."></textarea>
+    </div>
+    <button class="btn-p" onclick="submitReport()">Envoyer le signalement</button>
+    <button class="btn-s" onclick="closeModal('modal-report')">Annuler</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var map, cluster;
+var layerStreet, layerSat, layerLabels, isSat = false;
+var currentUser = null;
+var mainCats = [], allCats = [], allPlaces = [];
+var filters = {};
+var selectedLatLng = null;
+var addingMode = false;
+var radiusMode = false;
+var isLogin = true;
+var loadTimer = null;
+var totalCount = 0;
+var radiusCenter = null;
+var radiusKm = 5;
+var radiusCircle = null;
+var userPrefs = { satellite: false };
+
+function isMobile() { return window.innerWidth <= 768; }
+
+async function init() {
+  map = L.map('map', { zoomControl: false }).setView([46.603354, 1.888334], 6);
+  layerStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
+  layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 19 });
+  layerLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.9 });
+  layerStreet.addTo(map);
+  cluster = L.markerClusterGroup({ maxClusterRadius: 50 });
+  map.addLayer(cluster);
+  map.on('click', onMapClick);
+  map.on('moveend', function() { if (!radiusCenter) scheduleLoad(); });
+  map.on('zoomend', function() { if (!radiusCenter) scheduleLoad(); });
+  window.addEventListener('resize', function() { map.invalidateSize(); });
+  setTimeout(function() { map.invalidateSize(); }, 200);
+
+  await loadCats();
+  await checkAuth();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('search-input').addEventListener('input', onSearch);
+  document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
+  document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
+  document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
+  document.getElementById('btn-locate').addEventListener('click', locateMe);
+
+  applyFilters();
+  setTimeout(function() {
+    var h = document.getElementById('hint-empty');
+    if (h) { h.style.opacity = '0'; setTimeout(function() { h.style.display = 'none'; }, 800); }
+  }, 7000);
+}
+
+// ===== SATELLITE (membres uniquement) =====
+function updateSatBtn() {
+  var btn = document.getElementById('btn-satellite');
+  if (currentUser) {
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+    if (isSat) applySat(false);
+  }
+}
+
+function applySat(on) {
+  isSat = on;
+  var btn = document.getElementById('btn-satellite');
+  var tog = document.getElementById('toggle-sat');
+  if (on) {
+    if (!map.hasLayer(layerSat)) {
+      map.removeLayer(layerStreet);
+      layerSat.addTo(map);
+      layerLabels.addTo(map);
+    }
+    if (btn) { btn.textContent = '\uD83D\uDDFA\uFE0F'; btn.title = 'Vue normale'; }
+    if (tog) tog.classList.add('on');
+  } else {
+    if (map.hasLayer(layerSat)) {
+      map.removeLayer(layerSat);
+      map.removeLayer(layerLabels);
+      layerStreet.addTo(map);
+    }
+    if (btn) { btn.textContent = '\uD83D\uDEF0\uFE0F'; btn.title = 'Vue satellite'; }
+    if (tog) tog.classList.remove('on');
+  }
+}
+
+function toggleSat() {
+  if (!currentUser) { showToast('Connectez-vous pour la vue satellite', 'error'); openModal('modal-auth'); return; }
+  var newState = !isSat;
+  applySat(newState);
+  savePrefs({ satellite: newState });
+}
+
+function toggleSatSetting() {
+  if (!currentUser) { showToast('Connectez-vous pour activer cette option', 'error'); closeSheet('sheet-settings'); openModal('modal-auth'); return; }
+  var newState = !isSat;
+  applySat(newState);
+  savePrefs({ satellite: newState });
+}
+
+async function savePrefs(prefs) {
+  if (!currentUser) return;
+  var merged = Object.assign({}, userPrefs, prefs);
+  userPrefs = merged;
+  await db.from('profiles').upsert({ user_id: currentUser.id, preferences: JSON.stringify(merged) }, { onConflict: 'user_id' });
+}
+
+async function loadPrefs() {
+  if (!currentUser) return;
+  var res = await db.from('profiles').select('preferences').eq('user_id', currentUser.id).single();
+  if (res.data && res.data.preferences) {
+    try {
+      userPrefs = JSON.parse(res.data.preferences);
+      if (userPrefs.satellite) applySat(true);
+    } catch(e) {}
+  }
+}
+
+// ===== RADIUS =====
+function activateRadiusMode() {
+  closeSheet('sheet-search');
+  radiusMode = true;
+  showToast('Clique sur la carte pour choisir le centre', 'success');
+  map.getContainer().style.cursor = 'crosshair';
+}
+
+function locateMeRadius() {
+  closeSheet('sheet-search');
+  map.locate({ setView: false });
+  map.once('locationfound', function(e) {
+    setRadiusCenter(e.latlng);
+  });
+  map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
+}
+
+function setRadiusCenter(latlng) {
+  radiusCenter = latlng;
+  radiusKm = parseInt(document.getElementById('radius-select').value);
+  radiusMode = false;
+  map.getContainer().style.cursor = '';
+  drawRadiusCircle();
+  document.getElementById('radius-bar').style.display = 'flex';
+  map.setView(latlng, getZoomForRadius(radiusKm));
+  loadPlacesInRadius();
+}
+
+function getZoomForRadius(km) {
+  if (km <= 1) return 14;
+  if (km <= 2) return 13;
+  if (km <= 5) return 12;
+  if (km <= 10) return 11;
+  if (km <= 25) return 10;
+  if (km <= 50) return 9;
+  if (km <= 100) return 8;
+  return 6;
+}
+
+function drawRadiusCircle() {
+  if (radiusCircle) map.removeLayer(radiusCircle);
+  if (!radiusCenter) return;
+  radiusCircle = L.circle(radiusCenter, {
+    radius: radiusKm * 1000,
+    className: 'radius-circle',
+    color: '#6ee7b7',
+    fillColor: '#6ee7b7',
+    fillOpacity: 0.06,
+    weight: 2
+  }).addTo(map);
+}
+
+function applyRadius() {
+  if (!radiusCenter) { showToast('Choisissez d\'abord un point sur la carte', 'error'); return; }
+  radiusKm = parseInt(document.getElementById('radius-select').value);
+  drawRadiusCircle();
+  map.setView(radiusCenter, getZoomForRadius(radiusKm));
+  loadPlacesInRadius();
+}
+
+function clearRadius() {
+  radiusCenter = null;
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  document.getElementById('radius-bar').style.display = 'none';
+  scheduleLoad();
+}
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function loadPlacesInRadius() {
+  if (!radiusCenter) return;
+  var ok = new Set();
+  Object.keys(filters).forEach(function(mid) {
+    Object.keys(filters[mid].subs).forEach(function(sid) { if (filters[mid].subs[sid]) ok.add(sid); });
+  });
+  if (ok.size === 0) { cluster.clearLayers(); showHint(true); document.getElementById('count-num').textContent = '0'; return; }
+  showHint(false);
+
+  var margin = radiusKm / 111;
+  var swLat = radiusCenter.lat - margin;
+  var neLat = radiusCenter.lat + margin;
+  var swLng = radiusCenter.lng - margin * 1.5;
+  var neLng = radiusCenter.lng + margin * 1.5;
+
+  var result = await db.from('places')
+    .select('*, categories(name,icon,color), main_categories(name,icon)')
+    .eq('approved', true)
+    .gte('latitude', swLat).lte('latitude', neLat)
+    .gte('longitude', swLng).lte('longitude', neLng)
+    .in('category_id', Array.from(ok))
+    .limit(5000);
+
+  var raw = result.data || [];
+  allPlaces = raw.filter(function(p) {
+    return haversineDistance(radiusCenter.lat, radiusCenter.lng, p.latitude, p.longitude) <= radiusKm;
+  });
+  renderMarkers(allPlaces);
+  var label = radiusKm >= 99999 ? 'France' : radiusKm + 'km';
+  document.getElementById('count-num').textContent = allPlaces.length + ' / ' + label;
+}
+
+// ===== NAV =====
+function navTo(tab) {
+  document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
+  var btn = document.getElementById('nav-' + tab);
+  if (btn) btn.classList.add('active');
+  if (tab === 'cats') { renderSheetCats(); openSheet('sheet-cats'); }
+  else if (tab === 'search') { openSheet('sheet-search'); setTimeout(function() { document.getElementById('search-mobile').focus(); }, 300); }
+  else if (tab === 'profile') { renderProfile(); openSheet('sheet-profile'); }
+}
+
+function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function closeSheet(id) {
+  document.getElementById(id).classList.remove('open');
+  document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
+  var m = document.getElementById('nav-map');
+  if (m) m.classList.add('active');
+}
+
+// ===== CATEGORIES =====
+function renderSheetCats() {
+  var el = document.getElementById('sheet-cats-content');
+  el.innerHTML = '';
+  mainCats.forEach(function(mc) {
+    var subs = allCats.filter(function(c) { return c.main_category_id === mc.id; });
+    var d = document.createElement('div');
+    d.className = 'main-cat';
+    var subsHTML = subs.map(function(s) {
+      var isOn = filters[mc.id] && filters[mc.id].subs[s.id];
+      return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
+        + '<div class="chk-sm' + (isOn ? ' on' : '') + '" id="chk-ss-' + s.id + '">' + (isOn ? '&#10003;' : '') + '</div>'
+        + '<span class="sub-cat-icon">' + s.icon + '</span>'
+        + '<span class="sub-cat-name">' + s.name + '</span>'
+        + '</div>';
+    }).join('');
+    var isMainOn = filters[mc.id] && filters[mc.id].on;
+    d.innerHTML = '<div class="main-cat-header" onclick="toggleCatSheet(\'' + mc.id + '\',this)">'
+      + '<div class="chk' + (isMainOn ? ' on' : '') + '" id="chk-sm-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + (isMainOn ? '&#10003;' : '') + '</div>'
+      + '<span class="main-cat-icon">' + mc.icon + '</span>'
+      + '<span class="main-cat-name" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + mc.name + '</span>'
+      + '<span class="main-cat-arrow">&#9654;</span>'
+      + '</div>'
+      + '<div class="sub-cats" id="subs-sm-' + mc.id + '">' + subsHTML + '</div>';
+    el.appendChild(d);
+  });
+}
+
+function toggleCatSheet(id, hdr) {
+  var s = document.getElementById('subs-sm-' + id);
+  if (s) s.classList.toggle('open');
+  var a = hdr.querySelector('.main-cat-arrow');
+  if (a) a.classList.toggle('open');
+}
+
+function renderProfile() {
+  var el = document.getElementById('profile-content');
+  if (currentUser) {
+    el.innerHTML = '<div style="text-align:center;padding:20px 0">'
+      + '<div style="width:64px;height:64px;border-radius:50%;background:var(--surface2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">&#128100;</div>'
+      + '<p style="font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:4px">' + currentUser.email.split('@')[0] + '</p>'
+      + '<p style="font-size:12px;color:var(--text2)">' + currentUser.email + '</p>'
+      + '</div>'
+      + '<button class="btn-p" onclick="closeSheet(\'sheet-profile\');openSheet(\'sheet-settings\')" style="margin-top:8px">&#9881;&#65039; Param&egrave;tres</button>'
+      + '<button class="btn-s" onclick="signOut()">&#128682; Se d&eacute;connecter</button>';
+  } else {
+    el.innerHTML = '<div style="text-align:center;padding:30px 0">'
+      + '<div style="font-size:48px;margin-bottom:16px">&#128100;</div>'
+      + '<p style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px">Rejoindre la communaut&eacute;</p>'
+      + '<p style="font-size:13px;color:var(--text2);margin-bottom:24px">Connecte-toi pour ajouter des lieux, voter, commenter et acc&eacute;der &agrave; la vue satellite</p>'
+      + '<button class="btn-p" onclick="closeSheet(\'sheet-profile\');openModal(\'modal-auth\')">Se connecter / S\'inscrire</button>'
+      + '</div>';
+  }
+}
+
+function signOut() {
+  db.auth.signOut();
+  currentUser = null;
+  userPrefs = { satellite: false };
+  applySat(false);
+  updateSatBtn();
+  document.getElementById('auth-info').textContent = 'Non connect\u00e9';
+  document.getElementById('btn-auth').textContent = 'Connexion';
+  closeSheet('sheet-profile');
+  showToast('D\u00e9connect\u00e9', 'success');
+}
+
+function onSearchMobile(e) {
+  var q = e.target.value.toLowerCase();
+  var res = document.getElementById('search-results');
+  if (!q) { res.innerHTML = ''; return; }
+  var found = allPlaces.filter(function(p) {
+    return p.name.toLowerCase().indexOf(q) >= 0 || (p.description || '').toLowerCase().indexOf(q) >= 0;
+  });
+  if (!found.length) { res.innerHTML = '<p style="font-size:13px;color:var(--text2);padding:8px 0">Aucun r\u00e9sultat</p>'; return; }
+  res.innerHTML = found.slice(0, 10).map(function(p) {
+    var cat = p.categories;
+    return '<div onclick="goToPlace(' + p.latitude + ',' + p.longitude + ')" style="padding:12px;border-radius:10px;background:var(--surface2);margin-bottom:8px;cursor:pointer">'
+      + '<div style="font-size:12px;color:var(--text2)">' + (cat ? cat.icon + ' ' + cat.name : '') + '</div>'
+      + '<div style="font-size:14px;font-weight:500;margin-top:2px">' + p.name + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function goToPlace(lat, lng) {
+  closeSheet('sheet-search');
+  map.setView([lat, lng], 16);
+}
+
+function onMapClick(e) {
+  if (radiusMode) { setRadiusCenter(e.latlng); return; }
+  if (!addingMode) return;
+  selectedLatLng = e.latlng;
+  document.getElementById('coord-display').textContent = e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
+  document.getElementById('info-adding').style.display = 'none';
+  openModal('modal-add');
+}
+
+// ===== AUTH =====
+async function checkAuth() {
+  var result = await db.auth.getSession();
+  if (result.data && result.data.session) {
+    currentUser = result.data.session.user;
+    document.getElementById('auth-info').textContent = currentUser.email;
+    document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
+    updateSatBtn();
+    await loadPrefs();
+  } else {
+    updateSatBtn();
+  }
+}
+
+function onAuthBtn() {
+  if (currentUser) { signOut(); } else { openModal('modal-auth'); }
+}
+
+async function handleAuth() {
+  var email = document.getElementById('auth-email').value;
+  var pass = document.getElementById('auth-password').value;
+  if (!email || !pass) { showToast('Remplis tous les champs', 'error'); return; }
+  var result;
+  if (isLogin) {
+    result = await db.auth.signInWithPassword({ email: email, password: pass });
+  } else {
+    result = await db.auth.signUp({ email: email, password: pass });
+  }
+  if (result.error) { showToast(result.error.message, 'error'); return; }
+  currentUser = result.data.user;
+  document.getElementById('auth-info').textContent = currentUser.email;
+  document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
+  closeModal('modal-auth');
+  updateSatBtn();
+  await loadPrefs();
+  showToast(isLogin ? 'Connect\u00e9 !' : 'Compte cr\u00e9\u00e9 !', 'success');
+}
+
+function switchAuthMode() {
+  isLogin = !isLogin;
+  document.getElementById('auth-title').textContent = isLogin ? 'Connexion' : 'Cr\u00e9er un compte';
+  document.querySelector('#modal-auth .btn-p').textContent = isLogin ? 'Se connecter' : 'Cr\u00e9er le compte';
+  document.querySelector('#modal-auth .btn-s').textContent = isLogin ? 'Cr\u00e9er un compte' : "J'ai d\u00e9j\u00e0 un compte";
+}
+
+// ===== CATEGORIES =====
+async function loadCats() {
+  var resM = await db.from('main_categories').select('*').order('sort_order');
+  var resS = await db.from('categories').select('*').order('name');
+  mainCats = resM.data || [];
+  allCats = resS.data || [];
+  mainCats.forEach(function(mc) {
+    filters[mc.id] = { on: false, subs: {} };
+    allCats.filter(function(c) { return c.main_category_id === mc.id; }).forEach(function(c) {
+      filters[mc.id].subs[c.id] = false;
+    });
+  });
+  renderCats();
+  populateForm();
+}
+
+function renderCats() {
+  var el = document.getElementById('categories-list');
+  el.innerHTML = '';
+  mainCats.forEach(function(mc) {
+    var subs = allCats.filter(function(c) { return c.main_category_id === mc.id; });
+    var d = document.createElement('div');
+    d.className = 'main-cat';
+    var subsHTML = subs.map(function(s) {
+      return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
+        + '<div class="chk-sm" id="chk-sub-' + s.id + '"></div>'
+        + '<span class="sub-cat-icon">' + s.icon + '</span>'
+        + '<span class="sub-cat-name">' + s.name + '</span>'
+        + '</div>';
+    }).join('');
+    d.innerHTML = '<div class="main-cat-header" onclick="toggleCatDesk(\'' + mc.id + '\',this)">'
+      + '<div class="chk" id="chk-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')"></div>'
+      + '<span class="main-cat-icon">' + mc.icon + '</span>'
+      + '<span class="main-cat-name" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + mc.name + '</span>'
+      + '<span class="main-cat-arrow">&#9654;</span>'
+      + '</div>'
+      + '<div class="sub-cats" id="subs-' + mc.id + '">' + subsHTML + '</div>';
+    el.appendChild(d);
+  });
+}
+
+function toggleCatDesk(id, hdr) {
+  var s = document.getElementById('subs-' + id);
+  if (s) s.classList.toggle('open');
+  var a = hdr.querySelector('.main-cat-arrow');
+  if (a) a.classList.toggle('open');
+}
+
+function toggleMainF(id) {
+  filters[id].on = !filters[id].on;
+  var state = filters[id].on;
+  ['chk-' + id, 'chk-sm-' + id].forEach(function(cid) {
+    var el = document.getElementById(cid);
+    if (el) { el.className = 'chk' + (state ? ' on' : ''); el.innerHTML = state ? '&#10003;' : ''; }
+  });
+  allCats.filter(function(c) { return c.main_category_id === id; }).forEach(function(c) {
+    filters[id].subs[c.id] = state;
+    ['chk-sub-' + c.id, 'chk-ss-' + c.id].forEach(function(sid) {
+      var s = document.getElementById(sid);
+      if (s) { s.className = 'chk-sm' + (state ? ' on' : ''); s.innerHTML = state ? '&#10003;' : ''; }
+    });
+  });
+  applyFilters();
+}
+
+function toggleSubF(mainId, subId) {
+  filters[mainId].subs[subId] = !filters[mainId].subs[subId];
+  var state = filters[mainId].subs[subId];
+  ['chk-sub-' + subId, 'chk-ss-' + subId].forEach(function(sid) {
+    var s = document.getElementById(sid);
+    if (s) { s.className = 'chk-sm' + (state ? ' on' : ''); s.innerHTML = state ? '&#10003;' : ''; }
+  });
+  applyFilters();
+}
+
+// ===== PLACES =====
+async function loadPlaces() {
+  if (radiusCenter) { loadPlacesInRadius(); return; }
+  var bounds = map.getBounds();
+  var sw = bounds.getSouthWest();
+  var ne = bounds.getNorthEast();
+
+  // totalCount non affiche
+
+  var ok = new Set();
+  Object.keys(filters).forEach(function(mid) {
+    Object.keys(filters[mid].subs).forEach(function(sid) { if (filters[mid].subs[sid]) ok.add(sid); });
+  });
+  if (ok.size === 0) { cluster.clearLayers(); showHint(true); document.getElementById('count-num').textContent = '0'; return; }
+  showHint(false);
+
+  var result = await db.from('places')
+    .select('*, categories(name,icon,color), main_categories(name,icon)')
+    .eq('approved', true)
+    .gte('latitude', sw.lat).lte('latitude', ne.lat)
+    .gte('longitude', sw.lng).lte('longitude', ne.lng)
+    .in('category_id', Array.from(ok))
+    .limit(2000);
+
+  allPlaces = result.data || [];
+  renderMarkers(allPlaces);
+  document.getElementById('count-num').textContent = allPlaces.length;
+}
+
+function showHint(show) {
+  var hint = document.getElementById('hint-empty');
+  if (hint) hint.style.display = show ? 'flex' : 'none';
+}
+
+function scheduleLoad() {
+  if (loadTimer) clearTimeout(loadTimer);
+  loadTimer = setTimeout(loadPlaces, 400);
+}
+
+function renderMarkers(places) {
+  cluster.clearLayers();
+  places.forEach(function(p) {
+    var cat = p.categories;
+    var color = cat ? cat.color : '#6ee7b7';
+    var icon = cat ? cat.icon : '&#128205;';
+    var mi = L.divIcon({
+      html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + icon + '</div></div>',
+      className: '', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
+    });
+    var mk = L.marker([p.latitude, p.longitude], { icon: mi });
+    mk.bindPopup(function() { return makePopup(p); }, { maxWidth: 300 });
+    cluster.addLayer(mk);
+  });
+}
+
+function makePopup(p) {
+  var cat = p.categories;
+  var el = document.createElement('div');
+  var cmtZone = currentUser
+    ? '<div class="comment-input-zone"><input class="c-input" id="ci-' + p.id + '" placeholder="Ajouter un commentaire..."><button class="c-send" onclick="addCmt(\'' + p.id + '\')">&#8594;</button></div>'
+    : '<p style="font-size:11px;color:var(--text2);margin-top:6px">Connectez-vous pour commenter</p>';
+  el.innerHTML = '<div class="popup-inner">'
+    + '<div class="popup-cat">' + (cat ? cat.icon + ' ' + cat.name : '&#128205; Lieu') + '</div>'
+    + '<div class="popup-name">' + p.name + '</div>'
+    + (p.description ? '<div class="popup-desc">' + p.description + '</div>' : '')
+    + '<div class="popup-meta">Par <span>' + (p.user_name || 'Anonyme') + '</span> &middot; ' + (p.disponible_24h ? '&#9989; 24h/24' : '&#8987; Horaires limit\u00e9s') + '</div>'
+    + '<div class="popup-meta">&#128077; ' + (p.votes_positifs || 0) + ' &middot; &#128078; ' + (p.votes_negatifs || 0) + '</div>'
+    + '<div class="popup-actions">'
+    + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',true)">&#128077; Utile</button>'
+    + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',false)">&#128078; Ferm\u00e9</button>'
+    + '<button class="vote-btn" onclick="openReport(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'" ) + '\')" style="color:var(--danger);border-color:var(--danger)">&#9888;&#65039; Signaler</button>'
+    + '</div></div>'
+    + '<div class="comment-section"><h4>&#128172; Commentaires</h4>'
+    + '<div id="cmt-' + p.id + '">Chargement...</div>'
+    + cmtZone + '</div>';
+  loadCmts(p.id);
+  return el;
+}
+
+async function loadCmts(pid) {
+  var result = await db.from('comments').select('*').eq('place_id', pid).order('created_at', { ascending: false }).limit(5);
+  var el = document.getElementById('cmt-' + pid);
+  if (!el) return;
+  var data = result.data;
+  if (!data || !data.length) { el.innerHTML = '<p style="font-size:11px;color:var(--text2)">Aucun commentaire</p>'; return; }
+  el.innerHTML = data.map(function(c) {
+    return '<div class="comment-item"><div class="comment-author">' + (c.user_name || 'Anonyme') + '</div><div class="comment-text">' + c.content + '</div></div>';
+  }).join('');
+}
+
+async function addCmt(pid) {
+  if (!currentUser) { showToast('Connectez-vous pour commenter', 'error'); return; }
+  var input = document.getElementById('ci-' + pid);
+  var content = input.value.trim();
+  if (!content) return;
+  await db.from('comments').insert({ place_id: pid, user_id: currentUser.id, user_name: currentUser.email.split('@')[0], content: content });
+  input.value = '';
+  loadCmts(pid);
+  showToast('Commentaire ajout\u00e9 !', 'success');
+}
+
+async function vote(pid, pos) {
+  if (!currentUser) { showToast('Connectez-vous pour voter', 'error'); return; }
+  var result = await db.from('votes').insert({ place_id: pid, user_id: currentUser.id, vote: pos });
+  if (result.error) { showToast('Vous avez d\u00e9j\u00e0 vot\u00e9', 'error'); return; }
+  var place = allPlaces.find(function(p) { return p.id === pid; });
+  if (place) {
+    var f = pos ? 'votes_positifs' : 'votes_negatifs';
+    await db.from('places').update({ [f]: (place[f] || 0) + 1 }).eq('id', pid);
+    showToast(pos ? '&#128077; Merci !' : '&#128078; Signal\u00e9', 'success');
+    scheduleLoad();
+  }
+}
+
+function applyFilters() {
+  if (radiusCenter) { loadPlacesInRadius(); } else { scheduleLoad(); }
+}
+
+function onSearch(e) {
+  var q = e.target.value.toLowerCase();
+  if (!q) { applyFilters(); return; }
+  showHint(false);
+  renderMarkers(allPlaces.filter(function(p) {
+    return p.name.toLowerCase().indexOf(q) >= 0 || (p.description || '').toLowerCase().indexOf(q) >= 0;
+  }));
+}
+
+function populateForm() {
+  var sel = document.getElementById('add-main-cat');
+  mainCats.forEach(function(mc) {
+    var o = document.createElement('option');
+    o.value = mc.id; o.textContent = mc.icon + ' ' + mc.name;
+    sel.appendChild(o);
+  });
+}
+
+function loadSubCats() {
+  var mid = document.getElementById('add-main-cat').value;
+  var sel = document.getElementById('add-sub-cat');
+  sel.innerHTML = '<option value="">-- Choisir --</option>';
+  allCats.filter(function(c) { return c.main_category_id === mid; }).forEach(function(c) {
+    var o = document.createElement('option');
+    o.value = c.id; o.textContent = c.icon + ' ' + c.name;
+    sel.appendChild(o);
+  });
+}
+
+function onAddBtn() {
+  if (!currentUser) { showToast('Connectez-vous pour ajouter un lieu', 'error'); openModal('modal-auth'); return; }
+  addingMode = true;
+  selectedLatLng = null;
+  document.getElementById('coord-display').textContent = 'Clique sur la carte...';
+  document.getElementById('info-adding').style.display = 'block';
+  if (isMobile()) { closeSheet('sheet-cats'); closeSheet('sheet-search'); closeSheet('sheet-profile'); }
+  showToast('&#128205; Clique sur la carte pour placer le lieu', 'success');
+}
+
+async function submitPlace() {
+  var name = document.getElementById('add-name').value.trim();
+  var mainId = document.getElementById('add-main-cat').value;
+  var catId = document.getElementById('add-sub-cat').value;
+  var desc = document.getElementById('add-desc').value.trim();
+  var is24h = document.getElementById('add-24h').value === 'true';
+  if (!name || !mainId || !catId) { showToast('Remplis les champs obligatoires *', 'error'); return; }
+  if (!selectedLatLng) { showToast('Clique sur la carte pour la position', 'error'); return; }
+  var result = await db.from('places').insert({
+    name: name, description: desc,
+    latitude: selectedLatLng.lat, longitude: selectedLatLng.lng,
+    main_category_id: mainId, category_id: catId,
+    user_id: currentUser.id, user_name: currentUser.email.split('@')[0],
+    disponible_24h: is24h, approved: true
+  });
+  if (result.error) { showToast('Erreur : ' + result.error.message, 'error'); return; }
+  closeModal('modal-add');
+  addingMode = false;
+  document.getElementById('info-adding').style.display = 'none';
+  showToast('&#128205; Lieu ajout\u00e9 !', 'success');
+  scheduleLoad();
+}
+
+function locateMe() {
+  map.locate({ setView: true, maxZoom: 14 });
+  map.once('locationfound', function(e) {
+    L.circle(e.latlng, { radius: e.accuracy / 2, color: '#6ee7b7', fillOpacity: 0.15 }).addTo(map);
+    showToast('Position trouv\u00e9e !', 'success');
+  });
+  map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+  if (id === 'modal-add') { addingMode = false; document.getElementById('info-adding').style.display = 'none'; }
+}
+document.querySelectorAll('.modal-overlay').forEach(function(m) {
+  m.addEventListener('click', function(e) { if (e.target === m) closeModal(m.id); });
+});
+
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.className = 'show ' + (type || '');
+  setTimeout(function() { t.className = ''; }, 3000);
+}
+
+// TABLE profiles (creer si besoin)
+async function ensureProfilesTable() {
+  await db.from('profiles').select('user_id').limit(1);
+}
+
+init();
+
+var reportPlaceId = null;
+
+function openReport(pid, name) {
+  if (!currentUser) { showToast('Connectez-vous pour signaler un lieu', 'error'); openModal('modal-auth'); return; }
+  reportPlaceId = pid;
+  document.getElementById('report-place-name').textContent = name;
+  document.getElementById('report-reason').value = '';
+  document.getElementById('report-details').value = '';
+  openModal('modal-report');
+}
+
+async function submitReport() {
+  if (!currentUser) { showToast('Connectez-vous pour signaler', 'error'); return; }
+  var reason = document.getElementById('report-reason').value;
+  var details = document.getElementById('report-details').value.trim();
+  if (!reason) { showToast('Choisissez un motif', 'error'); return; }
+  var result = await db.from('reports').insert({
+    place_id: reportPlaceId,
+    user_id: currentUser.id,
+    reason: reason,
+    details: details || null
+  });
+  if (result.error) { showToast('Erreur : ' + result.error.message, 'error'); return; }
+  closeModal('modal-report');
+  showToast('&#9888;&#65039; Signalement envoyé, merci !', 'success');
+  reportPlaceId = null;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+</script>
+</body>
+</html>

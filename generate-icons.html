@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Générer icônes MapLibre</title></head>
+<body>
+<p>Cliquez sur chaque bouton pour télécharger les icônes :</p>
+<button onclick="gen(192)">Télécharger icon-192.png</button>
+<button onclick="gen(512)">Télécharger icon-512.png</button>
+<canvas id="c" style="display:none"></canvas>
+<script>
+function gen(size) {
+  var c = document.getElementById('c');
+  c.width = size; c.height = size;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, size, size);
+  var r = size * 0.18;
+  ctx.beginPath();
+  ctx.arc(size/2, size/2 - size*0.05, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#6ee7b7';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(size/2, size/2 + size*0.25);
+  ctx.lineTo(size/2 - r*0.7, size/2 - size*0.05);
+  ctx.lineTo(size/2 + r*0.7, size/2 - size*0.05);
+  ctx.closePath();
+  ctx.fillStyle = '#6ee7b7';
+  ctx.fill();
+  var a = document.createElement('a');
+  a.download = 'icon-' + size + '.png';
+  a.href = c.toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>

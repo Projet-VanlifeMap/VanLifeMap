@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import OSM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: monospace; background: #0f1117; color: #e8eaf0; padding: 24px; }
+h1 { color: #6ee7b7; font-size: 20px; margin-bottom: 6px; }
+p { color: #8b91a8; font-size: 13px; margin-bottom: 20px; }
+.section { margin-bottom: 24px; }
+.section h2 { font-size: 15px; color: #e8eaf0; margin-bottom: 12px; border-bottom: 1px solid #2e3348; padding-bottom: 8px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.card { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 20px; }
+.card h3 { font-size: 14px; color: #6ee7b7; margin-bottom: 8px; }
+.card .count { font-size: 28px; font-weight: 700; color: #e8eaf0; margin: 8px 0; }
+.card p { font-size: 12px; color: #8b91a8; margin-bottom: 0; }
+.btn { background: #6ee7b7; color: #000; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-sec { background: transparent; border: 1px solid #2e3348; color: #e8eaf0; }
+.log { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 16px; height: 360px; overflow-y: auto; font-size: 12px; line-height: 1.8; }
+.log::-webkit-scrollbar { width: 4px; }
+.log::-webkit-scrollbar-thumb { background: #2e3348; }
+.log-ok { color: #6ee7b7; }
+.log-err { color: #f87171; }
+.log-info { color: #f59e0b; }
+.log-gray { color: #8b91a8; }
+.progress-bar { background: #2e3348; border-radius: 4px; height: 8px; margin: 12px 0; overflow: hidden; }
+.progress-fill { background: #6ee7b7; height: 100%; border-radius: 4px; transition: width 0.3s; width: 0%; }
+label { font-size: 12px; color: #8b91a8; margin-bottom: 4px; display: block; }
+select { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 8px 12px; color: #e8eaf0; font-size: 13px; outline: none; margin-bottom: 12px; display: block; width: 100%; max-width: 500px; }
+</style>
+</head>
+<body>
+<h1>Import OpenStreetMap</h1>
+<p>Importe des lieux depuis OpenStreetMap dans ta base de donnees</p>
+
+<div class="section">
+  <h2>Statistiques</h2>
+  <div class="grid">
+    <div class="card"><h3>Lieux trouves</h3><div class="count" id="count-found">-</div></div>
+    <div class="card"><h3>Lieux importes</h3><div class="count" id="count-imported">-</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Import</h2>
+  <label>Type de lieu</label>
+  <select id="type-select">
+    <option value="wc">Toilettes publiques</option>
+    <option value="shower">Douches publiques</option>
+    <option value="eau">Bornes eau potable</option>
+    <option value="camping">Aires camping-car</option>
+    <option value="wild">Spots sauvages</option>
+    <option value="laundry">Lavomatiques</option>
+    <option value="pizza">Distributeur de pizzas</option>
+    <option value="pain">Distributeur de pain et viennoiseries</option>
+    <option value="glacon">Distributeur de glacons</option>
+    <option value="huitre">Distributeur d'huitres</option>
+    <option value="mer">Distributeur fruits de mer</option>
+    <option value="fermier">Casier fermier</option>
+    <option value="fishing">Materiel de peche</option>
+    <option value="flowers">Distributeur de fleurs</option>
+    <option value="milk">Distributeur de lait</option>
+    <option value="eggs">Distributeur d'oeufs</option>
+    <option value="honey">Distributeur de miel</option>
+    <option value="books">Distributeur de livres</option>
+    <option value="coffee">Distributeur de cafe</option>
+    <option value="drinks">Distributeur de boissons</option>
+    <option value="petfood">Distributeur croquettes animaux</option>
+    <option value="gaz">Distributeur bouteilles de gaz</option>
+    <option value="hygiene">Distributeur hygiene feminine</option>
+    <option value="firstaid">Distributeur premiers secours</option>
+    <option value="condoms">Distributeur de preservatifs</option>
+  </select>
+
+  <label>Zone (bbox : sud,ouest,nord,est)</label>
+  <select id="region-select">
+    <option value="43.0,-1.8,46.0,1.5">Nouvelle-Aquitaine centre</option>
+    <option value="42.5,-1.8,44.5,1.8">Pyrenees / Pays Basque</option>
+    <option value="43.0,1.4,45.0,5.5">Occitanie</option>
+    <option value="43.0,4.8,44.5,7.7">PACA</option>
+    <option value="47.0,-5.2,49.0,-0.5">Bretagne</option>
+    <option value="47.0,-2.0,49.0,1.0">Pays de la Loire / Normandie</option>
+    <option value="48.5,1.5,50.5,5.5">Ile-de-France / Grand Est</option>
+    <option value="45.0,2.5,47.5,7.5">Auvergne-Rhone-Alpes</option>
+    <option value="42.0,-5.0,51.5,9.5">France entiere (lent)</option>
+  </select>
+
+  <div style="margin-top:12px">
+    <button class="btn" onclick="startCount()">Compter les lieux</button>
+    <button class="btn" id="btn-import" onclick="startImport()" disabled>Importer dans Supabase</button>
+    <button class="btn btn-sec" onclick="clearLog()">Vider le log</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  <div class="log" id="log"><span class="log-gray">En attente...</span></div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
+var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var OVERPASS = 'https://overpass-api.de/api/interpreter';
+var osmData = [];
+var catIds = {};
+
+function log(msg, type) {
+  var el = document.getElementById('log');
+  var line = document.createElement('div');
+  line.className = 'log-' + (type || 'gray');
+  line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+function setProgress(pct) { document.getElementById('progress').style.width = Math.min(pct,100) + '%'; }
+function clearLog() { document.getElementById('log').innerHTML = ''; osmData = []; document.getElementById('btn-import').disabled = true; setProgress(0); document.getElementById('count-found').textContent = '-'; document.getElementById('count-imported').textContent = '-'; }
+
+function buildQuery(type, b) {
+  var t = '[out:json][timeout:240];\n(\n';
+  var e = '\n);\nout body;';
+  var ec = '\n);\nout center;';
+  if (type === 'wc') return '[out:json][timeout:240];\nnode["amenity"="toilets"](' + b + ');\nout body;';
+  if (type === 'shower') return t + 'node["amenity"="shower"](' + b + ');\nnode["amenity"="toilets"]["shower"="yes"](' + b + ');' + e;
+  if (type === 'eau') return t + 'node["amenity"="drinking_water"](' + b + ');\nnode["amenity"="water_point"](' + b + ');\nnode["amenity"="fountain"]["drinking_water"="yes"](' + b + ');' + e;
+  if (type === 'camping') return t + 'node["tourism"="caravan_site"](' + b + ');\nway["tourism"="caravan_site"](' + b + ');\nnode["amenity"="parking"]["motorhome"="yes"](' + b + ');\nnode["amenity"="parking"]["campers"="yes"](' + b + ');\nnode["amenity"="sanitary_dump_station"](' + b + ');' + ec;
+  if (type === 'wild') return t + 'node["tourism"="camp_site"]["backcountry"="yes"](' + b + ');\nnode["tourism"="camp_site"]["camp_site"="basic"](' + b + ');\nnode["tourism"="camp_site"]["informal"="yes"](' + b + ');\nnode["tourism"="wilderness_hut"](' + b + ');' + ec;
+  if (type === 'laundry') return t + 'node["shop"="laundry"]["self_service"="yes"](' + b + ');\nnode["shop"="laundry"]["self_service"="only"](' + b + ');\nnode["shop"="laundrette"](' + b + ');\nnode["amenity"="washing_machine"](' + b + ');' + e;
+  if (type === 'pizza') return t + 'node["amenity"="vending_machine"]["vending"="pizza"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="food"]["name"~"pizza",i](' + b + ');' + e;
+  if (type === 'pain') return t + 'node["amenity"="vending_machine"]["vending"="bread"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="baguette"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="pastry"](' + b + ');' + e;
+  if (type === 'glacon') return t + 'node["amenity"="vending_machine"]["vending"="ice_cubes"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="ice"](' + b + ');' + e;
+  if (type === 'huitre') return t + 'node["amenity"="vending_machine"]["vending"="oysters"](' + b + ');\nnode["amenity"="vending_machine"]["name"~"huitre|huitres|ostrea",i](' + b + ');' + e;
+  if (type === 'mer') return t + 'node["amenity"="vending_machine"]["vending"="seafood"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="fish"](' + b + ');\nnode["shop"="seafood"]["self_service"="yes"](' + b + ');' + e;
+  if (type === 'fermier') return t + 'node["shop"="farm"]["self_service"="yes"](' + b + ');\nnode["shop"="farm"]["self_service"="only"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="milk"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="honey"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="eggs"](' + b + ');' + e;
+  if (type === 'fishing') return t + 'node["amenity"="vending_machine"]["vending"="fishing_tackle"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="fishing_bait"](' + b + ');' + e;
+  if (type === 'flowers') return t + 'node["amenity"="vending_machine"]["vending"="flowers"](' + b + ');' + e;
+  if (type === 'milk') return t + 'node["amenity"="vending_machine"]["vending"="milk"](' + b + ');' + e;
+  if (type === 'eggs') return t + 'node["amenity"="vending_machine"]["vending"="eggs"](' + b + ');' + e;
+  if (type === 'honey') return t + 'node["amenity"="vending_machine"]["vending"="honey"](' + b + ');' + e;
+  if (type === 'books') return t + 'node["amenity"="vending_machine"]["vending"="books"](' + b + ');' + e;
+  if (type === 'coffee') return t + 'node["amenity"="vending_machine"]["vending"="coffee"](' + b + ');' + e;
+  if (type === 'drinks') return t + 'node["amenity"="vending_machine"]["vending"="drinks"](' + b + ');' + e;
+  if (type === 'petfood') return t + 'node["amenity"="vending_machine"]["vending"="pet_food"](' + b + ');' + e;
+  if (type === 'gaz') return t + 'node["amenity"="vending_machine"]["vending"="gas_bottles"](' + b + ');' + e;
+  if (type === 'hygiene') return t + 'node["amenity"="vending_machine"]["vending"="feminine_hygiene"](' + b + ');' + e;
+  if (type === 'firstaid') return t + 'node["amenity"="vending_machine"]["vending"="first_aid"](' + b + ');' + e;
+  if (type === 'condoms') return t + 'node["amenity"="vending_machine"]["vending"="condoms"](' + b + ');' + e;
+  return '';
+}
+
+function getCatName(type) {
+  var names = {
+    wc: 'Toilettes publiques', shower: 'Douche publique', eau: 'Borne eau potable',
+    camping: 'Aire de camping-car officielle', wild: 'Spot sauvage van / tente',
+    laundry: 'Lavomatique automatique', pizza: 'Distributeur de pizzas',
+    pain: 'Distributeur de pain & viennoiseries', glacon: 'Distributeur de glacons',
+    huitre: "Distributeur d'huitres", mer: 'Distributeur de fruits de mer',
+    fermier: 'Casier fermier', fishing: 'Distributeur materiel de peche',
+    flowers: 'Distributeur de fleurs', milk: 'Distributeur de lait frais',
+    eggs: "Distributeur d'oeufs", honey: 'Distributeur de miel',
+    books: 'Distributeur de livres', coffee: 'Distributeur de cafe',
+    drinks: 'Distributeur de boissons', petfood: 'Distributeur de croquettes animaux',
+    gaz: 'Distributeur bouteilles de gaz', hygiene: 'Distributeur hygiene feminine',
+    firstaid: 'Distributeur premiers secours', condoms: 'Distributeur de preservatifs'
+  };
+  return names[type] || 'Lieu';
+}
+
+function getDefaultName(type) {
+  return getCatName(type);
+}
+
+function getLatLng(el) {
+  if (el.lat !== undefined && el.lon !== undefined) return { lat: el.lat, lng: el.lon };
+  if (el.center) return { lat: el.center.lat, lng: el.center.lon };
+  return null;
+}
+
+async function loadCatIds() {
+  var resM = await db.from('main_categories').select('id, name');
+  var resS = await db.from('categories').select('id, name, main_category_id');
+  var mains = resM.data || [];
+  var subs = resS.data || [];
+  catIds = {};
+  mains.forEach(function(m) {
+    subs.filter(function(s) { return s.main_category_id === m.id; }).forEach(function(s) {
+      catIds[s.name] = { id: s.id, main_id: m.id };
+    });
+  });
+  log('Categories chargees : ' + Object.keys(catIds).length, 'ok');
+  return true;
+}
+
+async function startCount() {
+  var type = document.getElementById('type-select').value;
+  var bbox = document.getElementById('region-select').value;
+  osmData = [];
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  setProgress(0);
+  var query = buildQuery(type, bbox);
+  if (!query) { log('Type non supporte : ' + type, 'err'); return; }
+  log('Type : ' + type + ' | Zone : ' + bbox, 'info');
+  log('Envoi vers Overpass API...', 'info');
+  setProgress(20);
+  try {
+    var resp = await fetch(OVERPASS, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query) });
+    if (!resp.ok) { log('Erreur HTTP : ' + resp.status, 'err'); setProgress(0); return; }
+    setProgress(60);
+    var data = await resp.json();
+    setProgress(100);
+    osmData = data.elements || [];
+    document.getElementById('count-found').textContent = osmData.length;
+    log('Trouves : ' + osmData.length + ' lieux !', 'ok');
+    if (osmData.length > 0) { document.getElementById('btn-import').disabled = false; log('Pret ! Clique sur "Importer"', 'info'); }
+    else { log('Aucun resultat. Essaie une autre zone.', 'err'); }
+  } catch(e) { log('Erreur : ' + e.message, 'err'); setProgress(0); }
+}
+
+async function startImport() {
+  if (!osmData.length) { log('Lance d\'abord le comptage !', 'err'); return; }
+  document.getElementById('btn-import').disabled = true;
+  log('Chargement des categories Supabase...', 'info');
+  await loadCatIds();
+  var type = document.getElementById('type-select').value;
+  var catName = getCatName(type);
+  var cat = catIds[catName];
+  if (!cat) {
+    log('ERREUR : "' + catName + '" introuvable !', 'err');
+    log('Disponibles : ' + Object.keys(catIds).slice(0,10).join(', '), 'info');
+    document.getElementById('btn-import').disabled = false;
+    return;
+  }
+  log('Categorie : ' + catName, 'ok');
+  var total = osmData.length;
+  var imported = 0;
+  var skipped = 0;
+  var BATCH = 25;
+  log('Import de ' + total + ' lieux...', 'info');
+  for (var i = 0; i < osmData.length; i += BATCH) {
+    var batch = osmData.slice(i, i + BATCH);
+    var toInsert = [];
+    batch.forEach(function(el) {
+      var latlng = getLatLng(el);
+      if (!latlng) { skipped++; return; }
+      var tags = el.tags || {};
+      var name = tags.name || getDefaultName(type);
+      var desc = [];
+      if (tags.fee === 'yes') desc.push('Payant');
+      if (tags.fee === 'no') desc.push('Gratuit');
+      if (tags.opening_hours) desc.push('Horaires : ' + tags.opening_hours);
+      if (tags.operator) desc.push('Operateur : ' + tags.operator);
+      toInsert.push({ name: name, description: desc.length ? desc.join(' | ') : null, latitude: latlng.lat, longitude: latlng.lng, main_category_id: cat.main_id, category_id: cat.id, user_name: 'OpenStreetMap', disponible_24h: tags.opening_hours === '24/7', approved: true });
+    });
+    if (toInsert.length > 0) {
+      var res = await db.from('places').insert(toInsert);
+      if (res.error) { log('Erreur lot ' + (Math.floor(i/BATCH)+1) + ' : ' + res.error.message, 'err'); }
+      else { imported += toInsert.length; }
+    }
+    setProgress(Math.round(((i+BATCH)/total)*100));
+    log((Math.min(i+BATCH,total)) + ' / ' + total + ' | importes : ' + imported, 'gray');
+    await new Promise(function(r) { setTimeout(r, 100); });
+  }
+  document.getElementById('count-imported').textContent = imported;
+  log('=== TERMINE === Importes : ' + imported + ' | Ignores : ' + skipped, 'ok');
+  document.getElementById('btn-import').disabled = false;
+}
+</script>
+</body>
+</html>
