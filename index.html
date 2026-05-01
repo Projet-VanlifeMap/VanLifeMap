@@ -675,7 +675,7 @@ function renderSheetCats() {
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatSheet(\'' + mc.id + '\',this)">'
       + '<div class="chk' + (isMainOn ? ' on' : '') + '" id="chk-sm-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + (isMainOn ? '&#10003;' : '') + '</div>'
       + '<span class="main-cat-icon">' + mc.icon + '</span>'
-      + '<span class="main-cat-name" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + mc.name + '</span>'
+      + '<span class="main-cat-name">' + mc.name + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
       + '<div class="sub-cats" id="subs-sm-' + mc.id + '">' + subsHTML + '</div>';
@@ -850,7 +850,7 @@ function renderCats() {
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatDesk(\'' + mc.id + '\',this)">'
       + '<div class="chk" id="chk-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')"></div>'
       + '<span class="main-cat-icon">' + mc.icon + '</span>'
-      + '<span class="main-cat-name" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + mc.name + '</span>'
+      + '<span class="main-cat-name">' + mc.name + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
       + '<div class="sub-cats" id="subs-' + mc.id + '">' + subsHTML + '</div>';
