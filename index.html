@@ -960,12 +960,25 @@ function makePopup(p) {
     + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',true)">&#128077; Utile</button>'
     + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',false)">&#128078; Ferm\u00e9</button>'
     + '<button class="vote-btn" onclick="openReport(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'" ) + '\')" style="color:var(--danger);border-color:var(--danger)">&#9888;&#65039; Signaler</button>'
+    + '</div>'
+    + '<div class="popup-nav" id="nav-' + p.id + '" style="display:none;padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;">'
+    + '<a href="https://waze.com/ul?ll=' + p.latitude + ',' + p.longitude + '&navigate=yes" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128663; Waze</a>'
+    + '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128506; Google Maps</a>'
+    + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#127758; Apple Plans</a>'
+    + '</div>'
+    + '<div style="padding:0 16px 10px;border-top:1px solid var(--border);margin-top:0;">'
+    + '<button onclick="toggleNav(\'' + p.id + '\')" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;">&#128205; M\'y rendre</button>'
     + '</div></div>'
     + '<div class="comment-section"><h4>&#128172; Commentaires</h4>'
     + '<div id="cmt-' + p.id + '">Chargement...</div>'
     + cmtZone + '</div>';
   loadCmts(p.id);
   return el;
+}
+
+function toggleNav(pid) {
+  var el = document.getElementById('nav-' + pid);
+  if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
 }
 
 async function loadCmts(pid) {
