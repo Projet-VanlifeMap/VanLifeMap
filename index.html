@@ -81,6 +81,27 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 #radius-bar button{background:var(--accent);border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#000;}
 #radius-bar .btn-clear{background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
 
+/* LOCATION SEARCH */
+.loc-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:10px;}
+.loc-input-wrap{position:relative;}
+.loc-input-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px 12px 42px;color:var(--text);font-size:15px;outline:none;font-family:var(--font-body);transition:border-color 0.2s;box-sizing:border-box;}
+.loc-input-wrap input:focus{border-color:var(--accent);}
+.loc-input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.loc-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:200;overflow:hidden;display:none;}
+.loc-dropdown-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.loc-dropdown-item:last-child{border-bottom:none;}
+.loc-dropdown-item:active{background:var(--surface2);}
+.loc-dropdown-item .loc-city{font-size:14px;font-weight:600;color:var(--text);}
+.loc-dropdown-item .loc-region{font-size:12px;color:var(--text2);margin-top:2px;}
+.loc-chip-wrap{display:none;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.loc-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border-radius:20px;padding:6px 8px 6px 14px;font-size:13px;font-weight:700;}
+.loc-chip-x{background:rgba(0,0,0,0.18);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#000;flex-shrink:0;}
+.radius-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;}
+.radius-pill{background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:all 0.15s;white-space:nowrap;}
+.radius-pill.active{background:var(--accent);border-color:var(--accent);color:#000;}
+.loc-divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.loc-me-btn{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:14px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-weight:500;}
+
 
 /* BOTTOM NAV */
 #bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-bottom));background:var(--surface);border-top:1px solid var(--border);z-index:1000;padding-bottom:var(--safe-bottom);}
@@ -303,15 +324,46 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <button class="sheet-close" onclick="closeSheet('sheet-search')">&#10005;</button>
     </div>
     <div class="sheet-content" style="padding:16px">
-      <input type="text" id="search-mobile" placeholder="Rechercher un lieu..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:15px;outline:none;font-family:var(--font-body)">
-      <div style="margin-top:12px">
-        <p style="font-size:12px;color:var(--text2);margin-bottom:8px">&#127992; Rechercher autour d'un point :</p>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button onclick="activateRadiusMode()" style="background:var(--accent);border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:#000;">&#128205; Choisir un point sur la carte</button>
-          <button onclick="locateMeRadius()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;color:var(--text);">&#127759; Ma position</button>
+
+      <!-- Recherche dans les lieux -->
+      <p class="loc-section-title">&#128270; Lieux sur la carte</p>
+      <input type="text" id="search-mobile" placeholder="Camping, douche, eau..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:15px;outline:none;font-family:var(--font-body);box-sizing:border-box;">
+      <div id="search-results" style="margin-top:10px"></div>
+
+      <hr class="loc-divider">
+
+      <!-- Recherche par localisation style leboncoin -->
+      <p class="loc-section-title">&#128205; Localisation</p>
+      <div class="loc-input-wrap">
+        <span class="loc-input-icon">&#128269;</span>
+        <input type="text" id="loc-input" placeholder="Ville, commune, département..." oninput="onLocationInput(this.value)" autocomplete="off">
+        <div class="loc-dropdown" id="loc-dropdown"></div>
+      </div>
+
+      <!-- Chip ville sélectionnée -->
+      <div class="loc-chip-wrap" id="loc-chip-wrap">
+        <div class="loc-chip">
+          <span>&#128205;</span>
+          <span id="loc-chip-text"></span>
+          <button class="loc-chip-x" onclick="clearLocation()">&#10005;</button>
         </div>
       </div>
-      <div id="search-results" style="margin-top:12px"></div>
+
+      <!-- Sélecteur de rayon -->
+      <div id="loc-radius-wrap" style="display:none">
+        <p style="font-size:12px;color:var(--text2);margin:12px 0 0;font-weight:500;">Rayon de recherche :</p>
+        <div class="radius-pills">
+          <button class="radius-pill active" data-km="0" onclick="setLocationRadius(0)">Exact</button>
+          <button class="radius-pill" data-km="10" onclick="setLocationRadius(10)">+10 km</button>
+          <button class="radius-pill" data-km="20" onclick="setLocationRadius(20)">+20 km</button>
+          <button class="radius-pill" data-km="50" onclick="setLocationRadius(50)">+50 km</button>
+          <button class="radius-pill" data-km="100" onclick="setLocationRadius(100)">+100 km</button>
+          <button class="radius-pill" data-km="200" onclick="setLocationRadius(200)">+200 km</button>
+        </div>
+      </div>
+
+      <button class="loc-me-btn" onclick="locateMeLocation()">&#127759; Utiliser ma position actuelle</button>
+
     </div>
   </div>
 </div>
@@ -772,6 +824,117 @@ function signOut() {
   showToast('D\u00e9connect\u00e9', 'success');
 }
 
+// ===== LOCATION SEARCH (leboncoin style) =====
+var locationTimer = null;
+var selectedLocation = null;
+var selectedLocRadius = 0;
+
+function onLocationInput(q) {
+  var dd = document.getElementById('loc-dropdown');
+  if (!q || q.length < 2) { dd.style.display = 'none'; return; }
+  if (locationTimer) clearTimeout(locationTimer);
+  locationTimer = setTimeout(async function() {
+    try {
+      var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=6&accept-language=fr&addressdetails=1';
+      var resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      var data = await resp.json();
+      renderLocationDropdown(data);
+    } catch(e) {}
+  }, 350);
+}
+
+function renderLocationDropdown(results) {
+  var dd = document.getElementById('loc-dropdown');
+  if (!results.length) { dd.style.display = 'none'; return; }
+  dd._results = results;
+  dd.innerHTML = results.map(function(r, i) {
+    var addr = r.address || {};
+    var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
+    var dept = addr.county || addr.state_district || '';
+    var region = addr.state || '';
+    var sub = [dept, region].filter(Boolean).join(' · ');
+    return '<div class="loc-dropdown-item" onclick="selectLocationIdx(' + i + ')">'
+      + '<div class="loc-city">' + city + '</div>'
+      + (sub ? '<div class="loc-region">' + sub + '</div>' : '')
+      + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
+function selectLocationIdx(idx) {
+  var dd = document.getElementById('loc-dropdown');
+  var r = dd._results[idx];
+  var addr = r.address || {};
+  var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
+  var dept = addr.county || addr.state_district || '';
+  var region = addr.state || '';
+  var sub = [dept, region].filter(Boolean).join(' · ');
+  document.getElementById('loc-input').value = city + (sub ? ', ' + sub : '');
+  document.getElementById('loc-dropdown').style.display = 'none';
+  document.getElementById('loc-chip-text').textContent = city;
+  document.getElementById('loc-chip-wrap').style.display = 'flex';
+  document.getElementById('loc-radius-wrap').style.display = 'block';
+  selectedLocation = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
+  selectedLocRadius = 0;
+  document.querySelectorAll('.radius-pill').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+  });
+  map.setView([selectedLocation.lat, selectedLocation.lon], 13);
+  closeSheet('sheet-search');
+}
+
+function clearLocation() {
+  selectedLocation = null;
+  selectedLocRadius = 0;
+  document.getElementById('loc-input').value = '';
+  document.getElementById('loc-dropdown').style.display = 'none';
+  document.getElementById('loc-chip-wrap').style.display = 'none';
+  document.getElementById('loc-radius-wrap').style.display = 'none';
+  clearRadius();
+}
+
+function setLocationRadius(km) {
+  selectedLocRadius = km;
+  document.querySelectorAll('.radius-pill').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.km) === km);
+  });
+  if (!selectedLocation) return;
+  radiusCenter = L.latLng(selectedLocation.lat, selectedLocation.lon);
+  if (km === 0) {
+    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+    document.getElementById('radius-bar').style.display = 'none';
+    map.setView(radiusCenter, 13);
+    scheduleLoad();
+  } else {
+    radiusKm = km;
+    drawRadiusCircle();
+    document.getElementById('radius-bar').style.display = 'flex';
+    map.setView(radiusCenter, getZoomForRadius(km));
+    loadPlacesInRadius();
+  }
+  closeSheet('sheet-search');
+}
+
+function locateMeLocation() {
+  map.locate({ setView: false });
+  map.once('locationfound', function(e) {
+    selectedLocation = { lat: e.latlng.lat, lon: e.latlng.lng };
+    document.getElementById('loc-input').value = 'Ma position';
+    document.getElementById('loc-dropdown').style.display = 'none';
+    document.getElementById('loc-chip-text').textContent = 'Ma position';
+    document.getElementById('loc-chip-wrap').style.display = 'flex';
+    document.getElementById('loc-radius-wrap').style.display = 'block';
+    selectedLocRadius = 0;
+    document.querySelectorAll('.radius-pill').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+    });
+    map.setView([selectedLocation.lat, selectedLocation.lon], 13);
+    closeSheet('sheet-search');
+  });
+  map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
+}
+
+// ===== SEARCH IN PLACES =====
 var geocodeTimer = null;
 function onSearchMobile(e) {
   var q = e.target.value.toLowerCase();
@@ -788,31 +951,6 @@ function onSearchMobile(e) {
       + '</div>';
   }).join('');
   res.innerHTML = placesHtml || '<p style="font-size:12px;color:var(--text2);padding:4px 0">Aucun lieu trouv\u00e9</p>';
-  if (geocodeTimer) clearTimeout(geocodeTimer);
-  geocodeTimer = setTimeout(function() { searchAddress(e.target.value, res, placesHtml); }, 600);
-}
-
-async function searchAddress(q, res, placesHtml) {
-  if (q.length < 3) return;
-  try {
-    var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=4&accept-language=fr';
-    var resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    var data = await resp.json();
-    if (!data.length) return;
-    var geoHtml = '<p style="font-size:11px;color:var(--text2);margin:8px 0 4px">&#127757; Adresses :</p>'
-      + data.map(function(r) {
-          return '<div onclick="goToAddress(' + r.lat + ',' + r.lon + ')" style="padding:10px 12px;border-radius:10px;background:var(--surface2);margin-bottom:6px;cursor:pointer;border-left:3px solid var(--accent);">'
-            + '<div style="font-size:13px;font-weight:500">' + r.display_name.split(',').slice(0,2).join(', ') + '</div>'
-            + '<div style="font-size:11px;color:var(--text2);margin-top:2px">' + (r.display_name.split(',').slice(2,4).join(', ').trim()) + '</div>'
-            + '</div>';
-        }).join('');
-    res.innerHTML = (placesHtml ? placesHtml + '<hr style="border-color:var(--border);margin:10px 0">' : '') + geoHtml;
-  } catch(e) {}
-}
-
-function goToAddress(lat, lon) {
-  closeSheet('sheet-search');
-  map.setView([parseFloat(lat), parseFloat(lon)], 14);
 }
 
 function goToPlace(lat, lng) {
