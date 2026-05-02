@@ -231,6 +231,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .comm-submit-btn{width:100%;background:var(--accent);border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;color:#000;font-family:var(--font-body);margin-top:4px;}
 .comm-reply-card{background:var(--surface2);border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid var(--border);}
 .comm-empty{text-align:center;padding:50px 20px;color:var(--text2);font-size:14px;line-height:1.8;}
+.notif-card{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.notif-card.unread .notif-dot{background:var(--accent);}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:transparent;border:2px solid var(--border);flex-shrink:0;margin-top:5px;transition:background 0.2s;}
+.notif-icon{font-size:20px;flex-shrink:0;}
+.notif-body{flex:1;}
+.notif-text{font-size:13px;color:var(--text);line-height:1.4;}
+.notif-time{font-size:11px;color:var(--text2);margin-top:3px;}
+.notif-unread-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;}
 
 /* INSTALL BANNER */
 #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--surface);border-top:2px solid var(--accent);padding:16px 18px 20px;flex-direction:column;gap:12px;animation:slideUp 0.3s ease;}
@@ -372,8 +380,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     <button class="nav-item" id="nav-search" onclick="navTo('search')">
       <span class="nav-item-icon">&#128269;</span><span>Recherche</span>
     </button>
-    <button class="nav-item" id="nav-community" onclick="navTo('community')">
-      <span class="nav-item-icon">&#128172;</span><span>Communaut&#233;</span>
+    <button class="nav-item" id="nav-community" onclick="navTo('community')" style="position:relative;">
+      <span class="nav-item-icon">&#128172;</span>
+      <span id="notif-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
+      <span>Communaut&#233;</span>
     </button>
     <button class="nav-item" id="nav-profile" onclick="navTo('profile')">
       <span class="nav-item-icon">&#128100;</span><span>Profil</span>
@@ -476,6 +486,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <button class="comm-filter" data-filter="message" onclick="filterComm('message',this)">&#128172; Messages</button>
       <button class="comm-filter" data-filter="support" onclick="filterComm('support',this)">&#128295; Support</button>
       <button class="comm-filter" data-filter="rank" onclick="filterComm('rank',this)">&#127942; Classement</button>
+      <button class="comm-filter" data-filter="notifs" onclick="filterComm('notifs',this)" id="notif-filter-btn">&#128276; Notifications</button>
     </div>
     <div class="comm-feed" id="comm-feed">
       <div class="comm-empty">Chargement...</div>
@@ -1225,6 +1236,8 @@ async function checkAuth() {
     document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
     updateSatBtn();
     await loadPrefs();
+    loadNotifCount();
+    startRealtimeNotifs();
   } else {
     updateSatBtn();
   }
@@ -1814,7 +1827,10 @@ function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function filterComm(type, btn) {
   commFilter = type;
   document.querySelectorAll('.comm-filter').forEach(function(b) { b.classList.remove('active'); });
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  document.getElementById('comm-detail').style.display = 'none';
+  document.getElementById('comm-feed').style.display = 'block';
+  if (type === 'notifs') { loadNotifications(); return; }
   loadCommunity();
 }
 
@@ -1890,6 +1906,7 @@ async function submitReply(postId) {
   var post = commPosts.find(function(p) { return p.id === postId; });
   var cnt = (post ? (post.replies_count || 0) : 0) + 1;
   await db.from('community_posts').update({ replies_count: cnt }).eq('id', postId);
+  if (post && post.user_id) insertNotif(post.user_id, 'reply', name + ' a répondu à votre post : "' + (post.title || post.content.slice(0,40)) + '"', postId);
   inp.value = '';
   if (post) post.replies_count = cnt;
   loadReplies(postId);
@@ -1902,7 +1919,11 @@ async function likePost(id) {
     var post = commPosts.find(function(p) { return p.id === id; });
     var cnt = (post ? (post.likes_count || 0) : 0) + 1;
     await db.from('community_posts').update({ likes_count: cnt }).eq('id', id);
-    if (post) post.likes_count = cnt;
+    if (post) {
+      post.likes_count = cnt;
+      var name = (currentUser.user_metadata && currentUser.user_metadata.display_name) || currentUser.email.split('@')[0];
+      insertNotif(post.user_id, 'like', name + ' a aimé votre post : "' + (post.title || post.content.slice(0,40)) + '"', id);
+    }
     loadCommunity();
   } else { showToast('Déjà liké !', 'error'); }
 }
@@ -1983,6 +2004,91 @@ function renderLeaderboardInComm() {
   var feed = document.getElementById('comm-feed');
   feed.innerHTML = '<div class="comm-empty">Chargement classement...</div>';
   loadLeaderboard('places');
+}
+
+// ===== NOTIFICATIONS =====
+var realtimeNotifChannel = null;
+
+async function loadNotifCount() {
+  if (!currentUser) return;
+  var res = await db.from('notifications').select('id', { count: 'exact' }).eq('user_id', currentUser.id).eq('is_read', false);
+  var count = res.count || 0;
+  var badge = document.getElementById('notif-badge');
+  if (badge) {
+    if (count > 0) { badge.textContent = count > 99 ? '99+' : count; badge.style.display = 'block'; }
+    else { badge.style.display = 'none'; }
+  }
+}
+
+async function loadNotifications() {
+  var feed = document.getElementById('comm-feed');
+  feed.innerHTML = '<div class="comm-empty">Chargement...</div>';
+  if (!currentUser) {
+    feed.innerHTML = '<div class="comm-empty">Connectez-vous pour voir vos notifications.</div>';
+    return;
+  }
+  var res = await db.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(40);
+  var data = res.data || [];
+  if (!data.length) {
+    feed.innerHTML = '<div class="comm-empty">&#128276;<br>Aucune notification pour le moment.</div>';
+    return;
+  }
+  var unreadIds = data.filter(function(n) { return !n.is_read; }).map(function(n) { return n.id; });
+  var icons = { reply: '&#128172;', like: '&#128077;', signalement: '&#9888;&#65039;', place: '&#128205;' };
+  feed.innerHTML = (unreadIds.length ? '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 12px;"><span class="notif-unread-label">' + unreadIds.length + ' non lue' + (unreadIds.length > 1 ? 's' : '') + '</span><button onclick="markAllRead()" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--font-body);">Tout marquer lu</button></div>' : '')
+    + data.map(function(n) {
+      var icon = icons[n.type] || '&#128276;';
+      var time = timeAgo(n.created_at);
+      return '<div class="notif-card ' + (n.is_read ? '' : 'unread') + '" onclick="openNotif(\'' + n.id + '\',\'' + (n.post_id || '') + '\')">'
+        + '<div class="notif-dot"></div>'
+        + '<span class="notif-icon">' + icon + '</span>'
+        + '<div class="notif-body"><div class="notif-text">' + escHtml(n.message) + '</div>'
+        + '<div class="notif-time">' + time + '</div></div>'
+        + '</div>';
+    }).join('');
+  if (unreadIds.length) {
+    await db.from('notifications').update({ is_read: true }).in('id', unreadIds);
+    loadNotifCount();
+  }
+}
+
+async function openNotif(notifId, postId) {
+  if (!postId) return;
+  var post = commPosts.find(function(p) { return p.id === postId; });
+  if (!post) {
+    var res = await db.from('community_posts').select('*').eq('id', postId).single();
+    if (res.data) { commPosts.push(res.data); openPostDetail(postId); }
+  } else { openPostDetail(postId); }
+  filterComm('all', document.querySelector('.comm-filter[data-filter="all"]'));
+}
+
+async function markAllRead() {
+  if (!currentUser) return;
+  await db.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);
+  loadNotifCount();
+  loadNotifications();
+}
+
+async function insertNotif(userId, type, message, postId) {
+  if (!userId || userId === (currentUser && currentUser.id)) return;
+  await db.from('notifications').insert({ user_id: userId, type: type, message: message, post_id: postId || null, is_read: false });
+}
+
+function timeAgo(dateStr) {
+  var diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return 'à l\'instant';
+  if (diff < 3600) return Math.floor(diff / 60) + ' min';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'j';
+  return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+function startRealtimeNotifs() {
+  if (!currentUser || realtimeNotifChannel) return;
+  realtimeNotifChannel = db.channel('notifs-' + currentUser.id)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + currentUser.id }, function() {
+      loadNotifCount();
+    }).subscribe();
 }
 
 if ('serviceWorker' in navigator) {
