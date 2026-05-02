@@ -119,7 +119,7 @@ async function loadCatIds() {
 
 async function geocode(address) {
   var url = NOMINATIM + '?q=' + encodeURIComponent(address + ', France') + '&format=json&limit=1&countrycodes=fr';
-  var resp = await fetch(url, { headers: { 'Accept-Language': 'fr', 'User-Agent': 'MapLibre-Community-Map/1.0' } });
+  var resp = await fetch(url, { headers: { 'Accept-Language': 'fr', 'User-Agent': 'VanLifeMap-Community-Map/1.0' } });
   var data = await resp.json();
   if (data && data.length > 0) {
     return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), display: data[0].display_name };

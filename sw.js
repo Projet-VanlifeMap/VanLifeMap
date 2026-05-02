@@ -1,4 +1,4 @@
-var CACHE = 'vanlifemap-v2';
+var CACHE = 'vanlifemap-v3';
 var ASSETS = [
   '/',
   '/index.html',

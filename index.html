@@ -10,6 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VanLifeMap">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="favicon.png">
 <title>VanLifeMap</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -102,6 +103,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .radius-pill.active{background:var(--accent);border-color:var(--accent);color:#000;}
 .loc-divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .loc-me-btn{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;font-weight:500;min-height:48px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
+/* SIDEBAR LOCATION PILLS */
+.rpill-desk{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text);white-space:nowrap;}
+.rpill-desk.active{background:var(--accent);border-color:var(--accent);color:#000;}
+#loc-dropdown-desk .loc-dd-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;}
+#loc-dropdown-desk .loc-dd-item:last-child{border-bottom:none;}
+#loc-dropdown-desk .loc-dd-item:hover{background:var(--surface2);}
+#loc-dropdown-desk .loc-dd-city{font-weight:600;color:var(--text);}
+#loc-dropdown-desk .loc-dd-region{font-size:11px;color:var(--text2);margin-top:2px;}
 
 
 /* BOTTOM NAV */
@@ -225,18 +234,54 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 </style>
 </head>
 <body>
-<div id="loading"><div class="spinner"></div><h2>&#128205; Chargement...</h2></div>
+<div id="loading"><img src="icon-192.png" style="width:80px;height:80px;border-radius:18px;margin-bottom:4px;"><div class="spinner"></div><h2>VanLifeMap</h2></div>
 
 <div id="app">
   <div id="sidebar">
     <div id="sidebar-header">
-      <h1>&#128205; VanLifeMap</h1>
-      <p>Spots, services & bons plans vanlife</p>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="icon-192.png" alt="VanLifeMap" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
+        <div>
+          <h1 style="margin:0;">VanLifeMap</h1>
+          <p style="margin:0;">Spots, services & bons plans vanlife</p>
+        </div>
+      </div>
     </div>
     <div id="search-box">
       <span id="search-icon">&#128269;</span>
       <input type="text" id="search-input" placeholder="Rechercher un lieu...">
     </div>
+
+    <!-- LOCALISATION STYLE LEBONCOIN -->
+    <div id="sidebar-loc" style="padding:0 14px 12px;border-bottom:1px solid var(--border);">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:8px;">&#128205; Localisation</p>
+      <div style="position:relative;display:flex;align-items:center;">
+        <span style="position:absolute;left:10px;font-size:14px;pointer-events:none;">&#128205;</span>
+        <input type="text" id="loc-input-desk" placeholder="Ville, département..." oninput="onLocationInputDesk(this.value)" autocomplete="off"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:9px 10px 9px 32px;color:var(--text);font-size:13px;outline:none;font-family:var(--font-body);box-sizing:border-box;transition:border-color 0.2s;">
+        <button id="loc-clear-desk" onclick="clearLocationDesk()" style="display:none;position:absolute;right:8px;background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:0;">&#10005;</button>
+      </div>
+      <div id="loc-dropdown-desk" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.25);overflow:hidden;display:none;margin-top:6px;"></div>
+      <div id="loc-chip-desk" style="display:none;margin-top:8px;">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border-radius:20px;padding:5px 8px 5px 12px;font-size:12px;font-weight:700;">
+          <span>&#128205;</span><span id="loc-chip-desk-text"></span>
+          <button onclick="clearLocationDesk()" style="background:rgba(0,0,0,0.18);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;color:#000;">&#10005;</button>
+        </div>
+      </div>
+      <div id="loc-radius-desk" style="display:none;margin-top:10px;">
+        <p style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:600;">Rayon :</p>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="radius-pills-desk">
+          <button class="rpill-desk active" data-km="0" onclick="setLocationRadiusDesk(0)">Exact</button>
+          <button class="rpill-desk" data-km="10" onclick="setLocationRadiusDesk(10)">+10km</button>
+          <button class="rpill-desk" data-km="20" onclick="setLocationRadiusDesk(20)">+20km</button>
+          <button class="rpill-desk" data-km="50" onclick="setLocationRadiusDesk(50)">+50km</button>
+          <button class="rpill-desk" data-km="100" onclick="setLocationRadiusDesk(100)">+100km</button>
+          <button class="rpill-desk" data-km="200" onclick="setLocationRadiusDesk(200)">+200km</button>
+        </div>
+      </div>
+      <button onclick="locateMeLocationDesk()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">&#127759; Ma position</button>
+    </div>
+
     <div id="categories-list"></div>
     <div id="sidebar-footer">
       <div style="display:flex;gap:8px;">
@@ -936,6 +981,119 @@ function locateMeLocation() {
     });
     map.setView([selectedLocation.lat, selectedLocation.lon], 13);
     closeSheet('sheet-search');
+  });
+  map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
+}
+
+// ===== LOCATION SEARCH DESKTOP SIDEBAR =====
+var locationTimerDesk = null;
+var selectedLocationDesk = null;
+var selectedLocRadiusDesk = 0;
+
+function onLocationInputDesk(q) {
+  var dd = document.getElementById('loc-dropdown-desk');
+  var clearBtn = document.getElementById('loc-clear-desk');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+  if (!q || q.length < 2) { dd.style.display = 'none'; return; }
+  if (locationTimerDesk) clearTimeout(locationTimerDesk);
+  locationTimerDesk = setTimeout(async function() {
+    try {
+      var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=6&accept-language=fr&addressdetails=1';
+      var resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      var data = await resp.json();
+      renderLocationDropdownDesk(data, q);
+    } catch(e) {}
+  }, 350);
+}
+
+function renderLocationDropdownDesk(results, q) {
+  var dd = document.getElementById('loc-dropdown-desk');
+  if (!results.length) { dd.style.display = 'none'; return; }
+  dd._results = results;
+  var ql = (q || '').toLowerCase();
+  dd.innerHTML = results.map(function(r, i) {
+    var addr = r.address || {};
+    var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
+    var dept = addr.county || addr.state_district || addr['ISO3166-2-lvl6'] || '';
+    var region = addr.state || '';
+    var sub = [dept, region].filter(Boolean).join(' · ');
+    var highlighted = city.replace(new RegExp('(' + ql.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<strong style="color:var(--accent)">$1</strong>');
+    return '<div class="loc-dd-item" onclick="selectLocationIdxDesk(' + i + ')">'
+      + '<div class="loc-dd-city">&#128205; ' + highlighted + '</div>'
+      + (sub ? '<div class="loc-dd-region">' + sub + '</div>' : '')
+      + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
+function selectLocationIdxDesk(idx) {
+  var dd = document.getElementById('loc-dropdown-desk');
+  var r = dd._results[idx];
+  var addr = r.address || {};
+  var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
+  var dept = addr.county || addr.state_district || '';
+  var region = addr.state || '';
+  var sub = [dept, region].filter(Boolean).join(' · ');
+  document.getElementById('loc-input-desk').value = city + (sub ? ', ' + sub : '');
+  document.getElementById('loc-clear-desk').style.display = 'block';
+  dd.style.display = 'none';
+  document.getElementById('loc-chip-desk-text').textContent = city;
+  document.getElementById('loc-chip-desk').style.display = 'block';
+  document.getElementById('loc-radius-desk').style.display = 'block';
+  selectedLocationDesk = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
+  selectedLocRadiusDesk = 0;
+  document.querySelectorAll('.rpill-desk').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+  });
+  map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
+}
+
+function clearLocationDesk() {
+  selectedLocationDesk = null;
+  selectedLocRadiusDesk = 0;
+  document.getElementById('loc-input-desk').value = '';
+  document.getElementById('loc-clear-desk').style.display = 'none';
+  document.getElementById('loc-dropdown-desk').style.display = 'none';
+  document.getElementById('loc-chip-desk').style.display = 'none';
+  document.getElementById('loc-radius-desk').style.display = 'none';
+  clearRadius();
+}
+
+function setLocationRadiusDesk(km) {
+  selectedLocRadiusDesk = km;
+  document.querySelectorAll('.rpill-desk').forEach(function(b) {
+    b.classList.toggle('active', parseInt(b.dataset.km) === km);
+  });
+  if (!selectedLocationDesk) return;
+  radiusCenter = L.latLng(selectedLocationDesk.lat, selectedLocationDesk.lon);
+  if (km === 0) {
+    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+    document.getElementById('radius-bar').style.display = 'none';
+    map.setView(radiusCenter, 13);
+    scheduleLoad();
+  } else {
+    radiusKm = km;
+    drawRadiusCircle();
+    document.getElementById('radius-bar').style.display = 'flex';
+    map.setView(radiusCenter, getZoomForRadius(km));
+    loadPlacesInRadius();
+  }
+}
+
+function locateMeLocationDesk() {
+  map.locate({ setView: false });
+  map.once('locationfound', function(e) {
+    selectedLocationDesk = { lat: e.latlng.lat, lon: e.latlng.lng };
+    document.getElementById('loc-input-desk').value = 'Ma position';
+    document.getElementById('loc-clear-desk').style.display = 'block';
+    document.getElementById('loc-chip-desk-text').textContent = 'Ma position';
+    document.getElementById('loc-chip-desk').style.display = 'block';
+    document.getElementById('loc-radius-desk').style.display = 'block';
+    selectedLocRadiusDesk = 0;
+    document.querySelectorAll('.rpill-desk').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+    });
+    map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
   });
   map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
 }
