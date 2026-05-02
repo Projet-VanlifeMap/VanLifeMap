@@ -163,6 +163,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .rating-avg span{color:#fbbf24;font-weight:600;}
 .leaflet-bar{display:none !important;}
 .radius-circle{stroke:var(--accent);stroke-width:2;fill:rgba(110,231,183,0.08);}
+.custom-marker{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.55);border:2.5px solid rgba(255,255,255,0.35);}
+.custom-marker-inner{font-size:15px;line-height:1;}
 
 /* INSTALL BANNER */
 #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--surface);border-top:2px solid var(--accent);padding:16px 18px 20px;flex-direction:column;gap:12px;animation:slideUp 0.3s ease;}
@@ -207,7 +209,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div id="sidebar">
     <div id="sidebar-header">
       <h1>&#128205; VanLifeMap</h1>
-      <p>Carte communautaire des vacanciers</p>
+      <p>Spots, services & bons plans vanlife</p>
     </div>
     <div id="search-box">
       <span id="search-icon">&#128269;</span>
@@ -215,6 +217,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     </div>
     <div id="categories-list"></div>
     <div id="sidebar-footer">
+      <div style="display:flex;gap:8px;">
+        <button id="btn-show-all" onclick="toggleAllFilters(true)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#128065; Tout afficher</button>
+        <button onclick="toggleAllFilters(false)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#10005; Tout masquer</button>
+      </div>
       <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
       <button onclick="openSheet('sheet-rank');loadLeaderboard('places')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#127942; Classement</button>
       <div id="auth-zone">
@@ -279,7 +285,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     <div class="sheet-handle"></div>
     <div class="sheet-header">
       <span class="sheet-title">&#128193; Cat&#233;gories</span>
-      <button class="sheet-close" onclick="closeSheet('sheet-cats')">&#10005;</button>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button onclick="toggleAllFilters(true)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Tout</button>
+        <button onclick="toggleAllFilters(false)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Aucun</button>
+        <button class="sheet-close" onclick="closeSheet('sheet-cats')">&#10005;</button>
+      </div>
     </div>
     <div class="sheet-content" id="sheet-cats-content"></div>
   </div>
@@ -468,6 +478,10 @@ async function init() {
     await db.auth.exchangeCodeForSession(params.get('code'));
     window.history.replaceState({}, '', window.location.pathname);
   }
+  var sharedLat = parseFloat(params.get('lat'));
+  var sharedLon = parseFloat(params.get('lon'));
+  var sharedZoom = parseInt(params.get('zoom')) || 16;
+  var hasSharedLocation = !isNaN(sharedLat) && !isNaN(sharedLon);
 
   map = L.map('map', { zoomControl: false }).setView([46.603354, 1.888334], 6);
   layerStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
@@ -486,6 +500,10 @@ async function init() {
   await checkAuth();
 
   document.getElementById('loading').style.display = 'none';
+  if (hasSharedLocation) {
+    map.setView([sharedLat, sharedLon], sharedZoom);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
   document.getElementById('search-input').addEventListener('input', onSearch);
   document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
@@ -754,6 +772,7 @@ function signOut() {
   showToast('D\u00e9connect\u00e9', 'success');
 }
 
+var geocodeTimer = null;
 function onSearchMobile(e) {
   var q = e.target.value.toLowerCase();
   var res = document.getElementById('search-results');
@@ -761,14 +780,39 @@ function onSearchMobile(e) {
   var found = allPlaces.filter(function(p) {
     return p.name.toLowerCase().indexOf(q) >= 0 || (p.description || '').toLowerCase().indexOf(q) >= 0;
   });
-  if (!found.length) { res.innerHTML = '<p style="font-size:13px;color:var(--text2);padding:8px 0">Aucun r\u00e9sultat</p>'; return; }
-  res.innerHTML = found.slice(0, 10).map(function(p) {
+  var placesHtml = found.slice(0, 8).map(function(p) {
     var cat = p.categories;
     return '<div onclick="goToPlace(' + p.latitude + ',' + p.longitude + ')" style="padding:12px;border-radius:10px;background:var(--surface2);margin-bottom:8px;cursor:pointer">'
       + '<div style="font-size:12px;color:var(--text2)">' + (cat ? cat.icon + ' ' + cat.name : '') + '</div>'
       + '<div style="font-size:14px;font-weight:500;margin-top:2px">' + p.name + '</div>'
       + '</div>';
   }).join('');
+  res.innerHTML = placesHtml || '<p style="font-size:12px;color:var(--text2);padding:4px 0">Aucun lieu trouv\u00e9</p>';
+  if (geocodeTimer) clearTimeout(geocodeTimer);
+  geocodeTimer = setTimeout(function() { searchAddress(e.target.value, res, placesHtml); }, 600);
+}
+
+async function searchAddress(q, res, placesHtml) {
+  if (q.length < 3) return;
+  try {
+    var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=4&accept-language=fr';
+    var resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    var data = await resp.json();
+    if (!data.length) return;
+    var geoHtml = '<p style="font-size:11px;color:var(--text2);margin:8px 0 4px">&#127757; Adresses :</p>'
+      + data.map(function(r) {
+          return '<div onclick="goToAddress(' + r.lat + ',' + r.lon + ')" style="padding:10px 12px;border-radius:10px;background:var(--surface2);margin-bottom:6px;cursor:pointer;border-left:3px solid var(--accent);">'
+            + '<div style="font-size:13px;font-weight:500">' + r.display_name.split(',').slice(0,2).join(', ') + '</div>'
+            + '<div style="font-size:11px;color:var(--text2);margin-top:2px">' + (r.display_name.split(',').slice(2,4).join(', ').trim()) + '</div>'
+            + '</div>';
+        }).join('');
+    res.innerHTML = (placesHtml ? placesHtml + '<hr style="border-color:var(--border);margin:10px 0">' : '') + geoHtml;
+  } catch(e) {}
+}
+
+function goToAddress(lat, lon) {
+  closeSheet('sheet-search');
+  map.setView([parseFloat(lat), parseFloat(lon)], 14);
 }
 
 function goToPlace(lat, lng) {
@@ -968,7 +1012,7 @@ function renderMarkers(places) {
     var icon = cat ? cat.icon : '&#128205;';
     var mi = L.divIcon({
       html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + icon + '</div></div>',
-      className: '', iconSize: [32,32], iconAnchor: [16,32], popupAnchor: [0,-34]
+      className: '', iconSize: [32,32], iconAnchor: [16,16], popupAnchor: [0,-20]
     });
     var mk = L.marker([p.latitude, p.longitude], { icon: mi });
     mk.bindPopup(function() { return makePopup(p); }, { maxWidth: 300 });
@@ -999,7 +1043,10 @@ function makePopup(p) {
     + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#127758; Apple Plans</a>'
     + '</div>'
     + '<div style="padding:0 16px 10px;border-top:1px solid var(--border);margin-top:0;">'
-    + '<button onclick="toggleNav(\'' + p.id + '\')" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;margin-top:10px;">&#128205; M\'y rendre</button>'
+    + '<div style="display:flex;gap:6px;margin-top:10px;">'
+    + '<button onclick="toggleNav(\'' + p.id + '\')" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;">&#128205; M\'y rendre</button>'
+    + '<button onclick="sharePlace(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\',' + p.latitude + ',' + p.longitude + ')" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;" title="Partager">&#128279;</button>'
+    + '</div>'
     + '</div></div>'
     + '<div class="rating-zone">'
     + '<h4>&#11088; Note</h4>'
@@ -1100,7 +1147,13 @@ async function loadCmts(pid) {
   var data = result.data;
   if (!data || !data.length) { el.innerHTML = '<p style="font-size:11px;color:var(--text2)">Aucun commentaire</p>'; return; }
   el.innerHTML = data.map(function(c) {
-    return '<div class="comment-item"><div class="comment-author">' + (c.user_name || 'Anonyme') + '</div><div class="comment-text">' + c.content + '</div></div>';
+    var d = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR', {day:'numeric',month:'short'}) : '';
+    return '<div class="comment-item">'
+      + '<div style="display:flex;align-items:center;gap:6px;">'
+      + '<div class="comment-author">' + (c.user_name || 'Anonyme') + '</div>'
+      + (d ? '<div style="font-size:10px;color:var(--text2)">' + d + '</div>' : '')
+      + '</div>'
+      + '<div class="comment-text">' + c.content + '</div></div>';
   }).join('');
 }
 
@@ -1130,6 +1183,25 @@ async function vote(pid, pos) {
 
 function applyFilters() {
   if (radiusCenter) { loadPlacesInRadius(); } else { scheduleLoad(); }
+}
+
+function toggleAllFilters(on) {
+  mainCats.forEach(function(mc) {
+    filters[mc.id].on = on;
+    var el = document.getElementById('chk-' + mc.id);
+    var el2 = document.getElementById('chk-sm-' + mc.id);
+    [el, el2].forEach(function(e) {
+      if (e) { e.className = 'chk' + (on ? ' on' : ''); e.innerHTML = on ? '&#10003;' : ''; }
+    });
+    allCats.filter(function(c) { return c.main_category_id === mc.id; }).forEach(function(c) {
+      filters[mc.id].subs[c.id] = on;
+      ['chk-sub-' + c.id, 'chk-ss-' + c.id].forEach(function(sid) {
+        var s = document.getElementById(sid);
+        if (s) { s.className = 'chk-sm' + (on ? ' on' : ''); s.innerHTML = on ? '&#10003;' : ''; }
+      });
+    });
+  });
+  applyFilters();
 }
 
 function onSearch(e) {
@@ -1192,6 +1264,19 @@ async function submitPlace() {
   document.getElementById('info-adding').style.display = 'none';
   showToast('&#128205; Lieu ajout\u00e9 !', 'success');
   scheduleLoad();
+}
+
+function sharePlace(id, name, lat, lon) {
+  var url = window.location.origin + window.location.pathname + '?lat=' + lat + '&lon=' + lon + '&zoom=16';
+  if (navigator.share) {
+    navigator.share({ title: name, text: '📍 ' + name + ' — VanlifeMap', url: url });
+  } else {
+    navigator.clipboard.writeText(url).then(function() {
+      showToast('&#128279; Lien copié !', 'success');
+    }).catch(function() {
+      prompt('Copie ce lien :', url);
+    });
+  }
 }
 
 function locateMe() {

@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Import OSM</title>
+<title>Import — VanlifeMap</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: monospace; background: #0f1117; color: #e8eaf0; padding: 24px; }
 h1 { color: #6ee7b7; font-size: 20px; margin-bottom: 6px; }
-p { color: #8b91a8; font-size: 13px; margin-bottom: 20px; }
+p.sub { color: #8b91a8; font-size: 13px; margin-bottom: 20px; }
 .section { margin-bottom: 24px; }
 .section h2 { font-size: 15px; color: #e8eaf0; margin-bottom: 12px; border-bottom: 1px solid #2e3348; padding-bottom: 8px; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-.card { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 20px; }
-.card h3 { font-size: 14px; color: #6ee7b7; margin-bottom: 8px; }
-.card .count { font-size: 28px; font-weight: 700; color: #e8eaf0; margin: 8px 0; }
-.card p { font-size: 12px; color: #8b91a8; margin-bottom: 0; }
-.btn { background: #6ee7b7; color: #000; border: none; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.card { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 16px; }
+.card h3 { font-size: 12px; color: #6ee7b7; margin-bottom: 6px; }
+.card .count { font-size: 26px; font-weight: 700; color: #e8eaf0; margin: 4px 0; }
+.btn { background: #6ee7b7; color: #000; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
 .btn:hover { opacity: 0.85; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-sec { background: transparent; border: 1px solid #2e3348; color: #e8eaf0; }
-.log { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 16px; height: 360px; overflow-y: auto; font-size: 12px; line-height: 1.8; }
+.btn-danger { background: #f87171; color: #000; }
+.log { background: #1a1d27; border: 1px solid #2e3348; border-radius: 12px; padding: 16px; height: 320px; overflow-y: auto; font-size: 12px; line-height: 1.8; }
 .log::-webkit-scrollbar { width: 4px; }
 .log::-webkit-scrollbar-thumb { background: #2e3348; }
 .log-ok { color: #6ee7b7; }
@@ -31,69 +31,343 @@ p { color: #8b91a8; font-size: 13px; margin-bottom: 20px; }
 .progress-bar { background: #2e3348; border-radius: 4px; height: 8px; margin: 12px 0; overflow: hidden; }
 .progress-fill { background: #6ee7b7; height: 100%; border-radius: 4px; transition: width 0.3s; width: 0%; }
 label { font-size: 12px; color: #8b91a8; margin-bottom: 4px; display: block; }
-select { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 8px 12px; color: #e8eaf0; font-size: 13px; outline: none; margin-bottom: 12px; display: block; width: 100%; max-width: 500px; }
+select, input[type=text], input[type=number] {
+  background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px;
+  padding: 8px 12px; color: #e8eaf0; font-size: 13px; outline: none;
+  margin-bottom: 12px; display: block; width: 100%; max-width: 500px;
+}
+input[type=text] { max-width: 100%; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1020px; }
+.toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.toggle-row label { margin-bottom: 0; display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #e8eaf0; }
+.toggle-row input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
+
+/* ── Tabs source */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #2e3348; padding-bottom: 0; }
+.tab { background: transparent; border: 1px solid #2e3348; border-bottom: none; border-radius: 8px 8px 0 0; color: #8b91a8; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: -1px; }
+.tab:hover { color: #e8eaf0; }
+.tab.active { background: #1a1d27; border-color: #2e3348; color: #6ee7b7; border-bottom: 1px solid #1a1d27; }
+.src-panel { display: none; }
+.src-panel.active { display: block; }
+
+/* ── Infobulles dataset gouv */
+.dataset-hint { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; font-size: 12px; }
+.dataset-hint h4 { color: #6ee7b7; font-size: 12px; margin-bottom: 8px; }
+.dataset-hint a { color: #818cf8; text-decoration: none; cursor: pointer; display: block; margin-bottom: 4px; }
+.dataset-hint a:hover { text-decoration: underline; }
+
+/* ── Mapping colonnes */
+.col-map { background: #1a1d27; border: 1px solid #2e3348; border-radius: 8px; padding: 16px; margin-bottom: 12px; display: none; }
+.col-map.active { display: block; }
+.col-map h4 { color: #6ee7b7; font-size: 13px; margin-bottom: 12px; }
+.col-map .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.col-map select { max-width: 100%; margin-bottom: 0; }
+.preview-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 12px; overflow-x: auto; display: block; max-height: 120px; }
+.preview-table th { color: #6ee7b7; padding: 4px 8px; border-bottom: 1px solid #2e3348; text-align: left; white-space: nowrap; }
+.preview-table td { color: #8b91a8; padding: 3px 8px; white-space: nowrap; }
 </style>
 </head>
 <body>
-<h1>Import OpenStreetMap</h1>
-<p>Importe des lieux depuis OpenStreetMap dans ta base de donnees</p>
+<h1>Import de données — VanlifeMap</h1>
+<p class="sub">Importe des lieux depuis OpenStreetMap, OpenChargeMap ou data.gouv.fr</p>
 
 <div class="section">
   <h2>Statistiques</h2>
-  <div class="grid">
-    <div class="card"><h3>Lieux trouves</h3><div class="count" id="count-found">-</div></div>
-    <div class="card"><h3>Lieux importes</h3><div class="count" id="count-imported">-</div></div>
+  <div class="grid4">
+    <div class="card"><h3>Trouvés</h3><div class="count" id="count-found">-</div></div>
+    <div class="card"><h3>Importés</h3><div class="count" id="count-imported">-</div></div>
+    <div class="card"><h3>Doublons ignorés</h3><div class="count" id="count-skipped">-</div></div>
+    <div class="card"><h3>Erreurs</h3><div class="count" id="count-errors">-</div></div>
   </div>
 </div>
 
 <div class="section">
   <h2>Import</h2>
-  <label>Type de lieu</label>
-  <select id="type-select">
-    <option value="wc">Toilettes publiques</option>
-    <option value="shower">Douches publiques</option>
-    <option value="eau">Bornes eau potable</option>
-    <option value="camping">Aires camping-car</option>
-    <option value="wild">Spots sauvages</option>
-    <option value="laundry">Lavomatiques</option>
-    <option value="pizza">Distributeur de pizzas</option>
-    <option value="pain">Distributeur de pain et viennoiseries</option>
-    <option value="glacon">Distributeur de glacons</option>
-    <option value="huitre">Distributeur d'huitres</option>
-    <option value="mer">Distributeur fruits de mer</option>
-    <option value="fermier">Casier fermier</option>
-    <option value="fishing">Materiel de peche</option>
-    <option value="flowers">Distributeur de fleurs</option>
-    <option value="milk">Distributeur de lait</option>
-    <option value="eggs">Distributeur d'oeufs</option>
-    <option value="honey">Distributeur de miel</option>
-    <option value="books">Distributeur de livres</option>
-    <option value="coffee">Distributeur de cafe</option>
-    <option value="drinks">Distributeur de boissons</option>
-    <option value="petfood">Distributeur croquettes animaux</option>
-    <option value="gaz">Distributeur bouteilles de gaz</option>
-    <option value="hygiene">Distributeur hygiene feminine</option>
-    <option value="firstaid">Distributeur premiers secours</option>
-    <option value="condoms">Distributeur de preservatifs</option>
-  </select>
 
-  <label>Zone (bbox : sud,ouest,nord,est)</label>
-  <select id="region-select">
-    <option value="43.0,-1.8,46.0,1.5">Nouvelle-Aquitaine centre</option>
-    <option value="42.5,-1.8,44.5,1.8">Pyrenees / Pays Basque</option>
-    <option value="43.0,1.4,45.0,5.5">Occitanie</option>
-    <option value="43.0,4.8,44.5,7.7">PACA</option>
-    <option value="47.0,-5.2,49.0,-0.5">Bretagne</option>
-    <option value="47.0,-2.0,49.0,1.0">Pays de la Loire / Normandie</option>
-    <option value="48.5,1.5,50.5,5.5">Ile-de-France / Grand Est</option>
-    <option value="45.0,2.5,47.5,7.5">Auvergne-Rhone-Alpes</option>
-    <option value="42.0,-5.0,51.5,9.5">France entiere (lent)</option>
-  </select>
+  <!-- Tabs source -->
+  <div class="tabs">
+    <button class="tab active" onclick="setSource('osm')">🗺 OpenStreetMap</button>
+    <button class="tab" onclick="setSource('ocm')">⚡ OpenChargeMap</button>
+    <button class="tab" onclick="setSource('gouv')">🇫🇷 data.gouv.fr</button>
+    <button class="tab" onclick="setSource('gbfs')">🛴 GBFS (mobilité)</button>
+  </div>
 
-  <div style="margin-top:12px">
-    <button class="btn" onclick="startCount()">Compter les lieux</button>
-    <button class="btn" id="btn-import" onclick="startImport()" disabled>Importer dans Supabase</button>
-    <button class="btn btn-sec" onclick="clearLog()">Vider le log</button>
+  <!-- ── Panel OSM ── -->
+  <div class="src-panel active" id="src-osm">
+    <div class="row2">
+      <div>
+        <label>Type de lieu</label>
+        <select id="type-select">
+          <optgroup label="── Sanitaires">
+            <option value="wc">🚻 Toilettes publiques</option>
+            <option value="shower">🚿 Douches publiques</option>
+            <option value="eau">💧 Bornes eau potable</option>
+            <option value="dump">🗑️ Stations vidange eaux grises/noires</option>
+          </optgroup>
+          <optgroup label="── Camping / Spots">
+            <option value="camping">🅿️ Aires camping-car officielles</option>
+            <option value="wild">🌿 Spots sauvages van / tente</option>
+            <option value="picnic">🪑 Aires de pique-nique</option>
+          </optgroup>
+          <optgroup label="── Services & Commerces">
+            <option value="laundry">👕 Lavomatiques</option>
+            <option value="electric">⚡ Bornes recharge électrique</option>
+            <option value="fuel">⛽ Stations-service</option>
+            <option value="wifi">📶 WiFi public gratuit</option>
+            <option value="pharmacy">💊 Pharmacies</option>
+            <option value="hospital">🏥 Hôpitaux / Urgences</option>
+            <option value="supermarket">🛒 Supérettes / Épiceries</option>
+            <option value="bakery">🥖 Boulangeries</option>
+            <option value="market">🛍️ Marchés locaux</option>
+            <option value="tourist">ℹ️ Offices de tourisme</option>
+            <option value="sport">⚽ Terrains de sport publics</option>
+          </optgroup>
+          <optgroup label="── Distributeurs alimentaires">
+            <option value="pizza">🍕 Distributeur de pizzas</option>
+            <option value="pain">🥐 Distributeur de pain & viennoiseries</option>
+            <option value="glacon">🧊 Distributeur de glaçons</option>
+            <option value="huitre">🦪 Distributeur d'huîtres</option>
+            <option value="mer">🦞 Distributeur fruits de mer</option>
+            <option value="fermier">🧺 Casier fermier</option>
+            <option value="milk">🥛 Distributeur de lait</option>
+            <option value="eggs">🥚 Distributeur d'œufs</option>
+            <option value="honey">🍯 Distributeur de miel</option>
+          </optgroup>
+          <optgroup label="── Mobilité partagée">
+            <option value="bike_rental">🚲 Vélos en libre-service</option>
+            <option value="car_sharing">🚗 Voitures en libre-service</option>
+            <option value="moto_rental">🛵 Scooters / motos en libre-service</option>
+            <option value="boat_rental">🚤 Kayak / canoë / barque</option>
+          </optgroup>
+          <optgroup label="── Autres distributeurs">
+            <option value="fishing">🎣 Matériel de pêche</option>
+            <option value="flowers">💐 Distributeur de fleurs</option>
+            <option value="books">📚 Distributeur de livres</option>
+            <option value="coffee">☕ Distributeur de café</option>
+            <option value="drinks">🥤 Distributeur de boissons</option>
+            <option value="petfood">🐾 Croquettes animaux</option>
+            <option value="gaz">🔵 Bouteilles de gaz</option>
+            <option value="hygiene">🧴 Hygiène féminine</option>
+            <option value="firstaid">🩹 Premiers secours</option>
+            <option value="condoms">🛡️ Préservatifs</option>
+          </optgroup>
+        </select>
+      </div>
+      <div id="zone-col">
+        <label>Zone géographique</label>
+        <select id="region-select">
+          <optgroup label="── Grand Ouest">
+            <option value="47.0,-5.2,49.0,-0.5">Bretagne</option>
+            <option value="47.0,-2.0,49.0,1.0">Pays de la Loire</option>
+            <option value="48.5,-2.0,50.0,1.8">Normandie</option>
+          </optgroup>
+          <optgroup label="── Grand Sud-Ouest">
+            <option value="43.0,-1.8,46.0,1.5">Nouvelle-Aquitaine (centre)</option>
+            <option value="42.5,-1.8,44.5,1.8">Pyrénées / Pays Basque</option>
+            <option value="43.0,1.4,45.0,5.5">Occitanie</option>
+          </optgroup>
+          <optgroup label="── Grand Sud-Est">
+            <option value="43.0,4.8,44.5,7.7">PACA</option>
+            <option value="41.3,8.5,43.1,9.7">Corse</option>
+            <option value="43.5,3.0,44.5,7.7">Méditerranée (côte)</option>
+          </optgroup>
+          <optgroup label="── Centre & Est">
+            <option value="45.0,2.5,47.5,7.5">Auvergne-Rhône-Alpes</option>
+            <option value="46.5,4.0,48.5,6.8">Bourgogne-Franche-Comté</option>
+            <option value="47.5,6.8,49.5,8.3">Grand Est / Alsace</option>
+            <option value="46.5,0.5,48.5,3.5">Centre-Val de Loire</option>
+          </optgroup>
+          <optgroup label="── Nord & Île-de-France">
+            <option value="48.5,1.5,50.5,5.5">Île-de-France / Grand Est ouest</option>
+            <option value="49.8,1.5,51.1,4.2">Hauts-de-France</option>
+          </optgroup>
+          <optgroup label="── France complète">
+            <option value="42.0,-5.0,51.5,9.5">France entière (lent)</option>
+            <option value="42.0,-5.0,51.5,9.5|41.3,8.5,43.1,9.7">France + Corse</option>
+          </optgroup>
+          <optgroup label="── Péninsule Ibérique">
+            <option value="42.42,1.41,42.66,1.79">Andorre</option>
+            <option value="35.9,-9.5,43.8,4.3">Espagne + Portugal</option>
+            <option value="35.9,-9.3,43.8,4.3">Espagne entière</option>
+            <option value="36.9,-9.5,42.2,-6.2">Portugal</option>
+          </optgroup>
+          <optgroup label="── Méditerranée">
+            <option value="42.4,13.5,46.6,19.5">Croatie</option>
+            <option value="34.8,19.4,41.8,29.7">Grèce + îles</option>
+            <option value="36.6,6.6,47.1,18.5">Italie entière</option>
+            <option value="43.71,7.36,43.78,7.47">Monaco</option>
+            <option value="39.7,8.3,41.3,9.9">Sardaigne</option>
+          </optgroup>
+          <optgroup label="── Europe du Nord & Frontaliers">
+            <option value="47.3,5.9,55.1,15.0">Allemagne</option>
+            <option value="49.5,2.5,51.5,6.4">Belgique</option>
+            <option value="49.4,5.7,50.2,6.5">Luxembourg</option>
+            <option value="27.7,-13.2,35.9,-1.0">Maroc</option>
+            <option value="50.7,3.3,53.6,7.3">Pays-Bas</option>
+            <option value="49.9,-8.2,60.9,1.8">Royaume-Uni</option>
+            <option value="45.8,5.9,47.8,10.5">Suisse</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Panel OpenChargeMap ── -->
+  <div class="src-panel" id="src-ocm">
+    <p style="color:#8b91a8;font-size:12px;margin-bottom:12px">
+      Base mondiale de bornes de recharge — plus complète qu'OSM.
+      Clé API gratuite sur <strong style="color:#e8eaf0">openchargemap.io</strong> (compte requis).
+    </p>
+    <div class="row2">
+      <div>
+        <label>Clé API OpenChargeMap (optionnelle)</label>
+        <input type="text" id="ocm-key" placeholder="Laisse vide pour mode limité">
+        <label>Catégorie Supabase cible</label>
+        <select id="ocm-cat-override">
+          <option value="">-- Chargement... --</option>
+        </select>
+      </div>
+      <div>
+        <label>Zone géographique</label>
+        <select id="ocm-region-select">
+          <optgroup label="── France">
+            <option value="42.0,-5.0,51.5,9.5">France entière</option>
+            <option value="47.0,-5.2,49.0,-0.5">Bretagne</option>
+            <option value="43.0,-1.8,46.0,1.5">Nouvelle-Aquitaine</option>
+            <option value="43.0,4.8,44.5,7.7">PACA</option>
+            <option value="48.5,1.5,50.5,5.5">Île-de-France</option>
+          </optgroup>
+          <optgroup label="── Étranger">
+            <option value="47.3,5.9,55.1,15.0">Allemagne</option>
+            <option value="42.42,1.41,42.66,1.79">Andorre</option>
+            <option value="49.5,2.5,51.5,6.4">Belgique</option>
+            <option value="41.3,8.5,43.1,9.7">Corse</option>
+            <option value="42.4,13.5,46.6,19.5">Croatie</option>
+            <option value="35.9,-9.5,43.8,4.3">Espagne + Portugal</option>
+            <option value="34.8,19.4,41.8,29.7">Grèce + îles</option>
+            <option value="36.6,6.6,47.1,18.5">Italie</option>
+            <option value="43.71,7.36,43.78,7.47">Monaco</option>
+            <option value="49.9,-8.2,60.9,1.8">Royaume-Uni</option>
+            <option value="45.8,5.9,47.8,10.5">Suisse</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Panel data.gouv.fr ── -->
+  <div class="src-panel" id="src-gouv">
+    <p style="color:#8b91a8;font-size:12px;margin-bottom:12px">
+      Importe n'importe quel jeu de données JSON/GeoJSON depuis data.gouv.fr ou une autre source open data.
+    </p>
+    <div class="dataset-hint">
+      <h4>Jeux de données suggérés (clic pour remplir l'URL)</h4>
+      <a onclick="fillUrl('https://www.data.gouv.fr/api/1/datasets/r/7eee8f09-5d1b-4f48-a304-5e99e8da1e26')">⚡ Bornes IRVE — Recharge électrique France ⚠ 545 MB</a>
+      <a onclick="fillUrl('https://www.data.gouv.fr/api/1/datasets/r/a9e0c6ec-b5e0-446a-b7bf-a2b87882bd93')">🚻 Toilettes publiques — France entière (~61 MB GeoJSON)</a>
+      <a onclick="fillUrl('https://www.data.gouv.fr/api/1/datasets/r/925b0df3-51cb-46bd-8c6e-31ffbb593610')">💧 Fontaines à boire — Paris</a>
+      <a onclick="fillUrl('https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/sanisette/exports/json?lang=fr&timezone=Europe%2FParis')">🚿 Sanisettes — Paris (OpenData Paris)</a>
+      <a onclick="fillUrl('https://www.data.gouv.fr/api/1/datasets/r/1a25b85d-c284-474b-a674-bdcf00ea45b5')">🛍️ Marchés découverts — Paris</a>
+      <a onclick="fillUrl('https://www.data.gouv.fr/api/1/datasets/r/0ea4cc00-ff37-42e5-a416-b3af9628deee')">🏖️ Plages — Métropole Nice (GeoJSON)</a>
+      <p style="color:#f59e0b;font-size:11px;margin-top:8px">⚠ Les fichiers > 50 MB peuvent être trop lourds pour le navigateur. Préférer OSM ou OpenChargeMap pour les gros volumes.</p>
+    </div>
+    <label>URL du jeu de données (JSON ou GeoJSON)</label>
+    <input type="text" id="gouv-url" placeholder="https://...">
+    <button class="btn btn-sec" onclick="analyzeDataGouv()" style="margin-bottom:12px">🔍 Analyser le fichier</button>
+
+    <div class="col-map" id="col-map">
+      <h4>Mapping des colonnes</h4>
+      <div class="row3">
+        <div>
+          <label>Colonne Latitude</label>
+          <select id="col-lat"></select>
+        </div>
+        <div>
+          <label>Colonne Longitude</label>
+          <select id="col-lon"></select>
+        </div>
+        <div>
+          <label>Colonne Nom</label>
+          <select id="col-name"></select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Catégorie Supabase cible</label>
+        <select id="gouv-cat-override" style="max-width:400px"></select>
+      </div>
+      <div id="gouv-preview" style="overflow-x:auto;margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- ── Panel GBFS ── -->
+  <div class="src-panel" id="src-gbfs">
+    <p style="color:#8b91a8;font-size:12px;margin-bottom:12px">
+      Standard universel des opérateurs de mobilité partagée (vélos, trottinettes, scooters).
+      Fonctionne avec Vélib', Lime, Bird, Tier, Dott, Bolt, Pony et tout opérateur publiant du GBFS.
+    </p>
+    <div class="dataset-hint">
+      <h4>Feeds préconfigurés (clic pour remplir)</h4>
+      <a onclick="fillGbfs('https://velib-metropole-opendata.smovengo.com/opendata/Velib_Metropole/station_information.json')">🚲 Vélib' — Paris (stations fixes)</a>
+      <a onclick="fillGbfs('https://transport.data.gouv.fr/gbfs/lyon/station_information.json')">🚲 Vélo'v — Lyon (stations fixes)</a>
+      <a onclick="fillGbfs('https://transport.data.gouv.fr/gbfs/bordeaux/station_information.json')">🚲 VCub — Bordeaux (stations fixes)</a>
+      <a onclick="fillGbfs('https://transport.data.gouv.fr/gbfs/nantes/station_information.json')">🚲 Bicloo — Nantes (stations fixes)</a>
+      <a onclick="fillGbfs('https://transport.data.gouv.fr/gbfs/rennes/station_information.json')">🚲 Star Vélo — Rennes (stations fixes)</a>
+      <p style="color:#8b91a8;font-size:11px;margin-top:6px">
+        Pour Lime, Bird, Tier → cherche le feed de ta ville sur
+        <strong style="color:#818cf8">transport.data.gouv.fr</strong> ou
+        <strong style="color:#818cf8">gbfs.mobilitydata.org</strong>
+      </p>
+      <p style="color:#f59e0b;font-size:11px;margin-top:4px">
+        ⚠ Les opérateurs free-floating (pas de stations fixes) donnent des positions temps réel — non importables.
+        Seuls les systèmes à stations fixes sont utiles ici.
+      </p>
+    </div>
+    <div class="row2">
+      <div>
+        <label>URL du feed GBFS <span style="color:#8b91a8">(station_information.json ou gbfs.json)</span></label>
+        <input type="text" id="gbfs-url" placeholder="https://...station_information.json">
+        <label>Catégorie Supabase cible</label>
+        <select id="gbfs-cat-override"></select>
+      </div>
+      <div id="gbfs-info" style="display:none">
+        <div class="card" style="margin-top:20px">
+          <h3>Feed détecté</h3>
+          <div class="count" id="gbfs-count">-</div>
+          <p id="gbfs-desc" style="color:#8b91a8;font-size:11px;margin-top:4px"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Catégorie override (OSM) ── -->
+  <div id="osm-cat-row" style="margin-top:4px">
+    <label>Catégorie Supabase <span id="cat-status" style="color:#8b91a8;font-size:11px">(chargement auto)</span></label>
+    <select id="cat-override">
+      <option value="">-- Auto (détection par nom) --</option>
+    </select>
+  </div>
+
+  <!-- ── Options communes ── -->
+  <div class="toggle-row" style="margin-top:8px">
+    <label>
+      <input type="checkbox" id="opt-antidoublons" checked>
+      Anti-doublons (coordonnées existantes)
+    </label>
+    <label>
+      <input type="checkbox" id="opt-dryrun">
+      Mode aperçu (ne pas insérer)
+    </label>
+    <label style="margin-left:auto;color:#8b91a8;font-size:12px">
+      Délai inter-lots :
+      <input type="number" id="opt-delay" value="150" min="50" max="2000" style="width:70px;display:inline-block;margin:0 4px;padding:4px 8px">
+      ms
+    </label>
+  </div>
+
+  <div style="margin-top:4px">
+    <button class="btn" id="btn-count" onclick="startCount()">🔍 Compter</button>
+    <button class="btn" id="btn-import" onclick="startImport()" disabled>⬆️ Importer dans Supabase</button>
+    <button class="btn btn-danger" id="btn-abort" onclick="abortImport()" style="display:none">⏹ Arrêter</button>
+    <button class="btn btn-sec" onclick="clearAll()">🗑 Vider</button>
   </div>
   <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
   <div class="log" id="log"><span class="log-gray">En attente...</span></div>
@@ -104,169 +378,584 @@ var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
 var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var OVERPASS = 'https://overpass-api.de/api/interpreter';
-var osmData = [];
-var catIds = {};
+var OCM_API  = 'https://api.openchargemap.io/v3/poi/';
 
+var currentSource = 'osm';
+var importData = [];
+var catIds = {};
+var aborted = false;
+var gouvRawData = [];
+
+var CAT_NAMES = {
+  wc:'Toilettes publiques', shower:'Douche publique', eau:'Borne eau potable',
+  dump:'Station de vidange', camping:'Aire de camping-car officielle',
+  wild:'Spot sauvage van / tente', picnic:'Aire de pique-nique',
+  laundry:'Lavomatique automatique', electric:'Borne de recharge électrique',
+  fuel:'Station-service', wifi:'WiFi public', pharmacy:'Pharmacie',
+  hospital:'Hôpital / Urgences', supermarket:'Supérette / Épicerie',
+  bakery:'Boulangerie', market:'Marché local', tourist:'Office de tourisme',
+  sport:'Terrain de sport public', pizza:'Distributeur de pizzas',
+  pain:'Distributeur de pain & viennoiseries', glacon:'Distributeur de glaçons',
+  huitre:"Distributeur d'huîtres", mer:'Distributeur de fruits de mer',
+  fermier:'Casier fermier', milk:'Distributeur de lait frais',
+  eggs:"Distributeur d'œufs", honey:'Distributeur de miel',
+  fishing:'Distributeur matériel de pêche', flowers:'Distributeur de fleurs',
+  books:'Distributeur de livres', coffee:'Distributeur de café',
+  drinks:'Distributeur de boissons', petfood:'Distributeur de croquettes animaux',
+  gaz:'Distributeur bouteilles de gaz', hygiene:'Distributeur hygiène féminine',
+  firstaid:'Distributeur premiers secours', condoms:'Distributeur de préservatifs',
+  bike_rental:'Location de vélos en libre-service',
+  car_sharing:'Voiture en libre-service',
+  moto_rental:'Location de scooters / motos',
+  boat_rental:'Location de kayak / canoë'
+};
+
+// ── UI helpers
 function log(msg, type) {
   var el = document.getElementById('log');
   var line = document.createElement('div');
   line.className = 'log-' + (type || 'gray');
   line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-  el.appendChild(line);
-  el.scrollTop = el.scrollHeight;
+  el.appendChild(line); el.scrollTop = el.scrollHeight;
 }
 function setProgress(pct) { document.getElementById('progress').style.width = Math.min(pct,100) + '%'; }
-function clearLog() { document.getElementById('log').innerHTML = ''; osmData = []; document.getElementById('btn-import').disabled = true; setProgress(0); document.getElementById('count-found').textContent = '-'; document.getElementById('count-imported').textContent = '-'; }
-
-function buildQuery(type, b) {
-  var t = '[out:json][timeout:240];\n(\n';
-  var e = '\n);\nout body;';
-  var ec = '\n);\nout center;';
-  if (type === 'wc') return '[out:json][timeout:240];\nnode["amenity"="toilets"](' + b + ');\nout body;';
-  if (type === 'shower') return t + 'node["amenity"="shower"](' + b + ');\nnode["amenity"="toilets"]["shower"="yes"](' + b + ');' + e;
-  if (type === 'eau') return t + 'node["amenity"="drinking_water"](' + b + ');\nnode["amenity"="water_point"](' + b + ');\nnode["amenity"="fountain"]["drinking_water"="yes"](' + b + ');' + e;
-  if (type === 'camping') return t + 'node["tourism"="caravan_site"](' + b + ');\nway["tourism"="caravan_site"](' + b + ');\nnode["amenity"="parking"]["motorhome"="yes"](' + b + ');\nnode["amenity"="parking"]["campers"="yes"](' + b + ');\nnode["amenity"="sanitary_dump_station"](' + b + ');' + ec;
-  if (type === 'wild') return t + 'node["tourism"="camp_site"]["backcountry"="yes"](' + b + ');\nnode["tourism"="camp_site"]["camp_site"="basic"](' + b + ');\nnode["tourism"="camp_site"]["informal"="yes"](' + b + ');\nnode["tourism"="wilderness_hut"](' + b + ');' + ec;
-  if (type === 'laundry') return t + 'node["shop"="laundry"]["self_service"="yes"](' + b + ');\nnode["shop"="laundry"]["self_service"="only"](' + b + ');\nnode["shop"="laundrette"](' + b + ');\nnode["amenity"="washing_machine"](' + b + ');' + e;
-  if (type === 'pizza') return t + 'node["amenity"="vending_machine"]["vending"="pizza"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="food"]["name"~"pizza",i](' + b + ');' + e;
-  if (type === 'pain') return t + 'node["amenity"="vending_machine"]["vending"="bread"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="baguette"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="pastry"](' + b + ');' + e;
-  if (type === 'glacon') return t + 'node["amenity"="vending_machine"]["vending"="ice_cubes"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="ice"](' + b + ');' + e;
-  if (type === 'huitre') return t + 'node["amenity"="vending_machine"]["vending"="oysters"](' + b + ');\nnode["amenity"="vending_machine"]["name"~"huitre|huitres|ostrea",i](' + b + ');' + e;
-  if (type === 'mer') return t + 'node["amenity"="vending_machine"]["vending"="seafood"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="fish"](' + b + ');\nnode["shop"="seafood"]["self_service"="yes"](' + b + ');' + e;
-  if (type === 'fermier') return t + 'node["shop"="farm"]["self_service"="yes"](' + b + ');\nnode["shop"="farm"]["self_service"="only"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="milk"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="honey"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="eggs"](' + b + ');' + e;
-  if (type === 'fishing') return t + 'node["amenity"="vending_machine"]["vending"="fishing_tackle"](' + b + ');\nnode["amenity"="vending_machine"]["vending"="fishing_bait"](' + b + ');' + e;
-  if (type === 'flowers') return t + 'node["amenity"="vending_machine"]["vending"="flowers"](' + b + ');' + e;
-  if (type === 'milk') return t + 'node["amenity"="vending_machine"]["vending"="milk"](' + b + ');' + e;
-  if (type === 'eggs') return t + 'node["amenity"="vending_machine"]["vending"="eggs"](' + b + ');' + e;
-  if (type === 'honey') return t + 'node["amenity"="vending_machine"]["vending"="honey"](' + b + ');' + e;
-  if (type === 'books') return t + 'node["amenity"="vending_machine"]["vending"="books"](' + b + ');' + e;
-  if (type === 'coffee') return t + 'node["amenity"="vending_machine"]["vending"="coffee"](' + b + ');' + e;
-  if (type === 'drinks') return t + 'node["amenity"="vending_machine"]["vending"="drinks"](' + b + ');' + e;
-  if (type === 'petfood') return t + 'node["amenity"="vending_machine"]["vending"="pet_food"](' + b + ');' + e;
-  if (type === 'gaz') return t + 'node["amenity"="vending_machine"]["vending"="gas_bottles"](' + b + ');' + e;
-  if (type === 'hygiene') return t + 'node["amenity"="vending_machine"]["vending"="feminine_hygiene"](' + b + ');' + e;
-  if (type === 'firstaid') return t + 'node["amenity"="vending_machine"]["vending"="first_aid"](' + b + ');' + e;
-  if (type === 'condoms') return t + 'node["amenity"="vending_machine"]["vending"="condoms"](' + b + ');' + e;
-  return '';
+function setStat(id, val) { document.getElementById('count-' + id).textContent = val; }
+function clearAll() {
+  document.getElementById('log').innerHTML = '';
+  importData = []; gouvRawData = []; aborted = false;
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('btn-abort').style.display = 'none';
+  setProgress(0);
+  setStat('found','-'); setStat('imported','-'); setStat('skipped','-'); setStat('errors','-');
 }
 
-function getCatName(type) {
-  var names = {
-    wc: 'Toilettes publiques', shower: 'Douche publique', eau: 'Borne eau potable',
-    camping: 'Aire de camping-car officielle', wild: 'Spot sauvage van / tente',
-    laundry: 'Lavomatique automatique', pizza: 'Distributeur de pizzas',
-    pain: 'Distributeur de pain & viennoiseries', glacon: 'Distributeur de glacons',
-    huitre: "Distributeur d'huitres", mer: 'Distributeur de fruits de mer',
-    fermier: 'Casier fermier', fishing: 'Distributeur materiel de peche',
-    flowers: 'Distributeur de fleurs', milk: 'Distributeur de lait frais',
-    eggs: "Distributeur d'oeufs", honey: 'Distributeur de miel',
-    books: 'Distributeur de livres', coffee: 'Distributeur de cafe',
-    drinks: 'Distributeur de boissons', petfood: 'Distributeur de croquettes animaux',
-    gaz: 'Distributeur bouteilles de gaz', hygiene: 'Distributeur hygiene feminine',
-    firstaid: 'Distributeur premiers secours', condoms: 'Distributeur de preservatifs'
-  };
-  return names[type] || 'Lieu';
+// ── Tabs
+function setSource(src) {
+  currentSource = src;
+  document.querySelectorAll('.tab').forEach(function(t,i) {
+    t.classList.toggle('active', ['osm','ocm','gouv','gbfs'][i] === src);
+  });
+  document.querySelectorAll('.src-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('src-' + src).classList.add('active');
+  document.getElementById('osm-cat-row').style.display = src === 'osm' ? 'block' : 'none';
+  document.getElementById('btn-count').style.display = (src === 'gouv') ? 'none' : 'inline-block';
+  clearAll();
 }
 
-function getDefaultName(type) {
-  return getCatName(type);
-}
-
-function getLatLng(el) {
-  if (el.lat !== undefined && el.lon !== undefined) return { lat: el.lat, lng: el.lon };
-  if (el.center) return { lat: el.center.lat, lng: el.center.lon };
-  return null;
-}
-
+// ── Charge catégories Supabase
 async function loadCatIds() {
   var resM = await db.from('main_categories').select('id, name');
   var resS = await db.from('categories').select('id, name, main_category_id');
-  var mains = resM.data || [];
-  var subs = resS.data || [];
+  var mains = resM.data || [], subs = resS.data || [];
   catIds = {};
-  mains.forEach(function(m) {
-    subs.filter(function(s) { return s.main_category_id === m.id; }).forEach(function(s) {
-      catIds[s.name] = { id: s.id, main_id: m.id };
+  ['cat-override','ocm-cat-override','gouv-cat-override','gbfs-cat-override'].forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    while (sel.options.length > 0) sel.remove(0);
+    if (id === 'cat-override') sel.add(new Option('-- Auto (détection par nom) --', ''));
+    mains.forEach(function(m) {
+      subs.filter(function(s) { return s.main_category_id === m.id; }).forEach(function(s) {
+        catIds[s.name] = { id: s.id, main_id: m.id };
+        sel.add(new Option('[' + m.name.slice(0,18) + '] ' + s.name, s.name));
+      });
     });
   });
-  log('Categories chargees : ' + Object.keys(catIds).length, 'ok');
-  return true;
+  document.getElementById('cat-status').textContent = '(' + Object.keys(catIds).length + ' cat.)';
+  // pré-sélectionner "Borne de recharge électrique" pour OCM
+  var ocmSel = document.getElementById('ocm-cat-override');
+  for (var i = 0; i < ocmSel.options.length; i++) {
+    if (ocmSel.options[i].value === 'Borne de recharge électrique') { ocmSel.selectedIndex = i; break; }
+  }
+}
+
+// ── Anti-doublons
+async function loadExistingCoords(catId) {
+  log('Chargement coords existantes (anti-doublons)...', 'info');
+  var existing = new Set(), page = 0, PAGE = 1000;
+  while (true) {
+    var res = await db.from('places').select('latitude,longitude').eq('category_id', catId).range(page*PAGE,(page+1)*PAGE-1);
+    (res.data||[]).forEach(function(r) { existing.add(key5(r.latitude,r.longitude)); });
+    if ((res.data||[]).length < PAGE) break;
+    page++;
+  }
+  log('Existants dans cette catégorie : ' + existing.size, 'ok');
+  return existing;
+}
+function key5(lat, lng) { return parseFloat(lat).toFixed(5)+','+parseFloat(lng).toFixed(5); }
+
+// ── Insert batch commun
+async function insertBatch(rows, catName, source) {
+  var dryRun = document.getElementById('opt-dryrun').checked;
+  var antiDbl = document.getElementById('opt-antidoublons').checked;
+  var delay   = parseInt(document.getElementById('opt-delay').value) || 150;
+  if (dryRun) log('⚠ MODE APERÇU — aucune insertion', 'info');
+
+  var cat = catIds[catName];
+  if (!cat) {
+    log('ERREUR : catégorie "' + catName + '" introuvable !', 'err');
+    log('Dispo : ' + Object.keys(catIds).slice(0,8).join(', ') + '...', 'info');
+    return;
+  }
+  log('Catégorie : ' + catName, 'ok');
+
+  var existingCoords = new Set();
+  if (antiDbl && !dryRun) existingCoords = await loadExistingCoords(cat.id);
+
+  var total = rows.length, imported = 0, skipped = 0, errors = 0, BATCH = 25;
+  log('Import ' + total + ' lieux (source : ' + source + ')...', 'info');
+  document.getElementById('btn-abort').style.display = 'inline-block';
+
+  for (var i = 0; i < rows.length; i += BATCH) {
+    if (aborted) { log('Import interrompu à ' + i + '/' + total, 'err'); break; }
+    var batch = rows.slice(i, i+BATCH);
+    var toInsert = [];
+    batch.forEach(function(r) {
+      var k = key5(r.latitude, r.longitude);
+      if (antiDbl && existingCoords.has(k)) { skipped++; return; }
+      toInsert.push({
+        name: r.name, description: r.description || null,
+        latitude: r.latitude, longitude: r.longitude,
+        main_category_id: cat.main_id, category_id: cat.id,
+        user_name: source, disponible_24h: r.h24 || false, approved: true
+      });
+      if (antiDbl) existingCoords.add(k);
+    });
+
+    if (toInsert.length > 0 && !dryRun) {
+      var res = await db.from('places').insert(toInsert);
+      if (res.error) { errors += toInsert.length; log('Erreur lot : ' + res.error.message, 'err'); }
+      else imported += toInsert.length;
+    } else if (dryRun) imported += toInsert.length;
+
+    setStat('imported', imported); setStat('skipped', skipped); setStat('errors', errors);
+    setProgress(Math.round(((i+BATCH)/total)*100));
+    log(Math.min(i+BATCH,total)+'/'+total+' | ✅'+imported+' ⏭'+skipped+' ❌'+errors, 'gray');
+    await new Promise(function(r){ setTimeout(r, delay); });
+  }
+
+  var status = aborted ? 'INTERROMPU' : (dryRun ? 'APERÇU TERMINÉ' : 'TERMINÉ');
+  log('=== '+status+' === Importés : '+imported+' | Doublons : '+skipped+' | Erreurs : '+errors, 'ok');
+  document.getElementById('btn-import').disabled = false;
+  document.getElementById('btn-abort').style.display = 'none';
+}
+
+// ── OSM ────────────────────────────────────────────────
+function buildQuery(type, b) {
+  var t = '[out:json][timeout:300];\n(\n', e = '\n);\nout body;', ec = '\n);\nout center;';
+  if (type==='wc')         return '[out:json][timeout:300];\nnode["amenity"="toilets"]('+b+');\nout body;';
+  if (type==='shower')     return t+'node["amenity"="shower"]('+b+');\nnode["amenity"="toilets"]["shower"="yes"]('+b+');'+e;
+  if (type==='eau')        return t+'node["amenity"="drinking_water"]('+b+');\nnode["amenity"="water_point"]('+b+');\nnode["amenity"="fountain"]["drinking_water"="yes"]('+b+');'+e;
+  if (type==='dump')       return t+'node["amenity"="sanitary_dump_station"]('+b+');\nnode["amenity"="waste_disposal"]["motorhome"="yes"]('+b+');'+e;
+  if (type==='camping')    return t+'node["tourism"="caravan_site"]('+b+');\nway["tourism"="caravan_site"]('+b+');\nnode["amenity"="parking"]["motorhome"="yes"]('+b+');\nnode["amenity"="parking"]["campers"="yes"]('+b+');'+ec;
+  if (type==='wild')       return t+'node["tourism"="camp_site"]["backcountry"="yes"]('+b+');\nnode["tourism"="camp_site"]["camp_site"="basic"]('+b+');\nnode["tourism"="camp_site"]["informal"="yes"]('+b+');\nnode["tourism"="wilderness_hut"]('+b+');'+ec;
+  if (type==='picnic')     return t+'node["tourism"="picnic_site"]('+b+');\nway["tourism"="picnic_site"]('+b+');'+ec;
+  if (type==='laundry')    return t+'node["shop"="laundry"]["self_service"="yes"]('+b+');\nnode["shop"="laundry"]["self_service"="only"]('+b+');\nnode["shop"="laundrette"]('+b+');\nnode["amenity"="washing_machine"]('+b+');'+e;
+  if (type==='electric')   return t+'node["amenity"="charging_station"]('+b+');\nway["amenity"="charging_station"]('+b+');'+ec;
+  if (type==='fuel')       return t+'node["amenity"="fuel"]('+b+');\nway["amenity"="fuel"]('+b+');'+ec;
+  if (type==='wifi')       return t+'node["internet_access"="wlan"]["internet_access:fee"="no"]('+b+');\nnode["wifi"="free"]('+b+');'+e;
+  if (type==='pharmacy')   return t+'node["amenity"="pharmacy"]('+b+');\nway["amenity"="pharmacy"]('+b+');'+ec;
+  if (type==='hospital')   return t+'node["amenity"="hospital"]('+b+');\nway["amenity"="hospital"]('+b+');\nnode["amenity"="clinic"]('+b+');'+ec;
+  if (type==='supermarket')return t+'node["shop"="supermarket"]('+b+');\nway["shop"="supermarket"]('+b+');\nnode["shop"="convenience"]('+b+');'+ec;
+  if (type==='bakery')     return t+'node["shop"="bakery"]('+b+');\nway["shop"="bakery"]('+b+');'+ec;
+  if (type==='market')     return t+'node["amenity"="marketplace"]('+b+');\nway["amenity"="marketplace"]('+b+');'+ec;
+  if (type==='tourist')    return t+'node["tourism"="information"]["information"="office"]('+b+');'+ec;
+  if (type==='sport')      return t+'node["leisure"="pitch"]["access"!="private"]('+b+');\nway["leisure"="pitch"]["access"!="private"]('+b+');'+ec;
+  if (type==='pizza')      return t+'node["amenity"="vending_machine"]["vending"="pizza"]('+b+');'+e;
+  if (type==='pain')       return t+'node["amenity"="vending_machine"]["vending"="bread"]('+b+');\nnode["amenity"="vending_machine"]["vending"="baguette"]('+b+');\nnode["amenity"="vending_machine"]["vending"="pastry"]('+b+');'+e;
+  if (type==='glacon')     return t+'node["amenity"="vending_machine"]["vending"="ice_cubes"]('+b+');\nnode["amenity"="vending_machine"]["vending"="ice"]('+b+');'+e;
+  if (type==='huitre')     return t+'node["amenity"="vending_machine"]["vending"="oysters"]('+b+');\nnode["amenity"="vending_machine"]["name"~"huitre|huitres|ostrea",i]('+b+');'+e;
+  if (type==='mer')        return t+'node["amenity"="vending_machine"]["vending"="seafood"]('+b+');\nnode["amenity"="vending_machine"]["vending"="fish"]('+b+');'+e;
+  if (type==='fermier')    return t+'node["shop"="farm"]["self_service"="yes"]('+b+');\nnode["amenity"="vending_machine"]["vending"="farm_produce"]('+b+');'+e;
+  if (type==='fishing')    return t+'node["amenity"="vending_machine"]["vending"="fishing_tackle"]('+b+');'+e;
+  if (type==='flowers')    return t+'node["amenity"="vending_machine"]["vending"="flowers"]('+b+');'+e;
+  if (type==='milk')       return t+'node["amenity"="vending_machine"]["vending"="milk"]('+b+');'+e;
+  if (type==='eggs')       return t+'node["amenity"="vending_machine"]["vending"="eggs"]('+b+');'+e;
+  if (type==='honey')      return t+'node["amenity"="vending_machine"]["vending"="honey"]('+b+');'+e;
+  if (type==='books')      return t+'node["amenity"="vending_machine"]["vending"="books"]('+b+');'+e;
+  if (type==='coffee')     return t+'node["amenity"="vending_machine"]["vending"="coffee"]('+b+');'+e;
+  if (type==='drinks')     return t+'node["amenity"="vending_machine"]["vending"="drinks"]('+b+');'+e;
+  if (type==='petfood')    return t+'node["amenity"="vending_machine"]["vending"="pet_food"]('+b+');'+e;
+  if (type==='gaz')        return t+'node["amenity"="vending_machine"]["vending"="gas_bottles"]('+b+');'+e;
+  if (type==='hygiene')    return t+'node["amenity"="vending_machine"]["vending"="feminine_hygiene"]('+b+');'+e;
+  if (type==='firstaid')   return t+'node["amenity"="vending_machine"]["vending"="first_aid"]('+b+');'+e;
+  if (type==='condoms')    return t+'node["amenity"="vending_machine"]["vending"="condoms"]('+b+');'+e;
+  if (type==='bike_rental') return t+'node["amenity"="bicycle_rental"]('+b+');\nway["amenity"="bicycle_rental"]('+b+');'+ec;
+  if (type==='car_sharing') return t+'node["amenity"="car_sharing"]('+b+');\nway["amenity"="car_sharing"]('+b+');'+ec;
+  if (type==='moto_rental') return t+'node["amenity"="motorcycle_rental"]('+b+');\nnode["amenity"="scooter_rental"]('+b+');\nnode["amenity"="kick-scooter_rental"]('+b+');'+e;
+  if (type==='boat_rental') return t+'node["amenity"="boat_rental"]('+b+');\nway["amenity"="boat_rental"]('+b+');\nnode["leisure"="marina"]["boat_rental"="yes"]('+b+');'+ec;
+  return '';
+}
+function getLatLng(el) {
+  if (el.lat!==undefined && el.lon!==undefined) return {lat:el.lat,lng:el.lon};
+  if (el.center) return {lat:el.center.lat,lng:el.center.lon};
+  return null;
+}
+async function fetchOverpass(query, attempt) {
+  attempt = attempt||1;
+  try {
+    var resp = await fetch(OVERPASS,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query)});
+    if (resp.status===429||resp.status===504) {
+      if (attempt<3) { log('Overpass surchargé, retry dans 10s ('+attempt+'/3)','info'); await sleep(10000); return fetchOverpass(query,attempt+1); }
+      throw new Error('Overpass inaccessible (HTTP '+resp.status+')');
+    }
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    return await resp.json();
+  } catch(e) {
+    if (attempt<3 && !e.message.startsWith('HTTP')) { log('Erreur réseau, retry '+attempt+'/3...','info'); await sleep(5000); return fetchOverpass(query,attempt+1); }
+    throw e;
+  }
 }
 
 async function startCount() {
+  if (currentSource === 'gbfs') { await startCountGBFS(); return; }
+  if (currentSource === 'ocm') { await startCountOCM(); return; }
   var type = document.getElementById('type-select').value;
-  var bbox = document.getElementById('region-select').value;
-  osmData = [];
+  var bboxes = document.getElementById('region-select').value.split('|');
+  importData = [];
   document.getElementById('btn-import').disabled = true;
   document.getElementById('log').innerHTML = '';
-  setProgress(0);
-  var query = buildQuery(type, bbox);
-  if (!query) { log('Type non supporte : ' + type, 'err'); return; }
-  log('Type : ' + type + ' | Zone : ' + bbox, 'info');
-  log('Envoi vers Overpass API...', 'info');
-  setProgress(20);
+  setStat('found','…'); setProgress(10);
+  log('Type : '+(CAT_NAMES[type]||type)+' | Zone : '+bboxes.join('+'),'info');
   try {
-    var resp = await fetch(OVERPASS, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(query) });
-    if (!resp.ok) { log('Erreur HTTP : ' + resp.status, 'err'); setProgress(0); return; }
-    setProgress(60);
-    var data = await resp.json();
-    setProgress(100);
-    osmData = data.elements || [];
-    document.getElementById('count-found').textContent = osmData.length;
-    log('Trouves : ' + osmData.length + ' lieux !', 'ok');
-    if (osmData.length > 0) { document.getElementById('btn-import').disabled = false; log('Pret ! Clique sur "Importer"', 'info'); }
-    else { log('Aucun resultat. Essaie une autre zone.', 'err'); }
-  } catch(e) { log('Erreur : ' + e.message, 'err'); setProgress(0); }
+    for (var bi=0; bi<bboxes.length; bi++) {
+      var q = buildQuery(type, bboxes[bi]);
+      if (!q) { log('Type non supporté','err'); return; }
+      log('Requête Overpass'+(bboxes.length>1?' ('+(bi+1)+'/'+bboxes.length+')':'')+'...','info');
+      var data = await fetchOverpass(q);
+      importData = importData.concat(data.elements||[]);
+      setProgress(50+Math.round(50*(bi+1)/bboxes.length));
+    }
+    setStat('found', importData.length);
+    log('Trouvés : '+importData.length+' lieux !','ok');
+    if (importData.length>0) { document.getElementById('btn-import').disabled = false; log('Prêt → Importer','info'); }
+    else { log('Aucun résultat.','err'); setProgress(0); }
+  } catch(e) { log('Erreur : '+e.message,'err'); setProgress(0); }
 }
 
 async function startImport() {
-  if (!osmData.length) { log('Lance d\'abord le comptage !', 'err'); return; }
-  document.getElementById('btn-import').disabled = true;
-  log('Chargement des categories Supabase...', 'info');
+  if (currentSource==='gbfs') { await runImportGBFS(); return; }
+  if (currentSource==='ocm')  { await runImportOCM(); return; }
+  if (currentSource==='gouv') { await runImportGouv(); return; }
+  if (!importData.length) { log("Lance d'abord le comptage !",'err'); return; }
+  aborted=false;
+  document.getElementById('btn-import').disabled=true;
   await loadCatIds();
   var type = document.getElementById('type-select').value;
-  var catName = getCatName(type);
-  var cat = catIds[catName];
-  if (!cat) {
-    log('ERREUR : "' + catName + '" introuvable !', 'err');
-    log('Disponibles : ' + Object.keys(catIds).slice(0,10).join(', '), 'info');
-    document.getElementById('btn-import').disabled = false;
-    return;
-  }
-  log('Categorie : ' + catName, 'ok');
-  var total = osmData.length;
-  var imported = 0;
-  var skipped = 0;
-  var BATCH = 25;
-  log('Import de ' + total + ' lieux...', 'info');
-  for (var i = 0; i < osmData.length; i += BATCH) {
-    var batch = osmData.slice(i, i + BATCH);
-    var toInsert = [];
-    batch.forEach(function(el) {
-      var latlng = getLatLng(el);
-      if (!latlng) { skipped++; return; }
-      var tags = el.tags || {};
-      var name = tags.name || getDefaultName(type);
-      var desc = [];
-      if (tags.fee === 'yes') desc.push('Payant');
-      if (tags.fee === 'no') desc.push('Gratuit');
-      if (tags.opening_hours) desc.push('Horaires : ' + tags.opening_hours);
-      if (tags.operator) desc.push('Operateur : ' + tags.operator);
-      toInsert.push({ name: name, description: desc.length ? desc.join(' | ') : null, latitude: latlng.lat, longitude: latlng.lng, main_category_id: cat.main_id, category_id: cat.id, user_name: 'OpenStreetMap', disponible_24h: tags.opening_hours === '24/7', approved: true });
-    });
-    if (toInsert.length > 0) {
-      var res = await db.from('places').insert(toInsert);
-      if (res.error) { log('Erreur lot ' + (Math.floor(i/BATCH)+1) + ' : ' + res.error.message, 'err'); }
-      else { imported += toInsert.length; }
-    }
-    setProgress(Math.round(((i+BATCH)/total)*100));
-    log((Math.min(i+BATCH,total)) + ' / ' + total + ' | importes : ' + imported, 'gray');
-    await new Promise(function(r) { setTimeout(r, 100); });
-  }
-  document.getElementById('count-imported').textContent = imported;
-  log('=== TERMINE === Importes : ' + imported + ' | Ignores : ' + skipped, 'ok');
-  document.getElementById('btn-import').disabled = false;
+  var catName = document.getElementById('cat-override').value || CAT_NAMES[type];
+  var rows = importData.map(function(el) {
+    var latlng = getLatLng(el);
+    if (!latlng) return null;
+    var tags = el.tags||{}, desc=[];
+    if (tags.fee==='yes') desc.push('Payant'); if (tags.fee==='no') desc.push('Gratuit');
+    if (tags.opening_hours) desc.push('Horaires : '+tags.opening_hours);
+    if (tags.operator) desc.push('Opérateur : '+tags.operator);
+    if (tags.brand) desc.push('Marque : '+tags.brand);
+    if (tags.capacity) desc.push('Capacité : '+tags.capacity);
+    if (tags.socket) desc.push('Prise : '+tags.socket);
+    if (tags.phone) desc.push('Tél : '+tags.phone);
+    return { name: tags.name||CAT_NAMES[type]||'Lieu', description: desc.join(' | '),
+             latitude: latlng.lat, longitude: latlng.lng,
+             h24: tags.opening_hours==='24/7' };
+  }).filter(Boolean);
+  await insertBatch(rows, catName, 'OpenStreetMap');
 }
+
+// ── OpenChargeMap ───────────────────────────────────────
+async function startCountOCM() {
+  var bbox = document.getElementById('ocm-region-select').value;
+  var key  = document.getElementById('ocm-key').value.trim();
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  setStat('found','…'); setProgress(20);
+  log('Requête OpenChargeMap (bbox='+bbox+')...','info');
+  var parts = bbox.split(',');
+  var url = OCM_API+'?output=json&maxresults=5000&compact=true&verbose=false'
+    +'&boundingbox=('+parts[0]+','+parts[1]+','+parts[2]+','+parts[3]+')'
+    +(key ? '&key='+encodeURIComponent(key) : '');
+  try {
+    var resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    var data = await resp.json();
+    importData = data;
+    setStat('found', importData.length);
+    setProgress(100);
+    log('Trouvés : '+importData.length+' bornes !','ok');
+    if (importData.length>0) { document.getElementById('btn-import').disabled=false; log('Prêt → Importer','info'); }
+    else log('Aucune borne dans cette zone.','err');
+  } catch(e) { log('Erreur OCM : '+e.message,'err'); setProgress(0); }
+}
+
+async function runImportOCM() {
+  if (!importData.length) { log("Lance d'abord le comptage !",'err'); return; }
+  aborted=false;
+  document.getElementById('btn-import').disabled=true;
+  await loadCatIds();
+  var catName = document.getElementById('ocm-cat-override').value || 'Borne de recharge électrique';
+  var rows = importData.map(function(el) {
+    var ai = el.AddressInfo||{};
+    if (!ai.Latitude||!ai.Longitude) return null;
+    var desc=[];
+    if (el.OperatorInfo&&el.OperatorInfo.Title) desc.push('Opérateur : '+el.OperatorInfo.Title);
+    if (el.NumberOfPoints) desc.push('Nb bornes : '+el.NumberOfPoints);
+    if (el.UsageCost) desc.push('Coût : '+el.UsageCost);
+    if (el.Connections&&el.Connections.length) {
+      var types = el.Connections.map(function(c){ return (c.ConnectionType&&c.ConnectionType.Title?c.ConnectionType.Title:'?')+(c.PowerKW?' '+c.PowerKW+'kW':''); });
+      desc.push('Types : '+[...new Set(types)].join(', '));
+    }
+    if (ai.AddressLine1) desc.push(ai.AddressLine1+(ai.Town?', '+ai.Town:''));
+    return { name: ai.Title||'Borne de recharge', description: desc.join(' | '),
+             latitude: ai.Latitude, longitude: ai.Longitude, h24: false };
+  }).filter(Boolean);
+  await insertBatch(rows, catName, 'OpenChargeMap');
+}
+
+// ── data.gouv.fr ────────────────────────────────────────
+function fillUrl(url) { document.getElementById('gouv-url').value = url; }
+
+var LAT_FIELDS = ['latitude','lat','y_lat','ylat','wgs84_lat','geo_lat','ycoord','y'];
+var LON_FIELDS = ['longitude','lon','lng','x_long','xlong','wgs84_lon','geo_lon','xcoord','x'];
+var NAME_FIELDS= ['name','nom','titre','label','title','n_station','nom_station','denomination','libelle'];
+
+function detectField(keys, candidates) {
+  for (var i=0; i<candidates.length; i++) {
+    var c=candidates[i].toLowerCase();
+    for (var j=0; j<keys.length; j++) {
+      if (keys[j].toLowerCase()===c) return keys[j];
+    }
+  }
+  for (var i=0; i<candidates.length; i++) {
+    var c=candidates[i].toLowerCase();
+    for (var j=0; j<keys.length; j++) {
+      if (keys[j].toLowerCase().indexOf(c)!==-1) return keys[j];
+    }
+  }
+  return keys[0]||'';
+}
+
+function flattenRecord(rec) {
+  var out={};
+  Object.keys(rec).forEach(function(k){
+    var v=rec[k];
+    if (v!==null && typeof v==='object' && !Array.isArray(v)) {
+      Object.keys(v).forEach(function(k2){ out[k+'.'+k2]=v[k2]; });
+    } else { out[k]=v; }
+  });
+  return out;
+}
+
+async function analyzeDataGouv() {
+  var url = document.getElementById('gouv-url').value.trim();
+  if (!url) { log('Renseigne une URL','err'); return; }
+  log('Chargement du fichier...','info'); setProgress(20);
+  try {
+    var resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP '+resp.status);
+    var raw = await resp.json();
+    setProgress(70);
+
+    // Normalise en tableau de records
+    var records = [];
+    if (Array.isArray(raw)) { records = raw; }
+    else if (raw.features) { // GeoJSON
+      records = raw.features.map(function(f) {
+        var p = Object.assign({}, f.properties||{});
+        if (f.geometry&&f.geometry.coordinates) {
+          p['_lon']=f.geometry.coordinates[0];
+          p['_lat']=f.geometry.coordinates[1];
+        }
+        return p;
+      });
+    } else if (raw.results) { records = raw.results; }
+    else if (raw.data)    { records = raw.data; }
+    else { throw new Error('Format non reconnu (attendu : tableau JSON ou GeoJSON)'); }
+
+    if (!records.length) throw new Error('Aucun enregistrement trouvé');
+    gouvRawData = records;
+
+    // Flatten premier record pour détecter les clés
+    var sample = flattenRecord(records[0]);
+    var keys = Object.keys(sample);
+    setStat('found', records.length);
+    setProgress(100);
+    log(''+records.length+' enregistrements | '+keys.length+' colonnes','ok');
+
+    // Remplir les selects de colonnes
+    ['col-lat','col-lon','col-name'].forEach(function(id) {
+      var sel=document.getElementById(id);
+      while(sel.options.length) sel.remove(0);
+      sel.add(new Option('-- Choisir --',''));
+      keys.forEach(function(k){ sel.add(new Option(k,k)); });
+    });
+    var defLat  = detectField(keys, LAT_FIELDS);
+    var defLon  = detectField(keys, LON_FIELDS);
+    var defName = detectField(keys, NAME_FIELDS);
+    setSelectVal('col-lat',  defLat);
+    setSelectVal('col-lon',  defLon);
+    setSelectVal('col-name', defName);
+
+    // Aperçu tableau
+    var preview = records.slice(0,3).map(function(r){ return flattenRecord(r); });
+    var table='<table class="preview-table"><tr>';
+    keys.slice(0,8).forEach(function(k){ table+='<th>'+k+'</th>'; });
+    table+='</tr>';
+    preview.forEach(function(r){
+      table+='<tr>';
+      keys.slice(0,8).forEach(function(k){ table+='<td>'+(r[k]!==undefined?String(r[k]).slice(0,30):'')+'</td>'; });
+      table+='</tr>';
+    });
+    table+='</table>';
+    document.getElementById('gouv-preview').innerHTML = table;
+    document.getElementById('col-map').classList.add('active');
+    document.getElementById('btn-import').disabled = false;
+    log('Colonnes détectées → lat:'+defLat+' lon:'+defLon+' nom:'+defName,'ok');
+    log('Vérifie la correspondance puis clique sur Importer.','info');
+  } catch(e) {
+    log('Erreur : '+e.message,'err');
+    if (e.message.indexOf('CORS')!==-1||e.message.indexOf('Failed to fetch')!==-1) {
+      log('⚠ CORS bloqué — ouvre l\'URL dans un onglet et copie le JSON dans un fichier local.','info');
+    }
+    setProgress(0);
+  }
+}
+
+function setSelectVal(id, val) {
+  var sel=document.getElementById(id);
+  for (var i=0;i<sel.options.length;i++) {
+    if (sel.options[i].value===val) { sel.selectedIndex=i; break; }
+  }
+}
+
+async function runImportGouv() {
+  if (!gouvRawData.length) { log('Analyse le fichier d\'abord !','err'); return; }
+  aborted=false;
+  document.getElementById('btn-import').disabled=true;
+  await loadCatIds();
+  var colLat  = document.getElementById('col-lat').value;
+  var colLon  = document.getElementById('col-lon').value;
+  var colName = document.getElementById('col-name').value;
+  var catName = document.getElementById('gouv-cat-override').value;
+  if (!catName) { log('Choisis une catégorie Supabase','err'); document.getElementById('btn-import').disabled=false; return; }
+  if (!colLat||!colLon) { log('Choisis les colonnes lat/lon','err'); document.getElementById('btn-import').disabled=false; return; }
+
+  var rows = gouvRawData.map(function(rec) {
+    var r = flattenRecord(rec);
+    var lat = parseFloat(r[colLat]), lon = parseFloat(r[colLon]);
+    if (isNaN(lat)||isNaN(lon)) return null;
+    var name = (colName&&r[colName]) ? String(r[colName]).slice(0,120) : catName;
+    return { name:name, description:null, latitude:lat, longitude:lon };
+  }).filter(Boolean);
+
+  setStat('found', rows.length);
+  await insertBatch(rows, catName, 'data.gouv.fr');
+}
+
+// ── GBFS ────────────────────────────────────────────────
+function fillGbfs(url) { document.getElementById('gbfs-url').value = url; }
+
+async function resolveGBFSUrl(url) {
+  // Si c'est un index gbfs.json, on résout vers station_information.json
+  var resp = await fetch(url);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  var data = await resp.json();
+
+  // Format index GBFS : data.feeds[] ou data.{lang}.feeds[]
+  var feeds = null;
+  if (data.data) {
+    if (Array.isArray(data.data.feeds)) {
+      feeds = data.data.feeds;
+    } else {
+      // GBFS v1 multi-langue : data.data.fr.feeds, data.data.en.feeds...
+      var langs = Object.keys(data.data);
+      if (langs.length && data.data[langs[0]].feeds) feeds = data.data[langs[0]].feeds;
+    }
+  }
+
+  if (feeds) {
+    // Cherche station_information en priorité, sinon free_bike_status
+    var stationFeed = feeds.find(function(f){ return f.name === 'station_information'; });
+    var bikeFeed    = feeds.find(function(f){ return f.name === 'free_bike_status'; });
+    if (stationFeed) { log('Index GBFS → station_information trouvé', 'ok'); return { url: stationFeed.url, type: 'stations' }; }
+    if (bikeFeed)    { log('Index GBFS → free_bike_status (free-floating)', 'info'); return { url: bikeFeed.url, type: 'bikes' }; }
+    throw new Error('Aucun feed station_information ou free_bike_status dans cet index');
+  }
+
+  // C'est déjà un feed de données
+  if (data.data && data.data.stations) return { url: url, data: data, type: 'stations' };
+  if (data.data && data.data.bikes)    return { url: url, data: data, type: 'bikes' };
+  throw new Error('Format GBFS non reconnu');
+}
+
+function parseGBFSStations(data, type) {
+  var items = (type === 'bikes') ? (data.data.bikes || []) : (data.data.stations || []);
+  return items.map(function(s) {
+    var lat = parseFloat(s.lat), lon = parseFloat(s.lon);
+    if (isNaN(lat) || isNaN(lon)) return null;
+    var desc = [];
+    if (s.capacity)          desc.push('Capacité : ' + s.capacity);
+    if (s.address)           desc.push(s.address);
+    if (s.num_bikes_available !== undefined) desc.push('Vélos dispo : ' + s.num_bikes_available);
+    return { name: s.name || s.station_id || 'Station', description: desc.join(' | '),
+             latitude: lat, longitude: lon };
+  }).filter(Boolean);
+}
+
+async function startCountGBFS() {
+  var url = document.getElementById('gbfs-url').value.trim();
+  if (!url) { log('Entre une URL GBFS', 'err'); return; }
+  importData = [];
+  document.getElementById('btn-import').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  setStat('found', '…'); setProgress(20);
+  log('Chargement du feed GBFS...', 'info');
+  try {
+    var resolved = await resolveGBFSUrl(url);
+    var data = resolved.data;
+    if (!data) {
+      var r = await fetch(resolved.url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      data = await r.json();
+    }
+    var stations = parseGBFSStations(data, resolved.type);
+    importData = stations;
+    setStat('found', stations.length);
+    setProgress(100);
+    var typeLabel = resolved.type === 'bikes' ? 'véhicules free-floating' : 'stations fixes';
+    document.getElementById('gbfs-desc').textContent = typeLabel + ' • ' + stations.length + ' trouvés';
+    document.getElementById('gbfs-info').style.display = 'block';
+    document.getElementById('gbfs-count').textContent = stations.length;
+    log('Feed GBFS : ' + stations.length + ' ' + typeLabel, 'ok');
+    if (resolved.type === 'bikes') log('⚠ Free-floating : positions temps réel, import déconseillé', 'info');
+    if (stations.length > 0) { document.getElementById('btn-import').disabled = false; log('Prêt → Importer', 'info'); }
+  } catch(e) {
+    log('Erreur GBFS : ' + e.message, 'err');
+    if (e.message.indexOf('fetch') !== -1 || e.message.indexOf('CORS') !== -1)
+      log('⚠ CORS bloqué — essaie un proxy ou télécharge le JSON manuellement', 'info');
+    setProgress(0);
+  }
+}
+
+async function runImportGBFS() {
+  if (!importData.length) { log("Lance d'abord le comptage !", 'err'); return; }
+  aborted = false;
+  document.getElementById('btn-import').disabled = true;
+  await loadCatIds();
+  var catName = document.getElementById('gbfs-cat-override').value;
+  if (!catName) { log('Choisis une catégorie Supabase', 'err'); document.getElementById('btn-import').disabled = false; return; }
+  await insertBatch(importData, catName, 'GBFS');
+}
+
+// ── Utils
+function abortImport() {
+  aborted=true; log('⏹ Arrêt demandé...','err');
+  document.getElementById('btn-abort').disabled=true;
+}
+function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+// ── Init
+window.addEventListener('DOMContentLoaded', function() {
+  loadCatIds().catch(function(){ document.getElementById('cat-status').textContent='(erreur)'; });
+  setSource('osm');
+});
 </script>
 </body>
 </html>
