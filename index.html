@@ -83,24 +83,25 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 
 /* LOCATION SEARCH */
 .loc-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:10px;}
-.loc-input-wrap{position:relative;}
-.loc-input-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px 12px 42px;color:var(--text);font-size:15px;outline:none;font-family:var(--font-body);transition:border-color 0.2s;box-sizing:border-box;}
+.loc-input-wrap{position:relative;display:flex;align-items:center;}
+.loc-input-wrap input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px 14px 14px 44px;color:var(--text);font-size:16px;outline:none;font-family:var(--font-body);transition:border-color 0.2s;box-sizing:border-box;-webkit-appearance:none;}
 .loc-input-wrap input:focus{border-color:var(--accent);}
-.loc-input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
-.loc-dropdown{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.3);z-index:200;overflow:hidden;display:none;}
-.loc-dropdown-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.loc-input-icon{position:absolute;left:14px;font-size:17px;pointer-events:none;z-index:1;}
+/* Dropdown inline (pas absolute) pour éviter le clipping dans le sheet scroll */
+.loc-dropdown{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.25);overflow:hidden;display:none;margin-top:8px;}
+.loc-dropdown-item{padding:14px 16px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:rgba(110,231,183,0.15);transition:background 0.1s;}
 .loc-dropdown-item:last-child{border-bottom:none;}
 .loc-dropdown-item:active{background:var(--surface2);}
-.loc-dropdown-item .loc-city{font-size:14px;font-weight:600;color:var(--text);}
-.loc-dropdown-item .loc-region{font-size:12px;color:var(--text2);margin-top:2px;}
-.loc-chip-wrap{display:none;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
-.loc-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border-radius:20px;padding:6px 8px 6px 14px;font-size:13px;font-weight:700;}
-.loc-chip-x{background:rgba(0,0,0,0.18);border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;color:#000;flex-shrink:0;}
-.radius-pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;}
-.radius-pill{background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);transition:all 0.15s;white-space:nowrap;}
+.loc-dropdown-item .loc-city{font-size:15px;font-weight:600;color:var(--text);}
+.loc-dropdown-item .loc-region{font-size:12px;color:var(--text2);margin-top:3px;}
+.loc-chip-wrap{display:none;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.loc-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border-radius:20px;padding:8px 10px 8px 16px;font-size:14px;font-weight:700;}
+.loc-chip-x{background:rgba(0,0,0,0.18);border:none;border-radius:50%;min-width:26px;min-height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;color:#000;flex-shrink:0;}
+.radius-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.radius-pill{background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);transition:all 0.15s;white-space:nowrap;min-height:40px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent;}
 .radius-pill.active{background:var(--accent);border-color:var(--accent);color:#000;}
-.loc-divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
-.loc-me-btn{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:14px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;font-weight:500;}
+.loc-divider{border:none;border-top:1px solid var(--border);margin:18px 0;}
+.loc-me-btn{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;font-size:15px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;font-weight:500;min-height:48px;-webkit-tap-highlight-color:transparent;box-sizing:border-box;}
 
 
 /* BOTTOM NAV */
@@ -337,8 +338,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <div class="loc-input-wrap">
         <span class="loc-input-icon">&#128269;</span>
         <input type="text" id="loc-input" placeholder="Ville, commune, département..." oninput="onLocationInput(this.value)" autocomplete="off">
-        <div class="loc-dropdown" id="loc-dropdown"></div>
       </div>
+      <div class="loc-dropdown" id="loc-dropdown"></div>
 
       <!-- Chip ville sélectionnée -->
       <div class="loc-chip-wrap" id="loc-chip-wrap">
@@ -561,6 +562,11 @@ async function init() {
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
   document.getElementById('btn-locate').addEventListener('click', locateMe);
+  document.addEventListener('touchstart', function(e) {
+    var dd = document.getElementById('loc-dropdown');
+    var inp = document.getElementById('loc-input');
+    if (dd && inp && !dd.contains(e.target) && e.target !== inp) dd.style.display = 'none';
+  }, { passive: true });
 
   applyFilters();
 }
