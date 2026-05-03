@@ -695,42 +695,6 @@ var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
 var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-var DAB_CAT_ID = 'b1c2d3e4-f5a6-7890-bcde-f12345678901';
-var BANK_COLORS = {
-  'bnp':             '#00965E',
-  'bnp paribas':     '#00965E',
-  'société générale':'#E5161B',
-  'societe generale':'#E5161B',
-  'crédit agricole': '#007A3B',
-  'credit agricole': '#007A3B',
-  'la banque postale':'#FFCD00',
-  'banque postale':  '#FFCD00',
-  'la poste':        '#FFCD00',
-  'cic':             '#003B7A',
-  'lcl':             '#006633',
-  "caisse d'épargne":'#78BE20',
-  "caisse d'epargne":'#78BE20',
-  'caisse epargne':  '#78BE20',
-  'crédit mutuel':   '#009CDE',
-  'credit mutuel':   '#009CDE',
-  'hsbc':            '#DB0011',
-  'banque populaire':'#DD0030',
-  'bred':            '#E30613',
-  'boursorama':      '#F97316',
-  'orange bank':     '#FF6600',
-  'fortuneo':        '#00A651',
-  'monabanq':        '#7B2D8B',
-  'hello bank':      '#00A1DE',
-};
-function getBankColor(name) {
-  if (!name) return null;
-  var n = name.toLowerCase();
-  for (var k in BANK_COLORS) {
-    if (n.indexOf(k) !== -1) return BANK_COLORS[k];
-  }
-  return null;
-}
-
 var map, cluster;
 var layerStreet, layerSat, layerLabels, isSat = false;
 var currentUser = null;
@@ -1571,10 +1535,6 @@ function renderMarkers(places) {
     var cat = p.categories;
     var color = cat ? cat.color : '#ffd04f';
     var icon = cat ? cat.icon : '📍';
-    if (p.category_id === DAB_CAT_ID) {
-      icon = '🏦';
-      color = getBankColor(p.name) || '#1565C0';
-    }
     var iconHtml = fluentImg(icon, 22);
     var mi = L.divIcon({
       html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>',
