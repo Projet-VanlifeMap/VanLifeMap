@@ -199,20 +199,52 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .info-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2);margin-bottom:14px;}
 .info-box span{color:var(--accent);}
 
-/* POPUP */
-.leaflet-popup-content-wrapper{background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:var(--radius) !important;box-shadow:0 8px 32px rgba(0,0,0,0.5) !important;color:var(--text) !important;padding:0 !important;}
+/* POPUP v2 */
+.leaflet-popup-content-wrapper{background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:14px !important;box-shadow:0 8px 32px rgba(0,0,0,0.6) !important;color:var(--text) !important;padding:0 !important;}
 .leaflet-popup-tip{background:var(--surface) !important;}
-.leaflet-popup-content{margin:0 !important;width:280px !important;}
-.popup-inner{padding:16px;}
-.popup-cat{font-size:11px;color:var(--text2);margin-bottom:6px;}
-.popup-name{font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:6px;}
-.popup-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
-.popup-meta{font-size:11px;color:var(--text2);margin-bottom:8px;}
-.popup-meta span{color:var(--accent);}
-.popup-actions{display:flex;gap:6px;border-top:1px solid var(--border);padding-top:10px;}
-.vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px;}
-.comment-section{border-top:1px solid var(--border);padding:12px 16px;}
-.comment-section h4{font-size:12px;color:var(--text2);margin-bottom:8px;}
+.leaflet-popup-content{margin:0 !important;width:300px !important;}
+.pv2-header{padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.pv2-emoji{font-size:32px;line-height:1;flex-shrink:0;}
+.pv2-header-info{flex:1;min-width:0;}
+.pv2-hcat{font-size:10px;color:rgba(255,255,255,0.65);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px;}
+.pv2-hname{font-family:var(--font-head);font-size:15px;font-weight:700;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pv2-body{padding:10px 14px;border-bottom:1px solid var(--border);}
+.pv2-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.pv2-badge{font-size:11px;border-radius:20px;padding:3px 9px;font-weight:600;}
+.pv2-badge-avail{background:rgba(39,174,96,0.15);color:#2ecc71;}
+.pv2-badge-limited{background:rgba(144,144,144,0.12);color:#909090;}
+.pv2-badge-user{background:var(--surface2);color:var(--text2);}
+.pv2-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px;}
+.pv2-photos{padding:10px 14px;border-bottom:1px solid var(--border);}
+.pv2-photos-strip{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-bottom:2px;}
+.pv2-photos-strip::-webkit-scrollbar{height:3px;}
+.pv2-photos-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.photo-thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color 0.15s;}
+.photo-thumb:hover{border-color:var(--accent);}
+.photo-add-btn{width:72px;height:72px;border-radius:8px;background:var(--surface2);border:2px dashed var(--border);color:var(--text2);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:border-color 0.15s,color 0.15s;}
+.photo-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.pv2-nav{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;}
+.pv2-nav-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;text-decoration:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:var(--font-body);}
+.pv2-btn-goto{background:var(--accent);color:#000;}
+.pv2-btn-share{background:var(--surface2);border:1px solid var(--border) !important;color:var(--text);flex:0 0 42px;}
+.pv2-apps{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;}
+.pv2-app-btn{flex:1;text-decoration:none;text-align:center;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 2px;font-size:11px;font-family:var(--font-body);}
+.pv2-votes{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;}
+.pv2-vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);}
+.pv2-vote-btn.closed{color:var(--danger);border-color:rgba(248,113,113,0.3);}
+.pv2-report-btn{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:4px 6px;opacity:0.55;flex-shrink:0;}
+.pv2-rating{padding:10px 14px;border-bottom:1px solid var(--border);}
+.pv2-rating-label{font-size:11px;color:var(--text2);margin-bottom:5px;}
+.pv2-rating-row{display:flex;align-items:center;gap:10px;}
+.stars{display:flex;gap:2px;align-items:center;}
+.star{font-size:20px;cursor:pointer;color:var(--border);transition:color 0.15s;line-height:1;}
+.star.on{color:#fbbf24;}
+.star:hover,.star:hover~.star{color:var(--border);}
+.stars:hover .star{color:#fbbf24;}
+.stars .star:hover~.star{color:var(--border);}
+.pv2-rating-avg{font-size:12px;color:var(--text2);}
+.pv2-comments{padding:10px 14px;}
+.pv2-comments-title{font-size:11px;color:var(--text2);font-weight:700;margin-bottom:8px;}
 .comment-item{margin-bottom:8px;}
 .comment-author{font-size:11px;font-weight:500;color:var(--accent);}
 .comment-text{font-size:12px;color:var(--text2);margin-top:2px;}
@@ -220,16 +252,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .c-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--text);font-family:var(--font-body);outline:none;}
 .c-input:focus{border-color:var(--accent);}
 .c-send{background:var(--accent);border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:#000;}
-.stars{display:flex;gap:3px;align-items:center;}
-.star{font-size:20px;cursor:pointer;color:var(--border);transition:color 0.15s;line-height:1;}
-.star.on{color:#fbbf24;}
-.star:hover,.star:hover~.star{color:var(--border);}
-.stars:hover .star{color:#fbbf24;}
-.stars .star:hover~.star{color:var(--border);}
-.rating-zone{padding:10px 16px;border-top:1px solid var(--border);}
-.rating-zone h4{font-size:12px;color:var(--text2);margin-bottom:6px;}
-.rating-avg{font-size:12px;color:var(--text2);margin-top:4px;}
-.rating-avg span{color:#fbbf24;font-weight:600;}
+/* lightbox */
+#lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;}
+#lb-img{max-width:92vw;max-height:84vh;object-fit:contain;border-radius:8px;}
+#lb-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:20px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#lb-prev,#lb-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:28px;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+#lb-prev{left:14px;}#lb-next{right:14px;}
+#lb-counter{position:absolute;bottom:18px;color:rgba(255,255,255,0.45);font-size:13px;font-family:var(--font-body);}
+/* compat */
+.vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px;}
 .leaflet-bar{display:none !important;}
 .radius-circle{stroke:var(--accent);stroke-width:2;fill:rgba(110,231,183,0.08);}
 .custom-marker{width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.5);border:2.5px solid rgba(255,255,255,0.45);}
@@ -1548,43 +1579,75 @@ function renderMarkers(places) {
 
 function makePopup(p) {
   var cat = p.categories;
+  var color = cat ? cat.color : '#ffd04f';
+  var icon  = cat ? cat.icon  : '\ud83d\udccd';
+  var catName = cat ? cat.name : 'Lieu';
   var el = document.createElement('div');
+  var safeId = p.id;
+  var safeName = p.name.replace(/'/g, "\\'");
   var cmtZone = currentUser
-    ? '<div class="comment-input-zone"><input class="c-input" id="ci-' + p.id + '" placeholder="Ajouter un commentaire..."><button class="c-send" onclick="addCmt(\'' + p.id + '\')">&#8594;</button></div>'
+    ? '<div class="comment-input-zone"><input class="c-input" id="ci-' + safeId + '" placeholder="Ajouter un commentaire..."><button class="c-send" onclick="addCmt(\'' + safeId + '\')">&#8594;</button></div>'
     : '<p style="font-size:11px;color:var(--text2);margin-top:6px">Connectez-vous pour commenter</p>';
-  el.innerHTML = '<div class="popup-inner">'
-    + '<div class="popup-cat">' + (cat ? cat.icon + ' ' + cat.name : '&#128205; Lieu') + '</div>'
-    + '<div class="popup-name">' + p.name + '</div>'
-    + (p.description ? '<div class="popup-desc">' + p.description + '</div>' : '')
-    + '<div class="popup-meta">Par <span>' + (p.user_name || 'Anonyme') + '</span> &middot; ' + (p.disponible_24h ? '&#9989; 24h/24' : '&#8987; Horaires limit\u00e9s') + '</div>'
-    + '<div class="popup-meta">&#128077; ' + (p.votes_positifs || 0) + ' &middot; &#128078; ' + (p.votes_negatifs || 0) + '</div>'
-    + '<div id="report-info-' + p.id + '" style="display:none;font-size:11px;color:var(--danger);padding:4px 0 6px;"></div>'
-    + '<div class="popup-actions">'
-    + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',true)">&#128077; Utile</button>'
-    + '<button class="vote-btn" onclick="vote(\'' + p.id + '\',false)">&#128078; Ferm\u00e9</button>'
-    + '<button class="vote-btn" onclick="openReport(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'" ) + '\')" style="color:var(--danger);border-color:var(--danger)">&#9888;&#65039; Signaler</button>'
+  var availBadge = p.disponible_24h
+    ? '<span class="pv2-badge pv2-badge-avail">&#9989; 24h/24</span>'
+    : '<span class="pv2-badge pv2-badge-limited">&#8987; Horaires limit\u00e9s</span>';
+  var starHtml = [1,2,3,4,5].map(function(n) {
+    return '<span class="star" onclick="ratePlace(\'' + safeId + '\',' + n + ')" onmouseover="hoverStars(\'' + safeId + '\',' + n + ')" onmouseout="resetStars(\'' + safeId + '\')">&#9733;</span>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="pv2-header" style="background:' + color + ';border-radius:14px 14px 0 0;">'
+    + '<div class="pv2-emoji">' + icon + '</div>'
+    + '<div class="pv2-header-info">'
+    + '<div class="pv2-hcat">' + escHtml(catName) + '</div>'
+    + '<div class="pv2-hname">' + escHtml(p.name) + '</div>'
     + '</div>'
-    + '<div class="popup-nav" id="nav-' + p.id + '" style="display:none;padding:8px 16px;border-top:1px solid var(--border);gap:6px;flex-wrap:wrap;">'
-    + '<a href="https://waze.com/ul?ll=' + p.latitude + ',' + p.longitude + '&navigate=yes" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128663; Waze</a>'
-    + '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#128506; Google Maps</a>'
-    + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="vote-btn" style="text-decoration:none;text-align:center;">&#127758; Apple Plans</a>'
     + '</div>'
-    + '<div style="padding:0 16px 10px;border-top:1px solid var(--border);margin-top:0;">'
-    + '<div style="display:flex;gap:6px;margin-top:10px;">'
-    + '<button onclick="toggleNav(\'' + p.id + '\')" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:6px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;">&#128205; M\'y rendre</button>'
-    + '<button onclick="sharePlace(\'' + p.id + '\',\'' + p.name.replace(/'/g,"\\'") + '\',' + p.latitude + ',' + p.longitude + ')" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:9px 12px;font-size:13px;cursor:pointer;" title="Partager">&#128279;</button>'
+
+    + '<div class="pv2-body">'
+    + '<div class="pv2-badges">'
+    + availBadge
+    + '<span class="pv2-badge pv2-badge-user">&#128100; ' + escHtml(p.user_name || 'Anonyme') + '</span>'
     + '</div>'
+    + (p.description ? '<div class="pv2-desc">' + escHtml(p.description) + '</div>' : '')
+    + '<div id="report-info-' + safeId + '" style="display:none;font-size:11px;color:var(--danger);padding:4px 0 0;"></div>'
+    + '</div>'
+
+    + '<div class="pv2-photos"><div class="pv2-photos-strip" id="photos-' + safeId + '">'
+    + '<span style="font-size:11px;color:var(--text2);">Chargement...</span>'
     + '</div></div>'
-    + '<div class="rating-zone">'
-    + '<h4>&#11088; Note</h4>'
-    + '<div class="stars" id="stars-' + p.id + '">'
-    + [1,2,3,4,5].map(function(n) { return '<span class="star" onclick="ratePlace(\'' + p.id + '\',' + n + ')" onmouseover="hoverStars(\'' + p.id + '\',' + n + ')" onmouseout="resetStars(\'' + p.id + '\')">&#9733;</span>'; }).join('')
+
+    + '<div class="pv2-nav">'
+    + '<button onclick="toggleNav(\'' + safeId + '\')" class="pv2-nav-btn pv2-btn-goto">&#128205; M\'y rendre</button>'
+    + '<button onclick="sharePlace(\'' + safeId + '\',\'' + safeName + '\',' + p.latitude + ',' + p.longitude + ')" class="pv2-nav-btn pv2-btn-share" title="Partager">&#128279;</button>'
     + '</div>'
-    + '<div class="rating-avg" id="rating-avg-' + p.id + '">Chargement...</div>'
+    + '<div class="pv2-apps" id="nav-' + safeId + '" style="display:none;">'
+    + '<a href="https://waze.com/ul?ll=' + p.latitude + ',' + p.longitude + '&navigate=yes" target="_blank" class="pv2-app-btn">&#128663; Waze</a>'
+    + '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.latitude + ',' + p.longitude + '" target="_blank" class="pv2-app-btn">&#128506; Google</a>'
+    + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="pv2-app-btn">&#127758; Apple</a>'
     + '</div>'
-    + '<div class="comment-section"><h4>&#128172; Commentaires</h4>'
-    + '<div id="cmt-' + p.id + '">Chargement...</div>'
-    + cmtZone + '</div>';
+
+    + '<div class="pv2-votes">'
+    + '<button class="pv2-vote-btn" onclick="vote(\'' + safeId + '\',true)">&#128077; Utile (' + (p.votes_positifs || 0) + ')</button>'
+    + '<button class="pv2-vote-btn closed" onclick="vote(\'' + safeId + '\',false)">&#128078; Ferm\u00e9 (' + (p.votes_negatifs || 0) + ')</button>'
+    + '<button class="pv2-report-btn" onclick="openReport(\'' + safeId + '\',\'' + safeName + '\')" title="Signaler">&#9888;&#65039;</button>'
+    + '</div>'
+
+    + '<div class="pv2-rating">'
+    + '<div class="pv2-rating-label">&#11088; Votre note</div>'
+    + '<div class="pv2-rating-row">'
+    + '<div class="stars" id="stars-' + safeId + '">' + starHtml + '</div>'
+    + '<div class="pv2-rating-avg" id="rating-avg-' + safeId + '"></div>'
+    + '</div>'
+    + '</div>'
+
+    + '<div class="pv2-comments">'
+    + '<div class="pv2-comments-title">&#128172; Commentaires</div>'
+    + '<div id="cmt-' + safeId + '">Chargement...</div>'
+    + cmtZone
+    + '</div>';
+
+  loadPhotos(p.id);
   loadCmts(p.id);
   loadRating(p.id);
   loadReportInfo(p.id);
@@ -1667,6 +1730,63 @@ function toggleNav(pid) {
   var el = document.getElementById('nav-' + pid);
   if (el) el.style.display = el.style.display === 'none' ? 'flex' : 'none';
 }
+
+// ===== PHOTOS =====
+var lbPhotos = [], lbIndex = 0;
+
+async function loadPhotos(pid) {
+  var el = document.getElementById('photos-' + pid);
+  if (!el) return;
+  var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
+  renderPhotos(pid, res.data || []);
+}
+
+function renderPhotos(pid, photos) {
+  var el = document.getElementById('photos-' + pid);
+  if (!el) return;
+  var urls = photos.map(function(ph) { return ph.url; });
+  var thumbs = photos.map(function(ph, i) {
+    return '<img class="photo-thumb" src="' + ph.url + '" onclick=\'openLightbox(' + JSON.stringify(urls) + ',' + i + ')\'>';
+  }).join('');
+  var addBtn = currentUser
+    ? '<label class="photo-add-btn" for="photo-input-' + pid + '" title="Ajouter une photo">+</label>'
+      + '<input type="file" id="photo-input-' + pid + '" accept="image/*" style="display:none" onchange="uploadPhoto(\'' + pid + '\',this)">'
+    : '';
+  el.innerHTML = thumbs + addBtn
+    + (photos.length === 0 && !currentUser ? '<span style="font-size:11px;color:var(--text2);">Aucune photo</span>' : '');
+}
+
+async function uploadPhoto(pid, input) {
+  var file = input.files[0];
+  if (!file) return;
+  showToast('Upload en cours...', 'success');
+  var ext = file.name.split('.').pop().toLowerCase();
+  var path = pid + '/' + Date.now() + '.' + ext;
+  var upRes = await db.storage.from('place-photos').upload(path, file, { contentType: file.type });
+  if (upRes.error) { showToast('Erreur upload : ' + upRes.error.message, 'error'); return; }
+  var pub = db.storage.from('place-photos').getPublicUrl(path);
+  var url = pub.data.publicUrl;
+  await db.from('place_photos').insert({ place_id: pid, url: url, uploaded_by: currentUser.id, uploader_name: currentUser.email.split('@')[0] });
+  showToast('Photo ajoutée !', 'success');
+  var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
+  renderPhotos(pid, res.data || []);
+}
+
+function openLightbox(urls, index) {
+  lbPhotos = urls; lbIndex = index;
+  var lb = document.getElementById('lightbox');
+  lb.style.display = 'flex';
+  updateLightbox();
+}
+function updateLightbox() {
+  document.getElementById('lb-img').src = lbPhotos[lbIndex];
+  document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + lbPhotos.length;
+  document.getElementById('lb-prev').style.display = lbPhotos.length > 1 ? 'flex' : 'none';
+  document.getElementById('lb-next').style.display = lbPhotos.length > 1 ? 'flex' : 'none';
+}
+function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+function lbPrev() { lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); }
+function lbNext() { lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); }
 
 async function loadCmts(pid) {
   var result = await db.from('comments').select('*').eq('place_id', pid).order('created_at', { ascending: false }).limit(5);
@@ -2433,5 +2553,13 @@ function applyMaskLayer() {
   </div>
 </div>
 
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lb-close" onclick="closeLightbox()">&#x2715;</button>
+  <button id="lb-prev" onclick="event.stopPropagation();lbPrev()">&#8249;</button>
+  <img id="lb-img" onclick="event.stopPropagation()" src="">
+  <button id="lb-next" onclick="event.stopPropagation();lbNext()">&#8250;</button>
+  <div id="lb-counter"></div>
+</div>
 </body>
 </html>
