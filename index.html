@@ -18,6 +18,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -60,6 +61,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .sub-cat-name{font-size:12px;color:var(--text2);flex:1;cursor:pointer;}
 .chk-sm{width:12px;height:12px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:transparent;transition:all 0.15s;}
 .chk-sm.on{background:var(--accent);border-color:var(--accent);color:#000;}
+/* COUNTRY PICKER */
+#country-picker{position:fixed;inset:0;z-index:10000;background:#0a0e1a;display:flex;flex-direction:column;}
+#picker-header{padding:22px 20px 10px;text-align:center;flex-shrink:0;}
+#picker-header h2{font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--accent);margin-bottom:4px;}
+#picker-header p{font-size:12px;color:var(--text2);}
+#picker-map{flex:1;min-height:0;}
+#picker-footer{padding:14px 16px calc(14px + var(--safe-bottom));background:#111;border-top:1px solid #222;flex-shrink:0;display:flex;flex-direction:column;gap:10px;}
+#picker-tags{display:flex;gap:6px;flex-wrap:wrap;min-height:26px;align-items:center;}
+.picker-tag{background:rgba(255,208,79,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:4px 10px 4px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.picker-tag-del{background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;line-height:1;padding:0;}
+#picker-actions{display:flex;gap:8px;}
+#picker-btn-confirm{flex:1;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:12px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;opacity:0.35;pointer-events:none;transition:opacity 0.2s;}
+#picker-btn-confirm.ready{opacity:1;pointer-events:all;}
+#picker-btn-all{background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;cursor:pointer;white-space:nowrap;}
+#btn-change-country{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+#btn-change-country:hover{border-color:var(--accent);color:var(--accent);}
 #sidebar-footer{padding:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
 #btn-add-desk{width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:10px;font-family:var(--font-head);font-size:13px;font-weight:700;cursor:pointer;}
 #auth-zone{display:flex;align-items:center;gap:8px;}
@@ -352,6 +369,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <button id="btn-show-all" onclick="toggleAllFilters(true)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#128065; Tout afficher</button>
         <button onclick="toggleAllFilters(false)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#10005; Tout masquer</button>
       </div>
+      <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer de zone</span></button>
       <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
       <button onclick="openSheet('sheet-rank');loadLeaderboard('places')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#127942; Classement</button>
       <div id="auth-zone">
@@ -736,6 +754,26 @@ async function init() {
   await checkAuth();
 
   document.getElementById('loading').style.display = 'none';
+
+  // Country selection
+  var savedCountries = localStorage.getItem('vlm_countries');
+  var noFilter = localStorage.getItem('vlm_no_filter');
+  if (savedCountries) {
+    selectedCountries = JSON.parse(savedCountries);
+    await loadWorldGeo();
+    applyCountryView();
+    applyMaskLayer();
+    updateCountryLabel();
+  } else if (!noFilter) {
+    setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom);
+    await openCountryPicker();
+    return;
+  }
+
+  setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom);
+}
+
+function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
   if (hasSharedLocation) {
     map.setView([sharedLat, sharedLon], sharedZoom);
     window.history.replaceState({}, '', window.location.pathname);
@@ -750,7 +788,6 @@ async function init() {
     var inp = document.getElementById('loc-input');
     if (dd && inp && !dd.contains(e.target) && e.target !== inp) dd.style.display = 'none';
   }, { passive: true });
-
   applyFilters();
 }
 
@@ -2201,6 +2238,200 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js');
   });
 }
+
+// ===== COUNTRY PICKER =====
+var selectedCountries = [];
+var pickerMapObj = null;
+var pickerGeoLayer = null;
+var maskLayer = null;
+var worldGeoData = null;
+
+var EU_COUNTRIES = {
+  '250':{'name':'France','flag':'🇫🇷','bbox':[[42.0,-5.0],[51.5,9.5]]},
+  '724':{'name':'Espagne','flag':'🇪🇸','bbox':[[35.9,-9.4],[43.8,4.4]]},
+  '620':{'name':'Portugal','flag':'🇵🇹','bbox':[[36.8,-9.5],[42.2,-6.2]]},
+  '380':{'name':'Italie','flag':'🇮🇹','bbox':[[36.5,6.6],[47.1,18.5]]},
+  '276':{'name':'Allemagne','flag':'🇩🇪','bbox':[[47.3,5.9],[55.1,15.0]]},
+  '56':{'name':'Belgique','flag':'🇧🇪','bbox':[[49.5,2.5],[51.5,6.4]]},
+  '528':{'name':'Pays-Bas','flag':'🇳🇱','bbox':[[50.8,3.3],[53.5,7.2]]},
+  '756':{'name':'Suisse','flag':'🇨🇭','bbox':[[45.8,6.0],[47.8,10.5]]},
+  '40':{'name':'Autriche','flag':'🇦🇹','bbox':[[46.4,9.5],[49.0,17.2]]},
+  '191':{'name':'Croatie','flag':'🇭🇷','bbox':[[42.4,13.5],[46.6,19.4]]},
+  '300':{'name':'Grèce','flag':'🇬🇷','bbox':[[34.8,19.4],[42.0,28.3]]},
+  '826':{'name':'Royaume-Uni','flag':'🇬🇧','bbox':[[49.9,-8.6],[60.9,1.8]]},
+  '372':{'name':'Irlande','flag':'🇮🇪','bbox':[[51.4,-10.5],[55.4,-5.9]]},
+  '208':{'name':'Danemark','flag':'🇩🇰','bbox':[[54.6,8.1],[57.8,15.2]]},
+  '752':{'name':'Suède','flag':'🇸🇪','bbox':[[55.3,10.9],[69.1,24.2]]},
+  '578':{'name':'Norvège','flag':'🇳🇴','bbox':[[57.9,4.5],[71.2,31.1]]},
+  '246':{'name':'Finlande','flag':'🇫🇮','bbox':[[59.8,19.1],[70.1,31.6]]},
+  '348':{'name':'Hongrie','flag':'🇭🇺','bbox':[[45.7,16.1],[48.6,22.9]]},
+  '203':{'name':'Tchéquie','flag':'🇨🇿','bbox':[[48.5,12.1],[51.1,18.9]]},
+  '616':{'name':'Pologne','flag':'🇵🇱','bbox':[[49.0,14.1],[54.9,24.2]]},
+  '705':{'name':'Slovénie','flag':'🇸🇮','bbox':[[45.4,13.4],[46.9,16.6]]},
+  '703':{'name':'Slovaquie','flag':'🇸🇰','bbox':[[47.7,16.8],[49.6,22.6]]},
+  '642':{'name':'Roumanie','flag':'🇷🇴','bbox':[[43.6,20.3],[48.3,30.0]]},
+  '100':{'name':'Bulgarie','flag':'🇧🇬','bbox':[[41.2,22.4],[44.2,28.6]]},
+  '688':{'name':'Serbie','flag':'🇷🇸','bbox':[[42.2,18.8],[46.2,23.0]]},
+  '499':{'name':'Monténégro','flag':'🇲🇪','bbox':[[41.9,18.5],[43.6,20.4]]},
+  '8':{'name':'Albanie','flag':'🇦🇱','bbox':[[39.6,19.3],[42.7,21.1]]},
+  '792':{'name':'Turquie','flag':'🇹🇷','bbox':[[35.8,26.0],[42.1,44.8]]},
+  '504':{'name':'Maroc','flag':'🇲🇦','bbox':[[27.7,-13.2],[35.9,-1.0]]},
+  '788':{'name':'Tunisie','flag':'🇹🇳','bbox':[[30.2,7.5],[37.5,11.6]]},
+  '12':{'name':'Algérie','flag':'🇩🇿','bbox':[[19.0,-8.7],[37.1,12.0]]},
+  '72':{'name':'Botswana','flag':'🇧🇼','bbox':[[-26.9,19.9],[-17.8,29.4]]},
+  '76':{'name':'Brésil','flag':'🇧🇷','bbox':[[-33.7,-73.6],[5.3,-34.8]]},
+  '124':{'name':'Canada','flag':'🇨🇦','bbox':[[42.0,-141.0],[83.0,-52.0]]},
+  '840':{'name':'États-Unis','flag':'🇺🇸','bbox':[[24.4,-124.8],[49.4,-66.9]]},
+  '36':{'name':'Australie','flag':'🇦🇺','bbox':[[-43.6,113.3],[-10.7,153.6]]},
+  '554':{'name':'Nouvelle-Zélande','flag':'🇳🇿','bbox':[[-46.6,166.4],[-34.4,178.6]]},
+  '392':{'name':'Japon','flag':'🇯🇵','bbox':[[30.9,130.0],[45.5,145.8]]},
+  '76':{'name':'Brésil','flag':'🇧🇷','bbox':[[-33.7,-73.6],[5.3,-34.8]]},
+};
+
+async function loadWorldGeo() {
+  if (worldGeoData) return;
+  var topo = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(function(r) { return r.json(); });
+  worldGeoData = topojson.feature(topo, topo.objects.countries);
+}
+
+async function openCountryPicker() {
+  var el = document.getElementById('country-picker');
+  el.style.display = 'flex';
+  await loadWorldGeo();
+
+  if (!pickerMapObj) {
+    pickerMapObj = L.map('picker-map', { center:[48,10], zoom:4, zoomControl:false, attributionControl:false });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { maxZoom:10 }).addTo(pickerMapObj);
+  }
+  renderPickerLayer();
+  renderPickerTags();
+  setTimeout(function() { pickerMapObj.invalidateSize(); }, 100);
+}
+
+function renderPickerLayer() {
+  if (pickerGeoLayer) pickerMapObj.removeLayer(pickerGeoLayer);
+  pickerGeoLayer = L.geoJSON(worldGeoData, {
+    style: function(f) {
+      var isEU = !!EU_COUNTRIES[String(f.id)];
+      var isSel = selectedCountries.indexOf(String(f.id)) >= 0;
+      if (isSel) return { fillColor:'#ffd04f', fillOpacity:0.45, color:'#ffd04f', weight:2 };
+      if (isEU) return { fillColor:'#1e2e1e', fillOpacity:0.8, color:'#3a5a3a', weight:1 };
+      return { fillColor:'#111', fillOpacity:0.6, color:'#222', weight:0.5 };
+    },
+    onEachFeature: function(f, layer) {
+      if (!EU_COUNTRIES[String(f.id)]) return;
+      var c = EU_COUNTRIES[String(f.id)];
+      layer.bindTooltip(c.flag + ' ' + c.name, { permanent:false, direction:'center', className:'picker-tooltip' });
+      layer.on('click', function() { togglePickerCountry(String(f.id)); });
+      layer.on('mouseover', function() {
+        if (selectedCountries.indexOf(String(f.id)) < 0) layer.setStyle({ fillColor:'#444', fillOpacity:0.7 });
+      });
+      layer.on('mouseout', function() {
+        if (selectedCountries.indexOf(String(f.id)) < 0) layer.setStyle({ fillColor:'#1e2e1e', fillOpacity:0.8, color:'#3a5a3a', weight:1 });
+      });
+    }
+  }).addTo(pickerMapObj);
+}
+
+function togglePickerCountry(id) {
+  var idx = selectedCountries.indexOf(id);
+  if (idx >= 0) selectedCountries.splice(idx, 1);
+  else selectedCountries.push(id);
+  renderPickerLayer();
+  renderPickerTags();
+  var btn = document.getElementById('picker-btn-confirm');
+  if (selectedCountries.length > 0) btn.classList.add('ready');
+  else btn.classList.remove('ready');
+}
+
+function renderPickerTags() {
+  var el = document.getElementById('picker-tags');
+  if (!selectedCountries.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--text2)">Cliquez sur un ou plusieurs pays</span>';
+    return;
+  }
+  el.innerHTML = selectedCountries.map(function(id) {
+    var c = EU_COUNTRIES[id];
+    if (!c) return '';
+    return '<div class="picker-tag">' + c.flag + ' ' + c.name
+      + '<button class="picker-tag-del" onclick="togglePickerCountry(\'' + id + '\')">×</button></div>';
+  }).join('');
+}
+
+function confirmCountries(all) {
+  if (all) {
+    selectedCountries = [];
+    localStorage.removeItem('vlm_countries');
+    localStorage.setItem('vlm_no_filter', '1');
+    document.getElementById('country-label').textContent = 'Changer de zone';
+  } else {
+    localStorage.setItem('vlm_countries', JSON.stringify(selectedCountries));
+    localStorage.removeItem('vlm_no_filter');
+    applyCountryView();
+    updateCountryLabel();
+  }
+  applyMaskLayer();
+  document.getElementById('country-picker').style.display = 'none';
+  if (!document.getElementById('search-input')._listenerAdded) {
+    document.getElementById('search-input')._listenerAdded = true;
+    setupListeners(false, 0, 0, 6);
+  } else {
+    applyFilters();
+  }
+}
+
+function applyCountryView() {
+  if (!selectedCountries.length) return;
+  var bounds = L.latLngBounds();
+  selectedCountries.forEach(function(id) {
+    var c = EU_COUNTRIES[id];
+    if (c) bounds.extend(L.latLngBounds(c.bbox[0], c.bbox[1]));
+  });
+  if (bounds.isValid()) map.fitBounds(bounds.pad(0.08));
+}
+
+function updateCountryLabel() {
+  var el = document.getElementById('country-label');
+  if (!el) return;
+  if (!selectedCountries.length) { el.textContent = 'Changer de zone'; return; }
+  var flags = selectedCountries.slice(0,3).map(function(id) { return EU_COUNTRIES[id] ? EU_COUNTRIES[id].flag : ''; }).join(' ');
+  el.textContent = flags + (selectedCountries.length > 3 ? ' +' + (selectedCountries.length - 3) : '');
+}
+
+function applyMaskLayer() {
+  if (maskLayer) { map.removeLayer(maskLayer); maskLayer = null; }
+  if (!selectedCountries.length || !worldGeoData) return;
+  maskLayer = L.geoJSON(worldGeoData, {
+    style: function(f) {
+      var isSel = selectedCountries.indexOf(String(f.id)) >= 0;
+      return {
+        fillColor: '#000',
+        fillOpacity: isSel ? 0 : 0.55,
+        color: isSel ? '#ffd04f' : 'transparent',
+        weight: isSel ? 1.5 : 0,
+        interactive: false
+      };
+    },
+    interactive: false
+  }).addTo(map);
+}
 </script>
+
+<!-- COUNTRY PICKER OVERLAY -->
+<div id="country-picker" style="display:none">
+  <div id="picker-header">
+    <h2>🗺️ Où voyagez-vous ?</h2>
+    <p>Cliquez sur un ou plusieurs pays · Multi-sélection possible pour les road trips</p>
+  </div>
+  <div id="picker-map"></div>
+  <div id="picker-footer">
+    <div id="picker-tags"></div>
+    <div id="picker-actions">
+      <button id="picker-btn-all" onclick="confirmCountries(true)">&#127758; Voir tout</button>
+      <button id="picker-btn-confirm" onclick="confirmCountries(false)">Valider mon choix ✓</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
