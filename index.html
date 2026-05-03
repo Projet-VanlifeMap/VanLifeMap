@@ -21,8 +21,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0d1530;--surface:#1a2240;--surface2:#1e2a4a;--border:#2a3558;
-  --accent:#f07800;--text:#f0f2f8;--text2:#8a9bbf;--danger:#f87171;
+  --bg:#141414;--surface:#1e1e1e;--surface2:#252525;--border:#333333;
+  --accent:#ffd04f;--text:#f5f5f5;--text2:#909090;--danger:#f87171;
   --nav-h:64px;--safe-bottom:env(safe-area-inset-bottom,0px);
   --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
   --radius:16px;--radius-sm:10px;
@@ -86,7 +86,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 #map-filter-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0;}
 #map-filter-cats::-webkit-scrollbar{display:none;}
 .map-cat-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:8px 10px;cursor:pointer;flex-shrink:0;transition:all 0.15s;min-width:54px;-webkit-tap-highlight-color:transparent;}
-.map-cat-btn.active{border-color:var(--accent);background:rgba(240,120,0,0.1);}
+.map-cat-btn.active{border-color:var(--accent);background:rgba(255,208,79,0.1);}
 .map-cat-btn .mcb-icon{font-size:20px;line-height:1;}
 .map-cat-btn .mcb-name{font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.3px;max-width:52px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .map-cat-btn.active .mcb-name{color:var(--accent);}
@@ -230,22 +230,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .comm-post-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
 .comm-badge{padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;}
 .comm-badge.signalement{background:rgba(248,113,113,0.15);color:#f87171;}
-.comm-badge.message{background:rgba(240,120,0,0.12);color:var(--accent);}
+.comm-badge.message{background:rgba(255,208,79,0.12);color:var(--accent);}
 .comm-badge.support{background:rgba(138,155,191,0.15);color:var(--text2);}
 .comm-date{font-size:11px;color:var(--text2);margin-left:auto;}
 .comm-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;}
 .comm-content{font-size:13px;color:var(--text2);line-height:1.5;}
-.comm-place-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(240,120,0,0.1);border:1px solid rgba(240,120,0,0.3);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--accent);margin-top:8px;cursor:pointer;font-weight:600;}
+.comm-place-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(255,208,79,0.1);border:1px solid rgba(255,208,79,0.3);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--accent);margin-top:8px;cursor:pointer;font-weight:600;}
 .comm-actions{display:flex;gap:16px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
 .comm-action-btn{background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;font-family:var(--font-body);}
 .comm-action-btn.liked{color:var(--accent);}
-.comm-new-btn{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);right:16px;width:54px;height:54px;background:var(--accent);border:none;border-radius:50%;font-size:26px;color:#000;cursor:pointer;box-shadow:0 4px 20px rgba(240,120,0,0.45);display:none;align-items:center;justify-content:center;z-index:1600;font-weight:700;}
+.comm-new-btn{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);right:16px;width:54px;height:54px;background:var(--accent);border:none;border-radius:50%;font-size:26px;color:#000;cursor:pointer;box-shadow:0 4px 20px rgba(255,208,79,0.45);display:none;align-items:center;justify-content:center;z-index:1600;font-weight:700;}
 .comm-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:2000;display:none;align-items:flex-end;}
 .comm-modal-overlay.open{display:flex;}
 .comm-modal{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 16px;padding-bottom:calc(var(--safe-bottom) + 20px);max-height:85vh;overflow-y:auto;box-sizing:border-box;}
 .comm-type-selector{display:flex;gap:8px;margin-bottom:16px;}
 .comm-type-btn{flex:1;padding:10px 4px;border:1.5px solid var(--border);border-radius:12px;background:var(--surface2);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
-.comm-type-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(240,120,0,0.08);}
+.comm-type-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(255,208,79,0.08);}
 .comm-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);box-sizing:border-box;margin-bottom:10px;transition:border-color 0.2s;}
 .comm-input:focus{border-color:var(--accent);}
 .comm-textarea{resize:none;min-height:90px;}
@@ -682,6 +682,15 @@ var layerStreet, layerSat, layerLabels, isSat = false;
 var currentUser = null;
 var mainCats = [], allCats = [], allPlaces = [];
 var filters = {};
+
+function fluentImg(emoji, size) {
+  var cp = Array.from(emoji)
+    .map(function(c) { return c.codePointAt(0).toString(16); })
+    .filter(function(c) { return c !== 'fe0f'; })
+    .join('-');
+  var url = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/' + cp + '.svg';
+  return '<img src="' + url + '" width="' + size + '" height="' + size + '" style="object-fit:contain;display:block;" loading="lazy">';
+}
 var selectedLatLng = null;
 var addingMode = false;
 var radiusMode = false;
@@ -863,8 +872,8 @@ function drawRadiusCircle() {
   radiusCircle = L.circle(radiusCenter, {
     radius: radiusKm * 1000,
     className: 'radius-circle',
-    color: '#f07800',
-    fillColor: '#f07800',
+    color: '#ffd04f',
+    fillColor: '#ffd04f',
     fillOpacity: 0.06,
     weight: 2
   }).addTo(map);
@@ -958,14 +967,14 @@ function renderSheetCats() {
       var isOn = filters[mc.id] && filters[mc.id].subs[s.id];
       return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
         + '<div class="chk-sm' + (isOn ? ' on' : '') + '" id="chk-ss-' + s.id + '">' + (isOn ? '&#10003;' : '') + '</div>'
-        + '<span class="sub-cat-icon">' + s.icon + '</span>'
+        + '<span class="sub-cat-icon">' + fluentImg(s.icon, 18) + '</span>'
         + '<span class="sub-cat-name">' + s.name + '</span>'
         + '</div>';
     }).join('');
     var isMainOn = filters[mc.id] && filters[mc.id].on;
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatSheet(\'' + mc.id + '\',this)">'
       + '<div class="chk' + (isMainOn ? ' on' : '') + '" id="chk-sm-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + (isMainOn ? '&#10003;' : '') + '</div>'
-      + '<span class="main-cat-icon">' + mc.icon + '</span>'
+      + '<span class="main-cat-icon">' + fluentImg(mc.icon, 20) + '</span>'
       + '<span class="main-cat-name">' + mc.name + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
@@ -1371,7 +1380,7 @@ function renderMapFilterBar(query) {
   container.innerHTML = cats.map(function(mc) {
     var isOn = filters[mc.id] && filters[mc.id].on;
     return '<button class="map-cat-btn' + (isOn ? ' active' : '') + '" onclick="quickToggleCat(\'' + mc.id + '\')" title="' + mc.name + '">'
-      + '<span class="mcb-icon">' + (mc.icon || '📍') + '</span>'
+      + '<span class="mcb-icon">' + fluentImg(mc.icon || '📍', 24) + '</span>'
       + '<span class="mcb-name">' + mc.name + '</span>'
       + '</button>';
   }).join('');
@@ -1405,13 +1414,13 @@ function renderCats() {
     var subsHTML = subs.map(function(s) {
       return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
         + '<div class="chk-sm" id="chk-sub-' + s.id + '"></div>'
-        + '<span class="sub-cat-icon">' + s.icon + '</span>'
+        + '<span class="sub-cat-icon">' + fluentImg(s.icon, 18) + '</span>'
         + '<span class="sub-cat-name">' + s.name + '</span>'
         + '</div>';
     }).join('');
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatDesk(\'' + mc.id + '\',this)">'
       + '<div class="chk" id="chk-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')"></div>'
-      + '<span class="main-cat-icon">' + mc.icon + '</span>'
+      + '<span class="main-cat-icon">' + fluentImg(mc.icon, 20) + '</span>'
       + '<span class="main-cat-name">' + mc.name + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
@@ -1494,10 +1503,11 @@ function renderMarkers(places) {
   cluster.clearLayers();
   places.forEach(function(p) {
     var cat = p.categories;
-    var color = cat ? cat.color : '#f07800';
-    var icon = cat ? cat.icon : '&#128205;';
+    var color = cat ? cat.color : '#ffd04f';
+    var icon = cat ? cat.icon : '📍';
+    var iconHtml = fluentImg(icon, 22);
     var mi = L.divIcon({
-      html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + icon + '</div></div>',
+      html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>',
       className: '', iconSize: [36,44], iconAnchor: [18,44], popupAnchor: [0,-46]
     });
     var mk = L.marker([p.latitude, p.longitude], { icon: mi });
@@ -1770,7 +1780,7 @@ function sharePlace(id, name, lat, lon) {
 function locateMe() {
   map.locate({ setView: true, maxZoom: 14 });
   map.once('locationfound', function(e) {
-    L.circle(e.latlng, { radius: e.accuracy / 2, color: '#f07800', fillOpacity: 0.15 }).addTo(map);
+    L.circle(e.latlng, { radius: e.accuracy / 2, color: '#ffd04f', fillOpacity: 0.15 }).addTo(map);
     showToast('Position trouv\u00e9e !', 'success');
   });
   map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
@@ -1907,7 +1917,7 @@ function renderPostCard(p) {
   var labels = { signalement: '⚠️ Signalement', message: '💬 Message', support: '🛠️ Support' };
   var date = new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   var statusHtml = (p.type === 'support' && p.status && p.status !== 'ouvert')
-    ? '<span style="font-size:10px;font-weight:700;color:var(--accent);padding:2px 8px;background:rgba(240,120,0,0.1);border-radius:8px;">' + (p.status === 'resolu' ? '✅ Résolu' : '🗓️ Prévu') + '</span>' : '';
+    ? '<span style="font-size:10px;font-weight:700;color:var(--accent);padding:2px 8px;background:rgba(255,208,79,0.1);border-radius:8px;">' + (p.status === 'resolu' ? '✅ Résolu' : '🗓️ Prévu') + '</span>' : '';
   var placeHtml = p.place_name
     ? '<div class="comm-place-tag" onclick="goToCommPlace(' + p.place_lat + ',' + p.place_lon + ');event.stopPropagation()">📍 ' + escHtml(p.place_name) + '</div>' : '';
   var content = p.content.length > 130 ? p.content.slice(0, 130) + '…' : p.content;
