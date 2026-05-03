@@ -1647,7 +1647,7 @@ function makePopup(p) {
     + cmtZone
     + '</div>';
 
-  loadPhotos(p.id);
+  loadPhotos(p.id, p.category_id);
   loadCmts(p.id);
   loadRating(p.id);
   loadReportInfo(p.id);
@@ -1733,24 +1733,27 @@ function toggleNav(pid) {
 
 // ===== PHOTOS =====
 var lbPhotos = [], lbIndex = 0;
+var SPOT_CAT_ID = '5a0e2084-afb1-476e-94f4-661c54f6fea3';
 
-async function loadPhotos(pid) {
+async function loadPhotos(pid, catId) {
   var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
   var el = document.getElementById('photos-' + pid);
   if (!el) return;
-  renderPhotos(pid, res.data || []);
+  var maxPhotos = catId === SPOT_CAT_ID ? 3 : 1;
+  renderPhotos(pid, res.data || [], maxPhotos);
 }
 
-function renderPhotos(pid, photos) {
+function renderPhotos(pid, photos, maxPhotos) {
   var el = document.getElementById('photos-' + pid);
   if (!el) return;
   var urls = photos.map(function(ph) { return ph.url; });
   var thumbs = photos.map(function(ph, i) {
     return '<img class="photo-thumb" src="' + ph.url + '" onclick=\'openLightbox(' + JSON.stringify(urls) + ',' + i + ')\'>';
   }).join('');
-  var addBtn = currentUser
+  var canAdd = currentUser && photos.length < maxPhotos;
+  var addBtn = canAdd
     ? '<label class="photo-add-btn" for="photo-input-' + pid + '" title="Ajouter une photo">+</label>'
-      + '<input type="file" id="photo-input-' + pid + '" accept="image/*" style="display:none" onchange="uploadPhoto(\'' + pid + '\',this)">'
+      + '<input type="file" id="photo-input-' + pid + '" data-max="' + maxPhotos + '" accept="image/*" style="display:none" onchange="uploadPhoto(\'' + pid + '\',this)">'
     : '';
   el.innerHTML = thumbs + addBtn
     + (photos.length === 0 && !currentUser ? '<span style="font-size:11px;color:var(--text2);">Aucune photo</span>' : '');
@@ -1759,6 +1762,12 @@ function renderPhotos(pid, photos) {
 async function uploadPhoto(pid, input) {
   var file = input.files[0];
   if (!file) return;
+  var maxPhotos = parseInt(input.getAttribute('data-max') || '1');
+  var countRes = await db.from('place_photos').select('id').eq('place_id', pid);
+  if ((countRes.data || []).length >= maxPhotos) {
+    showToast('Limite de ' + maxPhotos + ' photo(s) atteinte pour ce lieu', 'error');
+    return;
+  }
   showToast('Upload en cours...', 'success');
   var ext = file.name.split('.').pop().toLowerCase();
   var path = pid + '/' + Date.now() + '.' + ext;
@@ -1769,7 +1778,7 @@ async function uploadPhoto(pid, input) {
   await db.from('place_photos').insert({ place_id: pid, url: url, uploaded_by: currentUser.id, uploader_name: currentUser.email.split('@')[0] });
   showToast('Photo ajoutée !', 'success');
   var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
-  renderPhotos(pid, res.data || []);
+  renderPhotos(pid, res.data || [], maxPhotos);
 }
 
 function openLightbox(urls, index) {
