@@ -200,9 +200,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .info-box span{color:var(--accent);}
 
 /* POPUP v2 */
-.leaflet-popup-content-wrapper{background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:14px !important;box-shadow:0 8px 32px rgba(0,0,0,0.6) !important;color:var(--text) !important;padding:0 !important;overflow:hidden !important;}
+.leaflet-popup-content-wrapper{background:var(--surface) !important;border:1px solid var(--border) !important;border-radius:14px !important;box-shadow:0 8px 32px rgba(0,0,0,0.6) !important;color:var(--text) !important;padding:0 !important;overflow:hidden !important;transform:translateZ(0) !important;}
 .leaflet-popup-tip{background:var(--surface) !important;}
-.leaflet-popup-content{margin:0 !important;width:300px !important;}
+.leaflet-popup-content{margin:0 !important;width:300px !important;overflow:hidden !important;border-radius:14px !important;}
+.pv2-header{border-radius:14px 14px 0 0;}
 .pv2-header{padding:14px 16px;display:flex;align-items:center;gap:12px;}
 .pv2-emoji{font-size:32px;line-height:1;flex-shrink:0;}
 .pv2-header-info{flex:1;min-width:0;}
@@ -1596,7 +1597,7 @@ function makePopup(p) {
   }).join('');
 
   el.innerHTML =
-    '<div class="pv2-header" style="background:' + color + ';border-radius:14px 14px 0 0;">'
+    '<div class="pv2-header" style="background:' + color + '">'
     + '<div class="pv2-emoji">' + icon + '</div>'
     + '<div class="pv2-header-info">'
     + '<div class="pv2-hcat">' + escHtml(catName) + '</div>'
