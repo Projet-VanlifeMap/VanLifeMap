@@ -521,6 +521,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     <div id="loc-radius-wrap" style="display:none" class="srch-radius-wrap">
       <div class="srch-radius-label">&#128205; Rayon autour de <b id="srch-city-name">ce lieu</b></div>
       <div class="radius-pills">
+        <button class="radius-pill" data-km="0" onclick="setLocationRadius(0)">Tout</button>
         <button class="radius-pill active" data-km="1" onclick="setLocationRadius(1)">1 km</button>
         <button class="radius-pill" data-km="2" onclick="setLocationRadius(2)">2 km</button>
         <button class="radius-pill" data-km="5" onclick="setLocationRadius(5)">5 km</button>
@@ -1247,10 +1248,16 @@ function setLocationRadius(km) {
   });
   if (!selectedLocation) return;
   radiusCenter = L.latLng(selectedLocation.lat, selectedLocation.lon);
-  radiusKm = km;
-  drawRadiusCircle();
-  map.setView(radiusCenter, getZoomForRadius(km));
-  loadPlacesInRadius();
+  if (km === 0) {
+    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+    map.setView(radiusCenter, 13);
+    scheduleLoad();
+  } else {
+    radiusKm = km;
+    drawRadiusCircle();
+    map.setView(radiusCenter, getZoomForRadius(km));
+    loadPlacesInRadius();
+  }
 }
 
 function locateMeLocation() {
