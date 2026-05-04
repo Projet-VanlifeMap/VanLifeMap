@@ -2048,6 +2048,7 @@ async function loadPlaces() {
     .in('category_id', Array.from(ok))
     .limit(2000);
 
+  console.log('[DEBUG] ok:', Array.from(ok), '| result.count:', result.data ? result.data.length : 0, '| error:', result.error);
   allPlaces = (result.data || []).filter(function(p) {
     if (p.hidden && !isAdmin && !isModerator) return false;
     return isInSelectedCountries(p.latitude, p.longitude);
