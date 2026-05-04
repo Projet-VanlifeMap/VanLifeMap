@@ -352,7 +352,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   #radius-bar{top:auto;bottom:calc(var(--nav-h) + var(--safe-bottom) + 120px);left:50%;transform:translateX(-50%);}
 }
 /* ── PROFILE CARD ── */
-.prof-banner{height:110px;background:linear-gradient(135deg,#0f2460 0%,#1a3a8c 40%,#2d6a9f 100%);position:relative;overflow:hidden;}
+.prof-banner{height:110px;background:linear-gradient(135deg,#0f2460 0%,#1a3a8c 40%,#2d6a9f 100%);position:relative;}
 .prof-banner::before{content:"🚐";position:absolute;font-size:120px;right:-18px;bottom:-28px;opacity:0.12;pointer-events:none;}
 .prof-banner-badge{position:absolute;top:12px;right:12px;background:rgba(255,208,79,0.18);border:1px solid rgba(255,208,79,0.4);color:#ffd04f;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;backdrop-filter:blur(6px);}
 .prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ffd04f,#ff8c42);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#000;border:3px solid var(--bg);position:absolute;bottom:-36px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;}
@@ -453,6 +453,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       </div>
       <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer de zone</span></button>
       <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
+      <button id="btn-profile-desk" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#128100; Mon profil</button>
       <button onclick="openSheet('sheet-rank');loadLeaderboard('places')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#127942; Classement</button>
       <div id="auth-zone">
         <span id="auth-info">Non connect&#233;</span>
@@ -693,6 +694,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   </div>
 </div>
 
+<div id="modal-username" class="modal-overlay" style="display:none">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:40px;margin-bottom:12px">&#128100;</div>
+    <h2 style="text-align:center;margin-bottom:6px">Choisir un pseudo</h2>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">3 à 20 caractères, lettres, chiffres et _ uniquement.</p>
+    <input id="username-input" type="text" maxlength="20" placeholder="mon_pseudo" autocomplete="off"
+      style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:15px;outline:none;margin-bottom:8px;text-align:center;">
+    <div id="username-status" style="font-size:13px;min-height:20px;margin-bottom:14px;"></div>
+    <button id="username-confirm-btn" class="btn-p" onclick="saveUsername()" disabled style="opacity:0.5">Confirmer</button>
+  </div>
+</div>
+
 <div id="modal-report" class="modal-overlay" style="display:none">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modal-report')">&#10005;</button>
@@ -747,6 +760,7 @@ var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 var map, cluster;
 var layerStreet, layerSat, layerLabels, isSat = false;
 var currentUser = null;
+var currentUsername = '';
 var mainCats = [], allCats = [], allPlaces = [];
 var filters = {};
 
@@ -831,6 +845,7 @@ function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
   document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
+  document.getElementById('btn-profile-desk').addEventListener('click', function() { renderProfile(); openSheet('sheet-profile'); });
   document.getElementById('btn-locate').addEventListener('click', locateMe);
   applyFilters();
 }
@@ -1120,7 +1135,7 @@ async function renderProfile() {
     if (lb) lb.addEventListener('click', function() { closeSheet('sheet-profile'); openModal('modal-auth'); });
     return;
   }
-  var username = currentUser.email.split('@')[0];
+  var username = currentUsername || currentUser.email.split('@')[0];
   var initials = username.slice(0, 2).toUpperCase();
   var months = ['jan.','f\u00e9v.','mars','avr.','mai','juin','juil.','ao\u00fbt','sept.','oct.','nov.','d\u00e9c.'];
   var memberSince = new Date(currentUser.created_at);
@@ -1332,6 +1347,7 @@ async function loadProfileStats(username) {
 function signOut() {
   db.auth.signOut();
   currentUser = null;
+  currentUsername = '';
   userPrefs = { satellite: false };
   applySat(false);
   updateSatBtn();
@@ -1339,6 +1355,73 @@ function signOut() {
   document.getElementById('btn-auth').textContent = 'Connexion';
   closeSheet('sheet-profile');
   showToast('D\u00e9connect\u00e9', 'success');
+}
+
+async function loadUserProfile() {
+  if (!currentUser) return;
+  var res = await db.from('profiles').select('username').eq('id', currentUser.id).maybeSingle();
+  if (res.data && res.data.username) {
+    currentUsername = res.data.username;
+    document.getElementById('auth-info').textContent = currentUsername;
+    document.getElementById('btn-auth').textContent = 'Déconnexion';
+  } else {
+    currentUsername = currentUser.email.split('@')[0];
+    document.getElementById('auth-info').textContent = currentUsername;
+    document.getElementById('btn-auth').textContent = 'Déconnexion';
+    openUsernameModal();
+  }
+}
+
+function openUsernameModal() {
+  var modal = document.getElementById('modal-username');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  var inp = document.getElementById('username-input');
+  var status = document.getElementById('username-status');
+  var btn = document.getElementById('username-confirm-btn');
+  inp.value = ''; status.textContent = '';
+  btn.disabled = true; btn.style.opacity = '0.5';
+  var timer = null;
+  inp.oninput = function() {
+    var v = inp.value.trim();
+    if (timer) clearTimeout(timer);
+    if (!v) { status.textContent = ''; btn.disabled = true; btn.style.opacity = '0.5'; return; }
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(v)) {
+      status.style.color = '#e74c3c';
+      status.textContent = '✗ 3-20 caractères, lettres, chiffres et _ uniquement';
+      btn.disabled = true; btn.style.opacity = '0.5'; return;
+    }
+    status.style.color = 'var(--text2)';
+    status.textContent = 'Vérification...';
+    timer = setTimeout(async function() {
+      var chk = await db.from('profiles').select('id').eq('username', v).maybeSingle();
+      if (chk.data) {
+        status.style.color = '#e74c3c';
+        status.textContent = '✗ Pseudo déjà pris';
+        btn.disabled = true; btn.style.opacity = '0.5';
+      } else {
+        status.style.color = '#27ae60';
+        status.textContent = '✓ Disponible';
+        btn.disabled = false; btn.style.opacity = '1';
+      }
+    }, 400);
+  };
+}
+
+async function saveUsername() {
+  var inp = document.getElementById('username-input');
+  var v = inp ? inp.value.trim() : '';
+  if (!v || !/^[a-zA-Z0-9_]{3,20}$/.test(v)) return;
+  var res = await db.from('profiles').insert({ id: currentUser.id, username: v });
+  if (res.error) {
+    var status = document.getElementById('username-status');
+    if (status) { status.style.color = '#e74c3c'; status.textContent = '✗ Erreur : ' + res.error.message; }
+    return;
+  }
+  currentUsername = v;
+  document.getElementById('auth-info').textContent = currentUsername;
+  document.getElementById('modal-username').style.display = 'none';
+  showToast('Pseudo « ' + v + ' » enregistré !', 'success');
 }
 
 // ===== LOCATION SEARCH (mobile) =====
@@ -1719,10 +1802,11 @@ async function checkAuth() {
   var result = await db.auth.getSession();
   if (result.data && result.data.session) {
     currentUser = result.data.session.user;
-    document.getElementById('auth-info').textContent = currentUser.email;
+    // auth-info updated in loadUserProfile
     document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
     updateSatBtn();
     await loadPrefs();
+    await loadUserProfile();
     loadNotifCount();
     startRealtimeNotifs();
   } else {
@@ -1750,11 +1834,12 @@ async function handleAuth() {
       return;
     }
     currentUser = user;
-    document.getElementById('auth-info').textContent = currentUser.email;
+    // auth-info updated in loadUserProfile
     document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
     closeModal('modal-auth');
     updateSatBtn();
     await loadPrefs();
+    await loadUserProfile();
     showToast('Connect\u00e9 !', 'success');
   } else {
     var confirm = document.getElementById('auth-password-confirm').value;
@@ -2090,7 +2175,7 @@ async function loadLeaderboard(tab) {
   list.innerHTML = data.map(function(u, i) {
     var rank = i + 1;
     var medal = medals[i] || '<span style="color:var(--text2);font-size:13px">#' + rank + '</span>';
-    var isMe = currentUser && u.user_name === currentUser.email.split('@')[0];
+    var isMe = currentUser && u.user_name === (currentUsername || currentUser.email.split('@')[0]);
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);' + (isMe ? 'background:rgba(110,231,183,0.05);border-radius:8px;padding:10px;' : '') + '">'
       + '<div style="font-size:20px;width:32px;text-align:center">' + medal + '</div>'
       + '<div style="flex:1">'
@@ -2168,7 +2253,7 @@ async function uploadPhoto(pid, input) {
   if (upRes.error) { showToast('Erreur upload : ' + upRes.error.message, 'error'); return; }
   var pub = db.storage.from('place-photos').getPublicUrl(path);
   var url = pub.data.publicUrl;
-  await db.from('place_photos').insert({ place_id: pid, url: url, uploaded_by: currentUser.id, uploader_name: currentUser.email.split('@')[0] });
+  await db.from('place_photos').insert({ place_id: pid, url: url, uploaded_by: currentUser.id, uploader_name: currentUsername || currentUser.email.split('@')[0] });
   showToast('Photo ajoutée !', 'success');
   var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
   renderPhotos(pid, res.data || [], maxPhotos);
@@ -2212,7 +2297,7 @@ async function addCmt(pid) {
   var input = document.getElementById('ci-' + pid);
   var content = input.value.trim();
   if (!content) return;
-  await db.from('comments').insert({ place_id: pid, user_id: currentUser.id, user_name: currentUser.email.split('@')[0], content: content });
+  await db.from('comments').insert({ place_id: pid, user_id: currentUser.id, user_name: currentUsername || currentUser.email.split('@')[0], content: content });
   input.value = '';
   loadCmts(pid);
   showToast('Commentaire ajout\u00e9 !', 'success');
@@ -2311,7 +2396,7 @@ async function submitPlace() {
     name: name, description: desc,
     latitude: selectedLatLng.lat, longitude: selectedLatLng.lng,
     main_category_id: mainId, category_id: catId,
-    user_id: currentUser.id, user_name: currentUser.email.split('@')[0],
+    user_id: currentUser.id, user_name: currentUsername || currentUser.email.split('@')[0],
     disponible_24h: is24h, approved: true
   });
   if (result.error) { showToast('Erreur : ' + result.error.message, 'error'); return; }
@@ -2578,7 +2663,7 @@ async function submitReply(postId) {
   var inp = document.getElementById('reply-input');
   var content = (inp.value || '').trim();
   if (!content) return;
-  var name = (currentUser.user_metadata && currentUser.user_metadata.display_name) || currentUser.email.split('@')[0];
+  var name = currentUsername || currentUser.email.split('@')[0];
   await db.from('community_replies').insert({ post_id: postId, user_id: currentUser.id, author_name: name, content: content });
   var post = commPosts.find(function(p) { return p.id === postId; });
   var cnt = (post ? (post.replies_count || 0) : 0) + 1;
@@ -2598,7 +2683,7 @@ async function likePost(id) {
     await db.from('community_posts').update({ likes_count: cnt }).eq('id', id);
     if (post) {
       post.likes_count = cnt;
-      var name = (currentUser.user_metadata && currentUser.user_metadata.display_name) || currentUser.email.split('@')[0];
+      var name = currentUsername || currentUser.email.split('@')[0];
       insertNotif(post.user_id, 'like', name + ' a aimé votre post : "' + (post.title || post.content.slice(0,40)) + '"', id);
     }
     loadCommunity();
@@ -2653,7 +2738,7 @@ async function submitPost() {
   var content = (document.getElementById('comm-content-input').value || '').trim();
   var title = (document.getElementById('comm-title-input').value || '').trim();
   if (!content) { showToast('Écrivez quelque chose !', 'error'); return; }
-  var name = (currentUser.user_metadata && currentUser.user_metadata.display_name) || currentUser.email.split('@')[0];
+  var name = currentUsername || currentUser.email.split('@')[0];
   var row = { user_id: currentUser.id, author_name: name, type: newPostType, content: content, title: title || null, likes_count: 0, replies_count: 0, status: 'ouvert' };
   if (newPostPlace) { row.place_id = newPostPlace.id; row.place_name = newPostPlace.name; row.place_lat = newPostPlace.lat; row.place_lon = newPostPlace.lon; }
   var res = await db.from('community_posts').insert(row);
