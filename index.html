@@ -521,11 +521,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     <div id="loc-radius-wrap" style="display:none" class="srch-radius-wrap">
       <div class="srch-radius-label">&#128205; Rayon autour de <b id="srch-city-name">ce lieu</b></div>
       <div class="radius-pills">
-        <button class="radius-pill active" data-km="0" onclick="setLocationRadius(0)">Exact</button>
+        <button class="radius-pill active" data-km="1" onclick="setLocationRadius(1)">1 km</button>
+        <button class="radius-pill" data-km="2" onclick="setLocationRadius(2)">2 km</button>
+        <button class="radius-pill" data-km="5" onclick="setLocationRadius(5)">5 km</button>
         <button class="radius-pill" data-km="10" onclick="setLocationRadius(10)">10 km</button>
-        <button class="radius-pill" data-km="20" onclick="setLocationRadius(20)">20 km</button>
         <button class="radius-pill" data-km="50" onclick="setLocationRadius(50)">50 km</button>
-        <button class="radius-pill" data-km="100" onclick="setLocationRadius(100)">100 km</button>
       </div>
       <button onclick="closeSheet('sheet-search')" style="width:100%;margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;">&#10003; Valider</button>
     </div>
@@ -1193,7 +1193,7 @@ function selectSrchLocation(idx) {
   var rw = document.getElementById('loc-radius-wrap');
   if (rw) rw.style.display = 'block';
   document.querySelectorAll('.radius-pill').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+    b.classList.toggle('active', parseInt(b.dataset.km) === 1);
   });
   // Le déplacement carte se fait dans setLocationRadius, pas ici
 }
@@ -1247,16 +1247,10 @@ function setLocationRadius(km) {
   });
   if (!selectedLocation) return;
   radiusCenter = L.latLng(selectedLocation.lat, selectedLocation.lon);
-  if (km === 0) {
-    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-      map.setView(radiusCenter, 13);
-    scheduleLoad();
-  } else {
-    radiusKm = km;
-    drawRadiusCircle();
-      map.setView(radiusCenter, getZoomForRadius(km));
-    loadPlacesInRadius();
-  }
+  radiusKm = km;
+  drawRadiusCircle();
+  map.setView(radiusCenter, getZoomForRadius(km));
+  loadPlacesInRadius();
 }
 
 function locateMeLocation() {
@@ -1271,7 +1265,7 @@ function locateMeLocation() {
     var rw = document.getElementById('loc-radius-wrap');
     if (rw) rw.style.display = 'block';
     document.querySelectorAll('.radius-pill').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+      b.classList.toggle('active', parseInt(b.dataset.km) === 1);
     });
     map.setView([selectedLocation.lat, selectedLocation.lon], 13);
   });
@@ -1336,7 +1330,7 @@ function selectLocationIdxDesk(idx) {
   selectedLocationDesk = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
   selectedLocRadiusDesk = 0;
   document.querySelectorAll('.rpill-desk').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+    b.classList.toggle('active', parseInt(b.dataset.km) === 1);
   });
   map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
 }
@@ -1382,7 +1376,7 @@ function locateMeLocationDesk() {
     document.getElementById('loc-radius-desk').style.display = 'block';
     selectedLocRadiusDesk = 0;
     document.querySelectorAll('.rpill-desk').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.km) === 0);
+      b.classList.toggle('active', parseInt(b.dataset.km) === 1);
     });
     map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
   });
