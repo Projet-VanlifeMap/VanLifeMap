@@ -1015,7 +1015,7 @@ function navTo(tab) {
   if (btn) btn.classList.add('active');
   if (tab === 'map') { openCountryPicker(); }
   else if (tab === 'cats') { saveFiltersSnapshot(); renderSheetCats(); openSheet('sheet-cats'); }
-  else if (tab === 'search') { srchSelectedSubCatIds = {}; renderSrchChips(); openSheet('sheet-search'); setTimeout(function() { document.getElementById('search-mobile').focus(); }, 300); }
+  else if (tab === 'search') { renderSrchChips(); openSheet('sheet-search'); setTimeout(function() { document.getElementById('search-mobile').focus(); }, 300); }
   else if (tab === 'rank') { openSheet('sheet-rank'); loadLeaderboard('places'); }
   else if (tab === 'profile') { renderProfile(); openSheet('sheet-profile'); }
   else if (tab === 'community') { openSheet('sheet-community'); loadCommunity(); document.getElementById('comm-new-btn').style.display = 'flex'; }
