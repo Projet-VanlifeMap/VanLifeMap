@@ -223,6 +223,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .pv2-badge-limited{background:rgba(144,144,144,0.12);color:#909090;}
 .pv2-badge-user{background:var(--surface2);color:var(--text2);}
 .pv2-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-top:8px;}
+.pv2-fuel{margin-top:10px;}
+.pv2-fuel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px;}
+.pv2-fuel-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;}
+.pv2-fuel-type{font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;}
+.pv2-fuel-price{font-size:14px;font-weight:700;color:var(--accent);margin-top:2px;}
+.pv2-fuel-note{font-size:10px;color:var(--text2);margin-top:6px;text-align:right;}
 .pv2-photos{padding:10px 14px;border-bottom:1px solid var(--border);}
 .pv2-photos-strip{display:flex;gap:6px;align-items:center;overflow-x:auto;padding-bottom:2px;justify-content:center;}
 .pv2-photos-strip::-webkit-scrollbar{height:3px;}
@@ -339,6 +345,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 #loading h2{font-family:var(--font-head);font-size:22px;color:var(--accent);font-weight:800;}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+
+/* MOD ACTIONS POPUP */
+.pv2-mod-actions{padding:8px 14px;border-top:2px dashed var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,0.15);}
+.pv2-mod-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);width:100%;margin-bottom:2px;}
+.pv2-mod-btn{border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
+.pv2-mod-validate{background:rgba(39,174,96,0.18);color:#27ae60;}
+.pv2-mod-validated{background:rgba(39,174,96,0.08);color:#27ae60;cursor:default;pointer-events:none;}
+.pv2-mod-hide{background:rgba(248,113,113,0.15);color:var(--danger);}
+.pv2-mod-show{background:rgba(52,152,219,0.18);color:#3498db;}
+.pv2-mod-delete{background:rgba(248,113,113,0.2);color:var(--danger);border:1px solid rgba(248,113,113,0.4);}
+.pv2-hidden-banner{padding:6px 14px;background:rgba(248,113,113,0.12);border-bottom:1px solid rgba(248,113,113,0.25);font-size:11px;color:var(--danger);font-weight:700;}
 
 /* MOBILE */
 @media(max-width:768px){
@@ -760,6 +777,8 @@ var map, cluster;
 var layerStreet, layerSat, layerLabels, isSat = false;
 var currentUser = null;
 var currentUsername = '';
+var ADMINS = ['mypoiuytreza@gmail.com', 'unverredericard@gmail.com'];
+var isAdmin = false, isModerator = false, isValidator = false;
 var mainCats = [], allCats = [], allPlaces = [];
 var filters = {};
 
@@ -1023,6 +1042,7 @@ async function loadPlacesInRadius() {
 
   var raw = result.data || [];
   allPlaces = raw.filter(function(p) {
+    if (p.hidden && !isAdmin && !isModerator) return false;
     return haversineDistance(radiusCenter.lat, radiusCenter.lng, p.latitude, p.longitude) <= radiusKm
       && isInSelectedCountries(p.latitude, p.longitude);
   });
@@ -1297,8 +1317,13 @@ async function loadProfileStats(username) {
       }
     }
     if (badge) {
-      var lvl = placesCount >= 100 ? '\ud83e\udd47 Expert' : placesCount >= 30 ? '\ud83e\udd48 Explorateur' : placesCount >= 10 ? '\ud83e\udd49 D\u00e9butant' : '\u2b50 Membre';
-      badge.textContent = lvl;
+      if (isAdmin) badge.textContent = '\ud83d\udc51 Administrateur';
+      else if (isModerator) badge.textContent = '\ud83d\udee1\ufe0f Mod\u00e9rateur';
+      else if (isValidator) badge.textContent = '\u2705 Validateur';
+      else {
+        var lvl = placesCount >= 100 ? '\ud83e\udd47 Expert' : placesCount >= 30 ? '\ud83e\udd48 Explorateur' : placesCount >= 10 ? '\ud83e\udd49 D\u00e9butant' : '\u2b50 Membre';
+        badge.textContent = lvl;
+      }
     }
     if (placeIds.length) {
       var ratingsRes = await db.from('ratings').select('score').in('place_id', placeIds);
@@ -1319,6 +1344,7 @@ function signOut() {
   db.auth.signOut();
   currentUser = null;
   currentUsername = '';
+  isAdmin = false; isModerator = false; isValidator = false;
   userPrefs = { satellite: false };
   applySat(false);
   updateSatBtn();
@@ -1328,8 +1354,25 @@ function signOut() {
   showToast('D\u00e9connect\u00e9', 'success');
 }
 
+async function loadUserRole() {
+  isAdmin = !!(currentUser && ADMINS.includes(currentUser.email));
+  isModerator = false;
+  isValidator = false;
+  if (currentUser && !isAdmin) {
+    try {
+      var res = await db.from('trusted_users').select('role').eq('user_id', currentUser.id).maybeSingle();
+      if (res.data) {
+        isModerator = res.data.role === 'moderator';
+        isValidator = res.data.role === 'validator' || isModerator;
+      }
+    } catch(e) {}
+  }
+  if (isAdmin) { isModerator = true; isValidator = true; }
+}
+
 async function loadUserProfile() {
   if (!currentUser) return;
+  await loadUserRole();
   // Read username from auth user_metadata (no schema cache dependency)
   var meta = currentUser.user_metadata || {};
   if (meta.username) {
@@ -2006,6 +2049,7 @@ async function loadPlaces() {
     .limit(2000);
 
   allPlaces = (result.data || []).filter(function(p) {
+    if (p.hidden && !isAdmin && !isModerator) return false;
     return isInSelectedCountries(p.latitude, p.longitude);
   });
   renderMarkers(allPlaces);
@@ -2025,15 +2069,44 @@ function renderMarkers(places) {
     var cat = p.categories;
     var color = cat ? cat.color : '#ffd04f';
     var icon = cat ? cat.icon : '📍';
-    var iconHtml = fluentImg(icon, 22);
+    var isHidden = !!p.hidden;
+    var iconHtml = isHidden ? '🔒' : fluentImg(icon, 22);
+    var markerColor = isHidden ? '#555' : color;
+    var markerStyle = 'background:' + markerColor + (isHidden ? ';opacity:0.6' : '');
     var mi = L.divIcon({
-      html: '<div class="custom-marker" style="background:' + color + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>',
+      html: '<div class="custom-marker" style="' + markerStyle + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>',
       className: '', iconSize: [36,44], iconAnchor: [18,44], popupAnchor: [0,-46]
     });
     var mk = L.marker([p.latitude, p.longitude], { icon: mi });
     mk.bindPopup(function() { return makePopup(p); }, { maxWidth: 300 });
     cluster.addLayer(mk);
   });
+}
+
+function parseFuelPrices(desc) {
+  if (!desc || desc.indexOf('id_gouv:') === -1) return null;
+  var prices = {};
+  [['Gazole','⛽'],['SP95','🔵'],['SP98','🟣'],['E10','🟢'],['E85','🌿'],['GPL','⚪']].forEach(function(t) {
+    var m = desc.match(new RegExp(t[0] + ' : ([\\d.]+)€'));
+    if (m) prices[t[0]] = { val: parseFloat(m[1]), icon: t[1] };
+  });
+  var addr = desc.split('|')[0].trim();
+  return Object.keys(prices).length ? { prices: prices, addr: addr } : null;
+}
+
+function makeFuelHtml(fuel) {
+  var items = Object.keys(fuel.prices).map(function(k) {
+    var p = fuel.prices[k];
+    return '<div class="pv2-fuel-item">'
+      + '<div class="pv2-fuel-type">' + p.icon + ' ' + k + '</div>'
+      + '<div class="pv2-fuel-price">' + p.val.toFixed(3) + '€</div>'
+      + '</div>';
+  }).join('');
+  return '<div class="pv2-fuel">'
+    + (fuel.addr ? '<div style="font-size:11px;color:var(--text2);margin-bottom:2px;">📍 ' + escHtml(fuel.addr) + '</div>' : '')
+    + '<div class="pv2-fuel-grid">' + items + '</div>'
+    + '<div class="pv2-fuel-note">⛽ Prix au moment de l\'import</div>'
+    + '</div>';
 }
 
 function makePopup(p) {
@@ -2054,8 +2127,29 @@ function makePopup(p) {
     return '<span class="star" onclick="ratePlace(\'' + safeId + '\',' + n + ')" onmouseover="hoverStars(\'' + safeId + '\',' + n + ')" onmouseout="resetStars(\'' + safeId + '\')">&#9733;</span>';
   }).join('');
 
+  // Mod actions HTML
+  var modHtml = '';
+  if (isAdmin || isModerator || isValidator) {
+    var modBtns = '<div class="pv2-mod-label">&#128737;&#65039; Mod\u00e9ration</div>';
+    if (isValidator || isModerator || isAdmin) {
+      modBtns += p.validated_at
+        ? '<button class="pv2-mod-btn pv2-mod-validated">&#9989; Valid\u00e9</button>'
+        : '<button class="pv2-mod-btn pv2-mod-validate" onclick="validatePlace(\'' + safeId + '\')">&#9989; Valider</button>';
+    }
+    if (isModerator || isAdmin) {
+      modBtns += p.hidden
+        ? '<button class="pv2-mod-btn pv2-mod-show" onclick="showPlace(\'' + safeId + '\')">&#128065;&#65039; R\u00e9activer</button>'
+        : '<button class="pv2-mod-btn pv2-mod-hide" onclick="hidePlace(\'' + safeId + '\')">&#128683; Masquer</button>';
+    }
+    if (isAdmin) {
+      modBtns += '<button class="pv2-mod-btn pv2-mod-delete" onclick="deletePlace(\'' + safeId + '\',\'' + safeName + '\')">&#128465;&#65039; Supprimer</button>';
+    }
+    modHtml = '<div class="pv2-mod-actions">' + modBtns + '</div>';
+  }
+
   el.innerHTML =
-    '<div class="pv2-header" style="background:' + color + '">'
+    (p.hidden ? '<div class="pv2-hidden-banner">&#128683; Lieu masqu\u00e9 \u2014 visible uniquement par les mod\u00e9rateurs</div>' : '')
+    + '<div class="pv2-header" style="background:' + color + '">'
     + '<div class="pv2-emoji">' + icon + '</div>'
     + '<div class="pv2-header-info">'
     + '<div class="pv2-hcat">' + escHtml(catName) + '</div>'
@@ -2066,9 +2160,14 @@ function makePopup(p) {
     + '<div class="pv2-body">'
     + '<div class="pv2-badges">'
     + availBadge
+    + (p.validated_at ? '<span class="pv2-badge" style="background:rgba(39,174,96,0.15);color:#27ae60;">&#9989; Valid\u00e9</span>' : '')
     + '<span class="pv2-badge pv2-badge-user">&#128100; ' + escHtml(p.user_name || 'Anonyme') + '</span>'
     + '</div>'
-    + (p.description ? '<div class="pv2-desc">' + escHtml(p.description) + '</div>' : '')
+    + (function() {
+        var fuel = parseFuelPrices(p.description);
+        if (fuel) return makeFuelHtml(fuel);
+        return p.description ? '<div class="pv2-desc">' + escHtml(p.description) + '</div>' : '';
+      })()
     + '<div id="report-info-' + safeId + '" style="display:none;font-size:11px;color:var(--danger);padding:4px 0 0;"></div>'
     + '</div>'
 
@@ -2091,6 +2190,7 @@ function makePopup(p) {
     + '<button class="pv2-vote-btn closed" onclick="vote(\'' + safeId + '\',false)">&#128078; Ferm\u00e9 (' + (p.votes_negatifs || 0) + ')</button>'
     + '<button class="pv2-report-btn" onclick="openReport(\'' + safeId + '\',\'' + safeName + '\')" title="Signaler">&#9888;&#65039;</button>'
     + '</div>'
+    + modHtml
 
     + '<div class="pv2-rating">'
     + '<div class="pv2-rating-label">&#11088; Votre note</div>'
@@ -2111,6 +2211,42 @@ function makePopup(p) {
   loadRating(p.id);
   loadReportInfo(p.id);
   return el;
+}
+
+async function validatePlace(pid) {
+  if (!currentUser || (!isValidator && !isModerator && !isAdmin)) return;
+  var res = await db.from('places').update({ validated_by: currentUsername || currentUser.email, validated_at: new Date().toISOString() }).eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('&#9989; Lieu validé !', 'success');
+  scheduleLoad();
+}
+
+async function hidePlace(pid) {
+  if (!currentUser || (!isModerator && !isAdmin)) return;
+  var res = await db.from('places').update({ hidden: true, hidden_by: currentUsername || currentUser.email, hidden_at: new Date().toISOString() }).eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('&#128683; Lieu masqué', 'success');
+  map.closePopup();
+  scheduleLoad();
+}
+
+async function showPlace(pid) {
+  if (!currentUser || (!isModerator && !isAdmin)) return;
+  var res = await db.from('places').update({ hidden: false, hidden_by: null, hidden_at: null }).eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('&#128065;&#65039; Lieu réactivé', 'success');
+  map.closePopup();
+  scheduleLoad();
+}
+
+async function deletePlace(pid, name) {
+  if (!currentUser || !isAdmin) return;
+  if (!confirm('Supprimer définitivement « ' + name + ' » ?\nCette action est irréversible.')) return;
+  var res = await db.from('places').delete().eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('&#128465;&#65039; Lieu supprimé', 'success');
+  map.closePopup();
+  scheduleLoad();
 }
 
 async function loadRating(pid) {

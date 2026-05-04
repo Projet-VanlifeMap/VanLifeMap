@@ -90,6 +90,7 @@ input[type=text] { max-width: 100%; }
     <button class="tab" onclick="setSource('ocm')">⚡ OpenChargeMap</button>
     <button class="tab" onclick="setSource('gouv')">🇫🇷 data.gouv.fr</button>
     <button class="tab" onclick="setSource('gbfs')">🛴 GBFS (mobilité)</button>
+    <button class="tab" onclick="setSource('fuel')">⛽ Prix Carburants</button>
   </div>
 
   <!-- ── Panel OSM ── -->
@@ -117,7 +118,7 @@ input[type=text] { max-width: 100%; }
             <option value="wifi">📶 WiFi public gratuit</option>
             <option value="pharmacy">💊 Pharmacies</option>
             <option value="hospital">🏥 Hôpitaux / Urgences</option>
-            <option value="supermarket">🛒 Supérettes / Épiceries</option>
+            <option value="supermarket_auto">🏪 Supérettes autonomes 24/7</option>
             <option value="bakery">🥖 Boulangeries</option>
             <option value="market">🛍️ Marchés locaux</option>
             <option value="tourist">ℹ️ Offices de tourisme</option>
@@ -135,6 +136,7 @@ input[type=text] { max-width: 100%; }
             <option value="honey">🍯 Distributeur de miel</option>
           </optgroup>
           <optgroup label="── Mobilité partagée">
+            <option value="bike_repair">🔧 Bornes réparation vélo</option>
             <option value="bike_rental">🚲 Vélos en libre-service</option>
             <option value="car_sharing">🚗 Voitures en libre-service</option>
             <option value="moto_rental">🛵 Scooters / motos en libre-service</option>
@@ -299,6 +301,43 @@ input[type=text] { max-width: 100%; }
     </div>
   </div>
 
+  <!-- ── Panel Prix Carburants ── -->
+  <div class="src-panel" id="src-fuel">
+    <div class="dataset-hint">
+      <h4>⚠ L'API bloque les requêtes navigateur (CORS) — télécharge le fichier manuellement</h4>
+      <p style="color:#8b91a8;margin-bottom:8px;font-size:12px">Étape 1 — Télécharge le fichier JSON (clic droit → Enregistrer sous) :</p>
+      <a href="https://www.data.gouv.fr/api/1/datasets/r/b0561905-7b5e-4f38-be50-df05708acb80" target="_blank" style="color:#6ee7b7">
+        ⬇ Télécharger prix-carburants.json (~27 Mo) — data.gouv.fr
+      </a>
+      <p style="color:#8b91a8;margin-top:8px;font-size:12px">Étape 2 — Sélectionne le fichier ci-dessous :</p>
+    </div>
+    <div class="row2">
+      <div>
+        <label>Fichier JSON téléchargé</label>
+        <input type="file" id="fuel-file" accept=".json" style="background:#1a1d27;border:1px solid #2e3348;border-radius:8px;padding:8px 12px;color:#e8eaf0;font-size:13px;display:block;width:100%;margin-bottom:12px">
+        <label>Catégorie Supabase cible</label>
+        <select id="fuel-cat-override"></select>
+        <div class="toggle-row" style="margin-top:12px">
+          <label>
+            <input type="checkbox" id="fuel-h24only">
+            Seulement les stations avec automate 24/7
+          </label>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>Stations détectées</h3>
+          <div class="count" id="fuel-api-count">-</div>
+          <p style="color:#8b91a8;font-size:11px;margin-top:4px">après chargement fichier</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn" onclick="countFuel()">📂 Charger le fichier</button>
+      <button class="btn" id="btn-import-fuel" onclick="startImportFuel()" disabled>⬆️ Importer dans Supabase</button>
+    </div>
+  </div>
+
   <!-- ── Panel GBFS ── -->
   <div class="src-panel" id="src-gbfs">
     <p style="color:#8b91a8;font-size:12px;margin-bottom:12px">
@@ -393,7 +432,7 @@ var CAT_NAMES = {
   wild:'Spot sauvage van / tente', picnic:'Aire de pique-nique',
   laundry:'Lavomatique automatique', electric:'Borne de recharge électrique',
   fuel:'Station-service', wifi:'WiFi public', pharmacy:'Pharmacie',
-  hospital:'Hôpital / Urgences', supermarket:'Supérette / Épicerie',
+  hospital:'Hôpital / Urgences', supermarket_auto:'Supérette autonome 24/7',
   bakery:'Boulangerie', market:'Marché local', tourist:'Office de tourisme',
   sport:'Terrain de sport public', pizza:'Distributeur de pizzas',
   pain:'Distributeur de pain & viennoiseries', glacon:'Distributeur de glaçons',
@@ -405,6 +444,7 @@ var CAT_NAMES = {
   drinks:'Distributeur de boissons', petfood:'Distributeur de croquettes animaux',
   gaz:'Distributeur bouteilles de gaz', hygiene:'Distributeur hygiène féminine',
   firstaid:'Distributeur premiers secours', condoms:'Distributeur de préservatifs',
+  bike_repair:'Borne de réparation vélo',
   bike_rental:'Location de vélos en libre-service',
   car_sharing:'Voiture en libre-service',
   moto_rental:'Location de scooters / motos',
@@ -435,12 +475,13 @@ function clearAll() {
 function setSource(src) {
   currentSource = src;
   document.querySelectorAll('.tab').forEach(function(t,i) {
-    t.classList.toggle('active', ['osm','ocm','gouv','gbfs'][i] === src);
+    t.classList.toggle('active', ['osm','ocm','gouv','gbfs','fuel'][i] === src);
   });
   document.querySelectorAll('.src-panel').forEach(function(p) { p.classList.remove('active'); });
   document.getElementById('src-' + src).classList.add('active');
   document.getElementById('osm-cat-row').style.display = src === 'osm' ? 'block' : 'none';
-  document.getElementById('btn-count').style.display = (src === 'gouv') ? 'none' : 'inline-block';
+  document.getElementById('btn-count').style.display = (src === 'gouv' || src === 'fuel') ? 'none' : 'inline-block';
+  document.getElementById('btn-import').style.display = src === 'fuel' ? 'none' : 'inline-block';
   clearAll();
 }
 
@@ -450,7 +491,7 @@ async function loadCatIds() {
   var resS = await db.from('categories').select('id, name, main_category_id');
   var mains = resM.data || [], subs = resS.data || [];
   catIds = {};
-  ['cat-override','ocm-cat-override','gouv-cat-override','gbfs-cat-override'].forEach(function(id) {
+  ['cat-override','ocm-cat-override','gouv-cat-override','gbfs-cat-override','fuel-cat-override'].forEach(function(id) {
     var sel = document.getElementById(id);
     if (!sel) return;
     while (sel.options.length > 0) sel.remove(0);
@@ -467,6 +508,11 @@ async function loadCatIds() {
   var ocmSel = document.getElementById('ocm-cat-override');
   for (var i = 0; i < ocmSel.options.length; i++) {
     if (ocmSel.options[i].value === 'Borne de recharge électrique') { ocmSel.selectedIndex = i; break; }
+  }
+  // pré-sélectionner "Station-service" pour Prix Carburants
+  var fuelSel = document.getElementById('fuel-cat-override');
+  for (var i = 0; i < fuelSel.options.length; i++) {
+    if (fuelSel.options[i].value === 'Station-service') { fuelSel.selectedIndex = i; break; }
   }
 }
 
@@ -558,7 +604,7 @@ function buildQuery(type, b) {
   if (type==='wifi')       return t+'node["internet_access"="wlan"]["internet_access:fee"="no"]('+b+');\nnode["wifi"="free"]('+b+');'+e;
   if (type==='pharmacy')   return t+'node["amenity"="pharmacy"]('+b+');\nway["amenity"="pharmacy"]('+b+');'+ec;
   if (type==='hospital')   return t+'node["amenity"="hospital"]('+b+');\nway["amenity"="hospital"]('+b+');\nnode["amenity"="clinic"]('+b+');'+ec;
-  if (type==='supermarket')return t+'node["shop"="supermarket"]('+b+');\nway["shop"="supermarket"]('+b+');\nnode["shop"="convenience"]('+b+');'+ec;
+  if (type==='supermarket_auto') return t+'node["shop"="convenience"]["opening_hours"="24/7"]('+b+');\nnode["shop"="convenience"]["automated"="yes"]('+b+');\nnode["shop"="supermarket"]["opening_hours"="24/7"]('+b+');\nnode["shop"="convenience"]["self_service"="yes"]["opening_hours"="24/7"]('+b+');'+ec;
   if (type==='bakery')     return t+'node["shop"="bakery"]('+b+');\nway["shop"="bakery"]('+b+');'+ec;
   if (type==='market')     return t+'node["amenity"="marketplace"]('+b+');\nway["amenity"="marketplace"]('+b+');'+ec;
   if (type==='tourist')    return t+'node["tourism"="information"]["information"="office"]('+b+');'+ec;
@@ -582,6 +628,7 @@ function buildQuery(type, b) {
   if (type==='hygiene')    return t+'node["amenity"="vending_machine"]["vending"="feminine_hygiene"]('+b+');'+e;
   if (type==='firstaid')   return t+'node["amenity"="vending_machine"]["vending"="first_aid"]('+b+');'+e;
   if (type==='condoms')    return t+'node["amenity"="vending_machine"]["vending"="condoms"]('+b+');'+e;
+  if (type==='bike_repair') return t+'node["amenity"="bicycle_repair_station"]('+b+');\nnode["service:bicycle:pump"="yes"]('+b+');\nnode["service:bicycle:tools"="yes"]('+b+');'+e;
   if (type==='bike_rental') return t+'node["amenity"="bicycle_rental"]('+b+');\nway["amenity"="bicycle_rental"]('+b+');'+ec;
   if (type==='car_sharing') return t+'node["amenity"="car_sharing"]('+b+');\nway["amenity"="car_sharing"]('+b+');'+ec;
   if (type==='moto_rental') return t+'node["amenity"="motorcycle_rental"]('+b+');\nnode["amenity"="scooter_rental"]('+b+');\nnode["amenity"="kick-scooter_rental"]('+b+');'+e;
@@ -953,6 +1000,97 @@ function abortImport() {
   document.getElementById('btn-abort').disabled=true;
 }
 function sleep(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
+// ── Prix Carburants (gouv.fr) ────────────────────────────────
+var FUEL_EXPORT = 'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/exports/json?limit=-1&timezone=Europe/Paris&select=id,nom,adresse,ville,cp,latitude,longitude,horaires_automate_24_24,gazole_prix,sp95_prix,sp98_prix,e10_prix,e85_prix,gplc_prix';
+var fuelData = [];
+
+function processFuelRow(s) {
+  var lat = parseFloat((s.latitude  + '').replace(',', '.'));
+  var lon = parseFloat((s.longitude + '').replace(',', '.'));
+  if (!lat || !lon || isNaN(lat) || isNaN(lon)) return null;
+  var name = s.nom || ('Station ' + (s.ville || ''));
+  var desc = [];
+  if (s.adresse) desc.push(s.adresse + (s.cp ? ' ' + s.cp : '') + (s.ville ? ' ' + s.ville : ''));
+  if (s.gazole_prix) desc.push('Gazole : ' + s.gazole_prix + '€');
+  if (s.sp95_prix)   desc.push('SP95 : '   + s.sp95_prix   + '€');
+  if (s.sp98_prix)   desc.push('SP98 : '   + s.sp98_prix   + '€');
+  if (s.e10_prix)    desc.push('E10 : '    + s.e10_prix    + '€');
+  if (s.e85_prix)    desc.push('E85 : '    + s.e85_prix    + '€');
+  if (s.gplc_prix)   desc.push('GPL : '    + s.gplc_prix   + '€');
+  desc.push('id_gouv:' + s.id);
+  var h24 = s.horaires_automate_24_24 === 1 || s.horaires_automate_24_24 === '1' || s.horaires_automate_24_24 === true;
+  return { name: name, description: desc.join(' | '), latitude: lat, longitude: lon, h24: h24 };
+}
+
+async function countFuel() {
+  document.getElementById('btn-import-fuel').disabled = true;
+  document.getElementById('log').innerHTML = '';
+  fuelData = [];
+  var fileInput = document.getElementById('fuel-file');
+  if (!fileInput.files.length) { log('Sélectionne d\'abord le fichier JSON téléchargé.', 'err'); return; }
+  log('Lecture du fichier...', 'info'); setProgress(20);
+  try {
+    var text = await fileInput.files[0].text();
+    var raw = JSON.parse(text);
+    var h24only = document.getElementById('fuel-h24only').checked;
+    fuelData = (Array.isArray(raw) ? raw : (raw.results || [])).filter(function(s) {
+      if (!h24only) return true;
+      return s.horaires_automate_24_24 === 1 || s.horaires_automate_24_24 === '1' || s.horaires_automate_24_24 === true;
+    });
+    document.getElementById('fuel-api-count').textContent = fuelData.length;
+    setStat('found', fuelData.length);
+    setProgress(100);
+    log('Fichier lu : ' + fuelData.length + ' stations détectées !', 'ok');
+    if (fuelData.length > 0) { document.getElementById('btn-import-fuel').disabled = false; log('Prêt → Importer', 'info'); }
+    else log('Aucune station dans le fichier.', 'err');
+  } catch(e) { log('Erreur lecture fichier : ' + e.message, 'err'); setProgress(0); }
+}
+
+async function startImportFuel() {
+  if (!fuelData.length) { log("Lance d'abord le comptage !", 'err'); return; }
+  aborted = false;
+  document.getElementById('btn-import-fuel').disabled = true;
+  document.getElementById('btn-abort').style.display = 'inline-block';
+  await loadCatIds();
+  var catName = document.getElementById('fuel-cat-override').value || 'Station-service';
+  var cat = catIds[catName];
+  if (!cat) { log('ERREUR : catégorie "' + catName + '" introuvable ! Crée-la dans Supabase.', 'err'); return; }
+  var dryRun = document.getElementById('opt-dryrun').checked;
+  var delay  = parseInt(document.getElementById('opt-delay').value) || 150;
+  var BATCH  = 50, imported = 0, skipped = 0, errors = 0;
+  var existingCoords = new Set();
+  if (!dryRun) existingCoords = await loadExistingCoords(cat.id);
+  var rows = fuelData.map(processFuelRow).filter(Boolean);
+  log('Import ' + rows.length + ' stations...', 'info');
+  for (var i = 0; i < rows.length; i += BATCH) {
+    if (aborted) { log('Import interrompu à ' + i + '/' + rows.length, 'err'); break; }
+    try {
+      var batch = rows.slice(i, i + BATCH);
+      var toInsert = [];
+      batch.forEach(function(r) {
+        var k = r.latitude.toFixed(5) + ',' + r.longitude.toFixed(5);
+        if (existingCoords.has(k)) { skipped++; return; }
+        toInsert.push({ name: r.name, description: r.description,
+          latitude: r.latitude, longitude: r.longitude,
+          main_category_id: cat.main_id, category_id: cat.id,
+          user_name: 'Prix-Carburants-gouv', disponible_24h: r.h24, approved: true });
+        existingCoords.add(k);
+      });
+      if (toInsert.length > 0 && !dryRun) {
+        var res = await db.from('places').insert(toInsert);
+        if (res.error) { errors += toInsert.length; log('Erreur lot : ' + res.error.message, 'err'); }
+        else imported += toInsert.length;
+      } else if (dryRun) imported += toInsert.length;
+      setStat('imported', imported); setStat('skipped', skipped); setStat('errors', errors);
+      setProgress(Math.round(((i + BATCH) / rows.length) * 100));
+      log((Math.min(i + BATCH, rows.length)) + '/' + rows.length + ' | ✅' + imported + ' ⏭' + skipped + ' ❌' + errors, 'gray');
+      await new Promise(function(r) { setTimeout(r, delay); });
+    } catch(e) { log('Erreur lot ' + i + ' : ' + e.message, 'err'); errors += BATCH; }
+  }
+  document.getElementById('btn-abort').style.display = 'none';
+  log('Terminé ! ✅' + imported + ' importées ⏭' + skipped + ' ignorées ❌' + errors + ' erreurs', 'ok');
+}
 
 // ── Init
 window.addEventListener('DOMContentLoaded', function() {

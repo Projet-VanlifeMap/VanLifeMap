@@ -2,7 +2,7 @@
   "name": "VanLifeMap",
   "short_name": "VanLifeMap",
   "description": "Carte communautaire des services en libre-service 24h/24",
-  "start_url": "/VanLifeMap/",
+  "start_url": "/",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],
   "background_color": "#0d1530",
