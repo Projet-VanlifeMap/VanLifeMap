@@ -1039,18 +1039,17 @@ function toggleCatSheet(id, hdr) {
 
 function getZoneBlock() {
   var noFilter = localStorage.getItem('vlm_no_filter');
-  var zoneText, zoneDetail;
+  var flagsHtml;
   if (noFilter || !selectedCountries.length) {
-    zoneText = '🌍 Monde entier';
-    zoneDetail = 'Tous les pays affichés';
+    flagsHtml = '<span style="font-size:26px;">🌍</span>';
   } else {
-    zoneText = selectedCountries.map(function(id) { return EU_COUNTRIES[id] ? EU_COUNTRIES[id].flag + ' ' + EU_COUNTRIES[id].name : ''; }).filter(Boolean).join(', ');
-    zoneDetail = selectedCountries.length + ' pays sélectionné' + (selectedCountries.length > 1 ? 's' : '');
+    flagsHtml = selectedCountries.map(function(id) {
+      return EU_COUNTRIES[id] ? '<span style="font-size:26px;" title="' + EU_COUNTRIES[id].name + '">' + EU_COUNTRIES[id].flag + '</span>' : '';
+    }).filter(Boolean).join('');
   }
   return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;">'
-    + '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Zone actuelle</div>'
-    + '<div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:2px;">' + zoneText + '</div>'
-    + '<div style="font-size:11px;color:var(--text2);">' + zoneDetail + '</div>'
+    + '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Zone actuelle</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + flagsHtml + '</div>'
     + '</div>'
     + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">&#127758; Changer de zone</button>';
 }
