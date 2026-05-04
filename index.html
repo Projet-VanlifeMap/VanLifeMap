@@ -134,6 +134,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .srch-chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 14px;border-bottom:1px solid var(--border);}
 .srch-chip{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);white-space:nowrap;-webkit-tap-highlight-color:transparent;}
 .srch-chip:active{background:rgba(255,208,79,0.1);border-color:var(--accent);}
+.srch-back-btn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:13px 16px;font-size:14px;font-weight:700;color:var(--accent);cursor:pointer;font-family:var(--font-body);text-align:left;}
+.srch-subcat-item{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:rgba(255,208,79,0.08);}
+.srch-subcat-item:active{background:var(--surface2);}
+.srch-subcat-item.sel{background:rgba(255,208,79,0.08);}
+.srch-subcat-icon{width:38px;height:38px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.srch-subcat-icon.sel{background:rgba(255,208,79,0.15);}
+.srch-subcat-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;margin-left:auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.srch-subcat-check.sel{background:var(--accent);border-color:var(--accent);color:#000;}
 .srch-result{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);-webkit-tap-highlight-color:rgba(255,208,79,0.08);}
 .srch-result:active{background:var(--surface2);}
 .srch-result-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
@@ -516,6 +524,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <div class="srch-section-label">Cat&#233;gories</div>
         <div class="srch-chips" id="srch-chips"></div>
       </div>
+      <div id="srch-subcats" style="display:none;"></div>
       <div id="search-results" style="display:none;"></div>
     </div>
     <div id="loc-radius-wrap" style="display:none" class="srch-radius-wrap">
@@ -528,7 +537,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <button class="radius-pill" data-km="10" onclick="setLocationRadius(10)">10 km</button>
         <button class="radius-pill" data-km="50" onclick="setLocationRadius(50)">50 km</button>
       </div>
-      <button onclick="closeSheet('sheet-search')" style="width:100%;margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;">&#10003; Valider</button>
+      <button onclick="validerSearch()" style="width:100%;margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;">&#10003; Valider</button>
     </div>
   </div>
 </div>
@@ -1120,33 +1129,81 @@ function hexToRgba(hex, alpha) {
   return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
 }
 
+var srchSelectedSubCatId = null;
+
 function renderSrchChips() {
   var el = document.getElementById('srch-chips');
   if (!el || !mainCats.length) return;
   el.innerHTML = mainCats.map(function(mc) {
-    return '<button class="srch-chip" onclick="filterToCategory(\'' + mc.id + '\')">'
+    return '<button class="srch-chip" onclick="openSrchSubcats(\'' + mc.id + '\')">'
       + mc.icon + ' ' + mc.name + '</button>';
   }).join('');
 }
 
-function filterToCategory(mcId) {
-  mainCats.forEach(function(mc) {
-    var on = mc.id === mcId;
-    filters[mc.id].on = on;
-    ['chk-' + mc.id, 'chk-sm-' + mc.id].forEach(function(cid) {
-      var el = document.getElementById(cid);
-      if (el) { el.className = 'chk' + (on ? ' on' : ''); el.innerHTML = on ? '&#10003;' : ''; }
-    });
-    Object.keys(filters[mc.id].subs).forEach(function(sid) {
-      filters[mc.id].subs[sid] = on;
-      ['chk-sub-' + sid, 'chk-ss-' + sid].forEach(function(cid2) {
-        var el2 = document.getElementById(cid2);
-        if (el2) { el2.className = 'chk-sm' + (on ? ' on' : ''); el2.innerHTML = on ? '&#10003;' : ''; }
+function openSrchSubcats(mcId) {
+  var mc = mainCats.find(function(m) { return m.id === mcId; });
+  if (!mc) return;
+  var subs = allCats.filter(function(c) { return c.main_category_id === mcId; });
+  srchSelectedSubCatId = null;
+  var el = document.getElementById('srch-subcats');
+  el.innerHTML = '<button class="srch-back-btn" onclick="closeSrchSubcats()">&#8592; ' + mc.icon + ' ' + mc.name + '</button>'
+    + subs.map(function(s) {
+      return '<div class="srch-subcat-item" id="srchsub-' + s.id + '" onclick="selectSrchSubcat(\'' + s.id + '\')">'
+        + '<div class="srch-subcat-icon">' + s.icon + '</div>'
+        + '<span style="flex:1;font-size:14px;color:var(--text);">' + s.name + '</span>'
+        + '<div class="srch-subcat-check"></div>'
+        + '</div>';
+    }).join('');
+  document.getElementById('srch-default').style.display = 'none';
+  el.style.display = 'block';
+}
+
+function selectSrchSubcat(subId) {
+  srchSelectedSubCatId = subId;
+  document.querySelectorAll('.srch-subcat-item').forEach(function(el) {
+    el.classList.remove('sel');
+    el.querySelector('.srch-subcat-icon').classList.remove('sel');
+    el.querySelector('.srch-subcat-check').classList.remove('sel');
+    el.querySelector('.srch-subcat-check').innerHTML = '';
+  });
+  var sel = document.getElementById('srchsub-' + subId);
+  if (sel) {
+    sel.classList.add('sel');
+    sel.querySelector('.srch-subcat-icon').classList.add('sel');
+    var chk = sel.querySelector('.srch-subcat-check');
+    chk.classList.add('sel');
+    chk.innerHTML = '&#10003;';
+  }
+}
+
+function closeSrchSubcats() {
+  srchSelectedSubCatId = null;
+  document.getElementById('srch-subcats').style.display = 'none';
+  document.getElementById('srch-default').style.display = 'block';
+}
+
+function validerSearch() {
+  if (srchSelectedSubCatId) {
+    var sid = srchSelectedSubCatId;
+    mainCats.forEach(function(mc) {
+      var hasSub = allCats.some(function(c) { return c.main_category_id === mc.id && c.id === sid; });
+      filters[mc.id].on = hasSub;
+      ['chk-' + mc.id, 'chk-sm-' + mc.id].forEach(function(cid) {
+        var el = document.getElementById(cid);
+        if (el) { el.className = 'chk' + (hasSub ? ' on' : ''); el.innerHTML = hasSub ? '&#10003;' : ''; }
+      });
+      Object.keys(filters[mc.id].subs).forEach(function(subId) {
+        var on = subId === sid;
+        filters[mc.id].subs[subId] = on;
+        ['chk-sub-' + subId, 'chk-ss-' + subId].forEach(function(cid2) {
+          var el2 = document.getElementById(cid2);
+          if (el2) { el2.className = 'chk-sm' + (on ? ' on' : ''); el2.innerHTML = on ? '&#10003;' : ''; }
+        });
       });
     });
-  });
-  renderMapFilterBar();
-  applyFilters();
+    renderMapFilterBar();
+    applyFilters();
+  }
   closeSheet('sheet-search');
 }
 
