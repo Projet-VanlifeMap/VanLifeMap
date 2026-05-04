@@ -1562,7 +1562,7 @@ async function loadCats() {
   var resS = await db.from('categories').select('*').order('name');
   mainCats = resM.data || [];
   mainCats.forEach(function(mc) {
-    if (mc.id === 'e57bc9d3-7751-4de1-9b2c-7c0336bc6f92') { mc.name = '24/7'; mc.icon = '⏰'; }
+    if (mc.id === 'e57bc9d3-7751-4de1-9b2c-7c0336bc6f92') { mc.name = 'Libre service 24/7'; mc.icon = '🔄'; }
   });
   allCats = resS.data || [];
   var CAT2_ID = 'virtual-cat2-0000-0000-000000000002';
