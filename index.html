@@ -1186,15 +1186,8 @@ function selectSrchLocation(idx) {
   if (clearBtn) clearBtn.style.display = 'block';
   var srchDefault = document.getElementById('srch-default');
   var srchResults = document.getElementById('search-results');
-  if (srchDefault) srchDefault.style.display = 'none';
-  if (srchResults) {
-    srchResults.style.display = 'block';
-    srchResults.innerHTML = '<div style="padding:24px 16px;text-align:center;">'
-      + '<div style="font-size:36px;margin-bottom:10px;">&#128205;</div>'
-      + '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">' + escHtml(city) + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);">Choisissez un rayon ci-dessous</div>'
-      + '</div>';
-  }
+  if (srchDefault) srchDefault.style.display = 'block';
+  if (srchResults) { srchResults.style.display = 'none'; srchResults.innerHTML = ''; }
   var cn = document.getElementById('srch-city-name');
   if (cn) cn.textContent = city;
   var rw = document.getElementById('loc-radius-wrap');
