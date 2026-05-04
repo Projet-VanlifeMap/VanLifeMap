@@ -351,6 +351,37 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   #toast{bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);}
   #radius-bar{top:auto;bottom:calc(var(--nav-h) + var(--safe-bottom) + 120px);left:50%;transform:translateX(-50%);}
 }
+/* ── PROFILE CARD ── */
+.prof-banner{height:110px;background:linear-gradient(135deg,#0f2460 0%,#1a3a8c 40%,#2d6a9f 100%);position:relative;overflow:hidden;}
+.prof-banner::before{content:"🚐";position:absolute;font-size:120px;right:-18px;bottom:-28px;opacity:0.12;pointer-events:none;}
+.prof-banner-badge{position:absolute;top:12px;right:12px;background:rgba(255,208,79,0.18);border:1px solid rgba(255,208,79,0.4);color:#ffd04f;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;backdrop-filter:blur(6px);}
+.prof-avatar{width:70px;height:70px;border-radius:18px;background:linear-gradient(135deg,#ffd04f,#ff8c42);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#000;border:3px solid var(--bg);position:absolute;bottom:-35px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);}
+.prof-identity{background:var(--surface);padding:44px 20px 16px;border-bottom:1px solid var(--border);}
+.prof-username{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.prof-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--text2);}
+.prof-meta span{display:flex;align-items:center;gap:4px;}
+.prof-stats{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--border);}
+.prof-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.prof-stat{background:var(--bg);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px;position:relative;overflow:hidden;}
+.prof-stat.soon{opacity:0.55;}
+.prof-soon-tag{position:absolute;top:6px;right:6px;font-size:8px;font-weight:700;color:var(--text2);background:var(--surface2);border-radius:6px;padding:2px 5px;text-transform:uppercase;letter-spacing:0.5px;}
+.prof-stat-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.pic-green{background:rgba(39,174,96,0.15);}
+.pic-teal{background:rgba(26,188,156,0.15);}
+.pic-yellow{background:rgba(255,208,79,0.15);}
+.pic-blue{background:rgba(52,152,219,0.15);}
+.prof-stat-val{font-size:18px;font-weight:800;color:var(--text);line-height:1;}
+.prof-stat-lbl{font-size:10px;color:var(--text2);margin-top:2px;}
+.prof-ranking{background:var(--surface);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.prof-rank-icon{font-size:28px;}
+.prof-rank-label{font-size:11px;color:var(--text2);}
+.prof-rank-val{font-size:20px;font-weight:800;color:#ffd04f;}
+.prof-rank-bar-wrap{flex:1;}
+.prof-rank-bar{height:5px;background:var(--bg);border-radius:10px;margin-top:6px;overflow:hidden;}
+.prof-rank-fill{height:100%;background:linear-gradient(90deg,#ffd04f,#ff8c42);border-radius:10px;transition:width 0.5s;}
+.prof-actions{background:var(--surface);padding:14px 20px;display:flex;flex-direction:column;gap:8px;}
+.prof-btn-main{width:100%;background:#ffd04f;color:#000;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:var(--font-body);letter-spacing:0.3px;}
+.prof-btn-sec{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:12px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
 </style>
 </head>
 <body>
@@ -522,7 +553,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <span class="sheet-title">&#128100; Profil</span>
       <button class="sheet-close" onclick="closeSheet('sheet-profile')">&#10005;</button>
     </div>
-    <div class="sheet-content" style="padding:16px">
+    <div class="sheet-content" style="padding:0">
       <div id="profile-content"></div>
     </div>
   </div>
@@ -1054,25 +1085,114 @@ function getZoneBlock() {
     + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">&#127758; Changer de zone</button>';
 }
 
-function renderProfile() {
+async function renderProfile() {
   var el = document.getElementById('profile-content');
-  if (currentUser) {
-    el.innerHTML = '<div style="text-align:center;padding:20px 0">'
-      + '<div style="width:64px;height:64px;border-radius:50%;background:var(--surface2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">&#128100;</div>'
-      + '<p style="font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:4px">' + currentUser.email.split('@')[0] + '</p>'
-      + '<p style="font-size:12px;color:var(--text2)">' + currentUser.email + '</p>'
-      + '</div>'
-      + getZoneBlock()
-      + '<button class="btn-p" onclick="closeSheet(\'sheet-profile\');openSheet(\'sheet-settings\')" style="margin-top:0">&#9881;&#65039; Param&egrave;tres</button>'
-      + '<button class="btn-s" onclick="signOut()">&#128682; Se d&eacute;connecter</button>';
-  } else {
-    el.innerHTML = '<div style="text-align:center;padding:20px 0">'
+  if (!currentUser) {
+    el.innerHTML = '<div style="text-align:center;padding:20px 16px">'
       + '<div style="font-size:48px;margin-bottom:16px">&#128100;</div>'
-      + '<p style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px">Rejoindre la communaut&eacute;</p>'
-      + '<p style="font-size:13px;color:var(--text2);margin-bottom:20px">Connecte-toi pour ajouter des lieux, voter, commenter et acc&eacute;der &agrave; la vue satellite</p>'
-      + '<button class="btn-p" onclick="closeSheet(\'sheet-profile\');openModal(\'modal-auth\')" style="margin-bottom:16px">Se connecter / S\'inscrire</button>'
+      + '<p style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px">Rejoindre la communaut&#233;</p>'
+      + '<p style="font-size:13px;color:var(--text2);margin-bottom:20px">Connecte-toi pour ajouter des lieux, voter, commenter et acc&#233;der &#224; la vue satellite</p>'
+      + '<button id="prof-login-btn" class="btn-p" style="margin-bottom:16px">Se connecter / S&#39;inscrire</button>'
       + '</div>'
       + getZoneBlock();
+    var lb = document.getElementById('prof-login-btn');
+    if (lb) lb.addEventListener('click', function() { closeSheet('sheet-profile'); openModal('modal-auth'); });
+    return;
+  }
+  var username = currentUser.email.split('@')[0];
+  var initials = username.slice(0, 2).toUpperCase();
+  var months = ['jan.','f\u00e9v.','mars','avr.','mai','juin','juil.','ao\u00fbt','sept.','oct.','nov.','d\u00e9c.'];
+  var memberSince = new Date(currentUser.created_at);
+  var dateStr = months[memberSince.getMonth()] + ' ' + memberSince.getFullYear();
+  el.innerHTML = '<div class="prof-card">'
+    + '<div class="prof-banner">'
+    + '<div class="prof-banner-badge" id="prof-badge">\u2b50 Membre</div>'
+    + '<div class="prof-avatar">' + initials + '</div>'
+    + '</div>'
+    + '<div class="prof-identity">'
+    + '<div class="prof-username">' + username + '</div>'
+    + '<div class="prof-meta"><span>&#128197; Inscrit ' + dateStr + '</span></div>'
+    + '</div>'
+    + '<div class="prof-stats"><div class="prof-stats-grid">'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-green">&#128205;</div><div><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">Lieux ajout\u00e9s</div></div></div>'
+    + '<div class="prof-stat soon"><div class="prof-stat-icon pic-teal">&#9989;</div><div><div class="prof-stat-val">\u2014</div><div class="prof-stat-lbl">Lieux valid\u00e9s</div></div><div class="prof-soon-tag">Bient\u00f4t</div></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-blue">&#128172;</div><div><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div></div>'
+    + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-yellow">&#11088;</div>'
+    + '<div style="flex:1"><div style="display:flex;align-items:baseline;gap:8px"><div class="prof-stat-val" id="prof-rating">\u2014</div><div id="prof-stars" style="font-size:16px;line-height:1"></div></div>'
+    + '<div class="prof-stat-lbl" id="prof-rating-lbl">Note moyenne re\u00e7ue</div></div></div>'
+    + '</div></div>'
+    + '<div class="prof-ranking">'
+    + '<div class="prof-rank-icon">&#127942;</div>'
+    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">Classement communaut\u00e9</div>'
+    + '<div class="prof-rank-val" id="prof-rank">\u2014</div>'
+    + '<div class="prof-rank-bar"><div class="prof-rank-fill" id="prof-rank-fill" style="width:0%"></div></div></div>'
+    + '</div>'
+    + '<div class="prof-actions">'
+    + '<button class="prof-btn-main" id="prof-btn-zone">&#127758; Changer de zone</button>'
+    + '<button class="prof-btn-sec" id="prof-btn-settings">&#9881;&#65039; Param\u00e8tres</button>'
+    + '<button class="prof-btn-sec" id="prof-btn-signout" style="color:#e74c3c;border-color:#e74c3c;">&#128682; Se d\u00e9connecter</button>'
+    + '</div></div>';
+  document.getElementById('prof-btn-zone').addEventListener('click', function() { closeSheet('sheet-profile'); openCountryPicker(); });
+  document.getElementById('prof-btn-settings').addEventListener('click', function() { closeSheet('sheet-profile'); openSheet('sheet-settings'); });
+  document.getElementById('prof-btn-signout').addEventListener('click', function() { signOut(); });
+  loadProfileStats(username);
+}
+
+async function loadProfileStats(username) {
+  try {
+    var uid = currentUser ? currentUser.id : '';
+    var res = await Promise.all([
+      db.from('leaderboard_places').select('*'),
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username),
+      db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', uid),
+      db.from('places').select('id').eq('user_name', username)
+    ]);
+    var lbData = res[0].data || [];
+    var commentsCount = res[1].count || 0;
+    var votesCount = res[2].count || 0;
+    var placeIds = (res[3].data || []).map(function(p) { return p.id; });
+    var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
+    var myRank = myIdx + 1;
+    var total = lbData.length;
+    var placesCount = placeIds.length;
+    var pEl = document.getElementById('prof-places');
+    var cEl = document.getElementById('prof-comments');
+    var vEl = document.getElementById('prof-votes');
+    var rankEl = document.getElementById('prof-rank');
+    var rankFill = document.getElementById('prof-rank-fill');
+    var ratingEl = document.getElementById('prof-rating');
+    var starsEl = document.getElementById('prof-stars');
+    var ratingLbl = document.getElementById('prof-rating-lbl');
+    var badge = document.getElementById('prof-badge');
+    if (pEl) pEl.textContent = placesCount;
+    if (cEl) cEl.textContent = commentsCount;
+    if (vEl) vEl.textContent = votesCount;
+    if (rankEl) {
+      if (myRank > 0) {
+        rankEl.textContent = '#' + myRank + ' / ' + total;
+        var pct = total > 1 ? Math.round((1 - (myRank - 1) / (total - 1)) * 100) : 100;
+        if (rankFill) rankFill.style.width = pct + '%';
+      } else {
+        rankEl.textContent = 'Non class\u00e9';
+      }
+    }
+    if (badge) {
+      var lvl = placesCount >= 100 ? '\ud83e\udd47 Expert' : placesCount >= 30 ? '\ud83e\udd48 Explorateur' : placesCount >= 10 ? '\ud83e\udd49 D\u00e9butant' : '\u2b50 Membre';
+      badge.textContent = lvl;
+    }
+    if (placeIds.length) {
+      var ratingsRes = await db.from('ratings').select('score').in('place_id', placeIds);
+      var scores = (ratingsRes.data || []).map(function(r) { return r.score; });
+      if (scores.length && ratingEl) {
+        var avg = (scores.reduce(function(s, v) { return s + v; }, 0) / scores.length).toFixed(1);
+        ratingEl.textContent = avg;
+        if (starsEl) starsEl.textContent = avg >= 4.5 ? '\u2b50\u2b50\u2b50\u2b50\u2b50' : avg >= 3.5 ? '\u2b50\u2b50\u2b50\u2b50' : avg >= 2.5 ? '\u2b50\u2b50\u2b50' : avg >= 1.5 ? '\u2b50\u2b50' : '\u2b50';
+        if (ratingLbl) ratingLbl.textContent = 'Note moyenne re\u00e7ue \u00b7 ' + scores.length + ' \u00e9valuation' + (scores.length > 1 ? 's' : '');
+      }
+    }
+  } catch(e) {
+    console.warn('Profile stats error:', e);
   }
 }
 
