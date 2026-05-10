@@ -1437,18 +1437,25 @@ async function openPublicProfile(username) {
   var content = document.getElementById('pub-prof-content');
   modal.style.display = 'flex';
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
+
   var profileRes = await db.from('profiles').select('id,username,created_at').eq('username', username).maybeSingle();
   var profile = profileRes.data;
-  var placesCount = 0, commentsCount = 0;
+  var placesCount = 0, commentsCount = 0, validatedCount = 0, rankPos = null, rankTotal = null;
+
   if (profile) {
     var stats = await Promise.all([
       db.from('places').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
-      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.id)
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+      db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+      db.from('leaderboard_places').select('*')
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
+    validatedCount = stats[2].count || 0;
+    var lbData = stats[3].data || [];
+    var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
+    if (myIdx >= 0) { rankPos = myIdx + 1; rankTotal = lbData.length; }
   } else {
-    // Ancien pseudo (avant système de profils) : stats par user_name
     var stats = await Promise.all([
       db.from('places').select('*', { count: 'exact', head: true }).eq('user_name', username),
       db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username)
@@ -1456,26 +1463,42 @@ async function openPublicProfile(username) {
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
   }
+
   var initials = username.slice(0, 2).toUpperCase();
-  var joinDate = profile ? new Date(profile.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  var joinDate = profile ? new Date(profile.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   var lvl = placesCount >= 100 ? '🥇 Expert' : placesCount >= 30 ? '🥈 Explorateur' : placesCount >= 10 ? '🥉 Débutant' : '⭐ Membre';
-  content.innerHTML =
-    '<div style="background:var(--surface2);padding:28px 20px 20px;text-align:center;border-bottom:1px solid var(--border);">'
-    + '<div style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000;margin:0 auto 12px;">' + escHtml(initials) + '</div>'
-    + '<div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">' + escHtml(username) + '</div>'
-    + '<div style="font-size:12px;color:var(--text2);">' + lvl + (joinDate ? ' &middot; Inscrit le ' + joinDate : '') + '</div>'
+
+  // Couleur de bannière cohérente basée sur le pseudo
+  var BANNER_PRESETS = ['135deg,#0a0a0a,#1a1a1a,#2d2d2d','135deg,#13110a,#28230a,#3d3510','135deg,#070d1a,#0d1830,#162544','135deg,#0f0814,#1c1228,#2a1a3d','135deg,#080f08,#0f1f0e,#1a2e18','135deg,#140606,#250a0a,#361010','135deg,#060f0f,#0a1c1c,#112828','135deg,#080b12,#10151f,#1a2030'];
+  var hash = username.split('').reduce(function(a, c) { return a + c.charCodeAt(0); }, 0);
+  var bannerGrad = BANNER_PRESETS[hash % BANNER_PRESETS.length];
+
+  var rankHtml = (rankPos && rankTotal) ?
+    '<div class="prof-ranking" style="cursor:default;">'
+    + '<div class="prof-rank-icon">&#127942;</div>'
+    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">Classement communauté</div>'
+    + '<div class="prof-rank-val">#' + rankPos + ' sur ' + rankTotal + '</div>'
+    + '<div class="prof-rank-bar"><div class="prof-rank-fill" style="width:' + Math.max(4, Math.round((1 - rankPos / rankTotal) * 100)) + '%"></div></div></div>'
+    + '</div>' : '';
+
+  content.innerHTML = '<div class="prof-card">'
+    + '<div class="prof-banner" style="background:linear-gradient(' + bannerGrad + ')">'
+    + '<div class="prof-banner-badge">' + lvl + '</div>'
+    + '<div class="prof-avatar" style="cursor:default;">' + escHtml(initials) + '</div>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;background:var(--surface);">'
-    + '<div style="padding:18px;text-align:center;border-right:1px solid var(--border);">'
-    + '<div style="font-size:24px;font-weight:800;color:var(--text);">' + placesCount + '</div>'
-    + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Lieux ajoutés</div></div>'
-    + '<div style="padding:18px;text-align:center;">'
-    + '<div style="font-size:24px;font-weight:800;color:var(--text);">' + commentsCount + '</div>'
-    + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Commentaires</div></div>'
+    + '<div class="prof-identity">'
+    + '<div class="prof-username">' + escHtml(username) + '</div>'
+    + '<div class="prof-meta">' + (joinDate ? '<span>&#128197; Inscrit le ' + joinDate + '</span>' : '') + '</div>'
     + '</div>'
+    + '<div class="prof-stats"><div class="prof-stats-grid">'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajoutés</div></div></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Lieux validés</div></div></div>'
+    + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div></div>'
+    + '</div></div>'
+    + rankHtml
     + '<div style="padding:12px 16px;border-top:1px solid var(--border);text-align:center;">'
     + '<button onclick="document.getElementById(\'modal-pub-profile\').style.display=\'none\'" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font-body);">Fermer</button>'
-    + '</div>';
+    + '</div></div>';
 }
 
 function signOut() {
