@@ -1127,7 +1127,13 @@ function navTo(tab) {
   else if (tab === 'community') { openSheet('sheet-community'); loadCommunity(); document.getElementById('comm-new-btn').style.display = 'flex'; }
 }
 
-function openSheet(id) { document.getElementById(id).classList.add('open'); }
+function openSheet(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'sheet-settings' && isAdmin) {
+    var sec = document.getElementById('admin-validators-section');
+    if (sec) { sec.style.display = 'block'; loadValidatorsList(); }
+  }
+}
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
   if (id === 'sheet-community') document.getElementById('comm-new-btn').style.display = 'none';
