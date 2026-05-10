@@ -502,6 +502,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     <button id="btn-compass" onclick="resetBearing()" title="Réinitialiser le nord"><span id="btn-compass-arrow" style="display:inline-block;transition:transform 0.3s;">&#8593; N</span></button>
     <button id="btn-locate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><line x1="12" y1="1" x2="12" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <div id="places-count">Lieux : <span id="count-num">0</span></div>
+    <button id="solo-banner" onclick="clearSoloMode()" style="display:none;position:fixed;top:calc(16px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:1500;background:rgba(20,20,20,0.82);color:#fff;border:none;border-radius:20px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);backdrop-filter:blur(6px);align-items:center;gap:6px;white-space:nowrap;">&#8592; Retour &#224; la carte</button>
   </div>
 </div>
 
@@ -2147,9 +2148,29 @@ async function loadPlaces() {
 
 function showHint(show) {}
 
+var soloPlaceId = null;
+
 function scheduleLoad() {
+  if (soloPlaceId) return;
   if (loadTimer) clearTimeout(loadTimer);
   loadTimer = setTimeout(loadPlaces, 400);
+}
+
+async function goToSoloPlace(placeId, lat, lng) {
+  closeSheet('sheet-profile');
+  soloPlaceId = placeId;
+  var banner = document.getElementById('solo-banner');
+  if (banner) banner.style.display = 'flex';
+  map.flyTo([lat, lng], 16, { duration: 0.8 });
+  var res = await db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', placeId).maybeSingle();
+  if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); }
+}
+
+function clearSoloMode() {
+  soloPlaceId = null;
+  var banner = document.getElementById('solo-banner');
+  if (banner) banner.style.display = 'none';
+  scheduleLoad();
 }
 
 function renderMarkers(places) {
@@ -2568,7 +2589,7 @@ async function loadUserValidated() {
     var p = r.places;
     var cat = p.categories || {};
     var d = r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-    return '<div onclick="goToFavorite(' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+    return '<div onclick="goToSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
       + '<div style="width:34px;height:34px;border-radius:10px;background:rgba(39,174,96,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">&#9989;</div>'
       + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
       + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + (d ? ' · ' + d : '') + '</div></div>'
@@ -2636,7 +2657,7 @@ async function loadUserVotes() {
     var p = v.places || {};
     var cat = p.categories || {};
     var hasPlace = p.latitude && p.longitude;
-    return '<div ' + (hasPlace ? 'onclick="goToFavorite(' + p.latitude + ',' + p.longitude + ')"' : '') + ' style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);' + (hasPlace ? 'cursor:pointer;' : '') + '">'
+    return '<div ' + (hasPlace ? 'onclick="goToSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')"' : '') + ' style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);' + (hasPlace ? 'cursor:pointer;' : '') + '">'
       + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
       + '<div style="flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || 'Lieu inconnu') + '</div>'
       + '<span style="font-size:18px;">' + (v.vote ? '👍' : '👎') + '</span>'
@@ -2667,7 +2688,7 @@ async function loadUserPlaces() {
   }
   panel.innerHTML = data.map(function(p) {
     var cat = p.categories || {};
-    return '<div onclick="goToFavorite(' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+    return '<div onclick="goToSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
       + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
       + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
       + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
@@ -2704,7 +2725,7 @@ async function loadUserComments() {
     var d = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
     var hasPlace = place.latitude && place.longitude;
     return '<div style="padding:10px 0;border-bottom:1px solid var(--border);' + (hasPlace ? 'cursor:pointer;' : '') + '"'
-      + (hasPlace ? ' onclick="goToFavorite(' + place.latitude + ',' + place.longitude + ')"' : '') + '>'
+      + (hasPlace ? ' onclick="goToSoloPlace(\'' + place.id + '\',' + place.latitude + ',' + place.longitude + ')"' : '') + '>'
       + (place.name ? '<div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:3px;">📍 ' + escHtml(place.name) + '</div>' : '')
       + '<div style="font-size:13px;color:var(--text);line-height:1.4;">' + escHtml(c.content) + '</div>'
       + (d ? '<div style="font-size:10px;color:var(--text2);margin-top:4px;">' + d + '</div>' : '')
@@ -2733,7 +2754,7 @@ async function loadFavoritesInProfile() {
   var places = res.data || [];
   el.innerHTML = places.map(function(p) {
     var cat = p.categories || {};
-    return '<div onclick="goToFavorite(' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+    return '<div onclick="goToSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
       + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
       + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
       + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
@@ -2746,6 +2767,7 @@ function goToFavorite(lat, lng) {
   closeSheet('sheet-profile');
   map.flyTo([lat, lng], 16, { duration: 0.8 });
 }
+
 
 // ===== PHOTOS =====
 var lbPhotos = [], lbIndex = 0;
