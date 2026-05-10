@@ -2223,6 +2223,8 @@ function clearSoloMode() {
   var nav = document.getElementById('bottom-nav');
   if (nav) nav.style.display = 'block';
   scheduleLoad();
+  renderProfile();
+  openSheet('sheet-profile');
 }
 
 function renderMarkers(places) {
