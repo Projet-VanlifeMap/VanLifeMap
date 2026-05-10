@@ -1227,7 +1227,7 @@ async function renderProfile() {
     + '<div class="prof-meta"><span>&#128197; Inscrit ' + dateStr + '</span></div>'
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
-    + '<div class="prof-stat"><div class="prof-stat-icon pic-green">&#128205;</div><div><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">Lieux ajout\u00e9s</div></div></div>'
+    + '<div class="prof-stat" onclick="toggleProfPlaces()" style="cursor:pointer;" title="Voir mes lieux"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">Lieux ajout\u00e9s</div></div><span id="prof-places-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat soon"><div class="prof-stat-icon pic-teal">&#9989;</div><div><div class="prof-stat-val">\u2014</div><div class="prof-stat-lbl">Lieux valid\u00e9s</div></div><div class="prof-soon-tag">Bient\u00f4t</div></div>'
     + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div></div>'
@@ -1235,6 +1235,7 @@ async function renderProfile() {
     + '<div style="flex:1"><div style="display:flex;align-items:baseline;gap:8px"><div class="prof-stat-val" id="prof-rating">\u2014</div><div id="prof-stars" style="font-size:16px;line-height:1"></div></div>'
     + '<div class="prof-stat-lbl" id="prof-rating-lbl">Note moyenne re\u00e7ue</div></div></div>'
     + '</div></div>'
+    + '<div id="prof-places-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div id="prof-cmts-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div class="prof-ranking">'
     + '<div class="prof-rank-icon">&#127942;</div>'
@@ -2498,6 +2499,38 @@ async function toggleFavorite(placeId) {
     showToast('Ajouté aux favoris ❤️', 'success');
   }
   checkFavorite(placeId);
+}
+
+var _profPlacesOpen = false;
+function toggleProfPlaces() {
+  var panel = document.getElementById('prof-places-panel');
+  var arrow = document.getElementById('prof-places-arrow');
+  if (!panel) return;
+  _profPlacesOpen = !_profPlacesOpen;
+  panel.style.display = _profPlacesOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = _profPlacesOpen ? '˅' : '›';
+  if (_profPlacesOpen) loadUserPlaces();
+}
+
+async function loadUserPlaces() {
+  var panel = document.getElementById('prof-places-panel');
+  if (!panel || !currentUser) return;
+  panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
+  var res = await db.from('places').select('id,name,latitude,longitude,categories(icon,name)').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50);
+  var data = res.data || [];
+  if (!data.length) {
+    panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Aucun lieu ajouté</div>';
+    return;
+  }
+  panel.innerHTML = data.map(function(p) {
+    var cat = p.categories || {};
+    return '<div onclick="goToFavorite(' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
+      + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
+      + '<span style="color:var(--text2);font-size:16px;">›</span>'
+      + '</div>';
+  }).join('');
 }
 
 var _profCmtsOpen = false;
