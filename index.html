@@ -2967,11 +2967,16 @@ async function loadReportedComments() {
   var el = document.getElementById('reported-comments-list');
   if (!el) return;
   el.innerHTML = '<div style="color:var(--text2);">Chargement...</div>';
-  var res = await db.from('comment_reports').select('comment_id').order('created_at', { ascending: false });
+  var res = await db.from('comment_reports').select('comment_id,user_id,profiles(username)').order('created_at', { ascending: false });
   var reports = res.data || [];
   if (!reports.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun signalement</div>'; return; }
-  var counts = {};
-  reports.forEach(function(r) { counts[r.comment_id] = (counts[r.comment_id] || 0) + 1; });
+  var counts = {}, reporters = {};
+  reports.forEach(function(r) {
+    counts[r.comment_id] = (counts[r.comment_id] || 0) + 1;
+    var uname = (r.profiles && r.profiles.username) || r.user_id;
+    if (!reporters[r.comment_id]) reporters[r.comment_id] = [];
+    reporters[r.comment_id].push(uname);
+  });
   var ids = Object.keys(counts);
   var cmtRes = await db.from('comments').select('id,content,user_name,place_id,places(name)').in('id', ids);
   var cmts = cmtRes.data || [];
@@ -2981,7 +2986,7 @@ async function loadReportedComments() {
     var n = counts[c.id] || 1;
     return '<div style="border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px;margin-bottom:8px;background:rgba(231,76,60,0.05);">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
-      + '<span style="font-size:11px;font-weight:700;color:#e74c3c;">&#9888;&#65039; ' + n + ' signalement' + (n > 1 ? 's' : '') + '</span>'
+      + '<span style="font-size:11px;font-weight:700;color:#e74c3c;">&#9888;&#65039; ' + n + ' signalement' + (n > 1 ? 's' : '') + ' — par ' + escHtml((reporters[c.id] || []).join(', ')) + '</span>'
       + '<span style="font-size:11px;color:var(--text2);">&#128100; ' + escHtml(c.user_name || 'Anonyme') + ' &middot; &#128205; ' + escHtml(placeName) + '</span>'
       + '</div>'
       + '<div style="font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.4;">' + escHtml(c.content) + '</div>'
