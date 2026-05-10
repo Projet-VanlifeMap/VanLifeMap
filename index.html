@@ -3908,19 +3908,6 @@ function applyMaskLayer() {
   if (maskBorderLayer) { map.removeLayer(maskBorderLayer); maskBorderLayer = null; }
   if (!selectedCountries.length || !worldGeoData) return;
 
-  var borderFeatures = worldGeoData.features.filter(function(f) {
-    return selectedCountries.indexOf(String(f.id)) >= 0;
-  });
-
-  if (borderFeatures.length) {
-    maskBorderLayer = L.geoJSON(
-      { type: 'FeatureCollection', features: borderFeatures },
-      {
-        style: { fill: false, color: '#ffd04f', weight: 1.5, interactive: false },
-        interactive: false
-      }
-    ).addTo(map);
-  }
 }
 </script>
 
