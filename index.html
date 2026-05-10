@@ -97,6 +97,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 #btn-satellite{position:absolute;bottom:140px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:40px;height:40px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
 #btn-locate{position:absolute;bottom:90px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
 #btn-compass{position:absolute;bottom:190px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:40px;height:40px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;transition:opacity 0.2s;}
+.my-loc-wrap{width:40px;height:40px;position:relative;transform-origin:center center;}
+.my-loc-cone{position:absolute;left:50%;bottom:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:22px solid rgba(66,133,244,0.5);border-radius:2px;}
+.my-loc-dot{position:absolute;width:16px;height:16px;background:#4285f4;border:2.5px solid #fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+#btn-locate.live{background:#4285f4 !important;border-color:#4285f4 !important;color:#fff !important;}
 #info-adding{display:none;position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:999;background:var(--accent);color:#000;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:600;font-family:var(--font-head);white-space:nowrap;}
 
 
@@ -820,6 +824,7 @@ async function init() {
       btn.style.display = 'none';
       if (arrow) arrow.style.transform = 'rotate(0deg)';
     }
+    updateLiveMarkerHeading();
   });
   // Touch rotate custom — delta incrémental pour éviter les sauts
   var _lastRotateAngle = null;
@@ -898,7 +903,7 @@ function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
   document.getElementById('btn-profile-desk').addEventListener('click', function() { renderProfile(); openSheet('sheet-profile'); });
-  document.getElementById('btn-locate').addEventListener('click', locateMe);
+  document.getElementById('btn-locate').addEventListener('click', toggleLiveTracking);
   applyFilters();
 }
 
@@ -2677,6 +2682,85 @@ function sharePlace(id, name, lat, lon) {
       prompt('Copie ce lien :', url);
     });
   }
+}
+
+// ===== LIVE TRACKING =====
+var liveTrackActive = false;
+var liveWatchId = null;
+var liveMarker = null;
+var liveAccCircle = null;
+var liveHeading = null;
+var _orientListenerAdded = false;
+
+function toggleLiveTracking() {
+  if (liveTrackActive) { stopLiveTracking(); } else { startLiveTracking(); }
+}
+
+function startLiveTracking() {
+  if (!navigator.geolocation) { showToast('G\u00e9olocalisation non disponible', 'error'); return; }
+  var addOrient = function() {
+    if (!_orientListenerAdded) {
+      window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
+      window.addEventListener('deviceorientation', onDeviceOrientation, true);
+      _orientListenerAdded = true;
+    }
+  };
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(function(s) { if (s === 'granted') addOrient(); }).catch(function(){});
+  } else { addOrient(); }
+  liveTrackActive = true;
+  document.getElementById('btn-locate').classList.add('live');
+  liveWatchId = navigator.geolocation.watchPosition(function(pos) {
+    var latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+    var acc = pos.coords.accuracy;
+    if (!liveMarker) {
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="my-loc-wrap" id="my-loc-wrap"><div class="my-loc-cone"></div><div class="my-loc-dot"></div></div>',
+        iconSize: [40, 40], iconAnchor: [20, 20]
+      });
+      liveMarker = L.marker(latlng, { icon: icon, zIndexOffset: 1000, interactive: false }).addTo(map);
+      liveAccCircle = L.circle(latlng, { radius: Math.max(acc / 2, 8), color: '#4285f4', weight: 1, fillColor: '#4285f4', fillOpacity: 0.12 }).addTo(map);
+      map.setView(latlng, Math.max(map.getZoom(), 16));
+    } else {
+      liveMarker.setLatLng(latlng);
+      liveAccCircle.setLatLng(latlng).setRadius(Math.max(acc / 2, 8));
+    }
+    updateLiveMarkerHeading();
+  }, function() { showToast('Localisation impossible', 'error'); stopLiveTracking(); },
+  { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 });
+}
+
+function stopLiveTracking() {
+  if (liveWatchId !== null) { navigator.geolocation.clearWatch(liveWatchId); liveWatchId = null; }
+  if (_orientListenerAdded) {
+    window.removeEventListener('deviceorientationabsolute', onDeviceOrientation, true);
+    window.removeEventListener('deviceorientation', onDeviceOrientation, true);
+    _orientListenerAdded = false;
+  }
+  if (liveMarker) { map.removeLayer(liveMarker); liveMarker = null; }
+  if (liveAccCircle) { map.removeLayer(liveAccCircle); liveAccCircle = null; }
+  liveTrackActive = false;
+  liveHeading = null;
+  document.getElementById('btn-locate').classList.remove('live');
+}
+
+function onDeviceOrientation(e) {
+  var h;
+  if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+    h = e.webkitCompassHeading;
+  } else if (e.absolute && e.alpha !== null) {
+    h = (360 - e.alpha) % 360;
+  } else { return; }
+  liveHeading = h;
+  updateLiveMarkerHeading();
+}
+
+function updateLiveMarkerHeading() {
+  var wrap = document.getElementById('my-loc-wrap');
+  if (!wrap || liveHeading === null) return;
+  var mapBearing = (map.getBearing ? map.getBearing() : 0) || 0;
+  wrap.style.transform = 'rotate(' + (liveHeading - mapBearing) + 'deg)';
 }
 
 function locateMe() {
