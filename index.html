@@ -530,8 +530,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <span id="notif-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
       <span>Communaut&#233;</span>
     </button>
-    <button class="nav-item" id="nav-profile" onclick="navTo('profile')">
-      <span class="nav-item-icon">&#128100;</span><span>Profil</span>
+    <button class="nav-item" id="nav-profile" onclick="navTo('profile')" style="position:relative;">
+      <span class="nav-item-icon">&#128100;</span>
+      <span id="mod-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
+      <span>Profil</span>
     </button>
   </div>
 </div>
@@ -1147,6 +1149,8 @@ function openSheet(id) {
   if (id === 'sheet-settings' && (isAdmin || isModerator)) {
     var rep = document.getElementById('mod-reports-section');
     if (rep) { rep.style.display = 'block'; loadReportedPlaces(); loadReportedComments(); }
+    var mb = document.getElementById('mod-badge');
+    if (mb) mb.style.display = 'none';
   }
   if (id === 'sheet-settings' && isAdmin) {
     var sec = document.getElementById('admin-validators-section');
@@ -1998,6 +2002,7 @@ async function checkAuth() {
     await loadPrefs();
     await loadUserProfile();
     loadNotifCount();
+    loadModReportsCount();
     startRealtimeNotifs();
     loadUserFavorites();
   } else {
@@ -3014,6 +3019,7 @@ async function dismissPlaceReport(pid) {
   await db.from('reports').delete().eq('place_id', pid);
   showToast('Signalement ignoré', '');
   loadReportedPlaces();
+  loadModReportsCount();
 }
 
 var soloReturnTo = 'profile'; // 'profile' ou 'settings'
@@ -3087,12 +3093,14 @@ async function deleteReportedComment(cid) {
   await db.from('comments').delete().eq('id', cid);
   showToast('Commentaire supprimé', 'success');
   loadReportedComments();
+  loadModReportsCount();
 }
 
 async function dismissCommentReport(cid) {
   await db.from('comment_reports').delete().eq('comment_id', cid);
   showToast('Signalement ignoré', '');
   loadReportedComments();
+  loadModReportsCount();
 }
 
 function editCmt(cid, pid) {
@@ -3744,6 +3752,39 @@ function startRealtimeNotifs() {
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + currentUser.id }, function() {
       loadNotifCount();
     }).subscribe();
+  if (isAdmin || isModerator) {
+    startRealtimeReports();
+  }
+}
+
+var realtimeReportsChannel = null;
+
+async function loadModReportsCount() {
+  if (!currentUser || (!isAdmin && !isModerator)) return;
+  var [r1, r2] = await Promise.all([
+    db.from('reports').select('id', { count: 'exact', head: true }),
+    db.from('comment_reports').select('id', { count: 'exact', head: true })
+  ]);
+  var total = (r1.count || 0) + (r2.count || 0);
+  var badge = document.getElementById('mod-badge');
+  if (badge) {
+    if (total > 0) { badge.textContent = total > 99 ? '99+' : total; badge.style.display = 'block'; }
+    else { badge.style.display = 'none'; }
+  }
+}
+
+function startRealtimeReports() {
+  if (!currentUser || realtimeReportsChannel) return;
+  realtimeReportsChannel = db.channel('mod-reports')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, function(payload) {
+      showToast('&#9888;&#65039; Nouveau lieu signalé', 'error');
+      loadModReportsCount();
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comment_reports' }, function(payload) {
+      showToast('&#9888;&#65039; Nouveau commentaire signalé', 'error');
+      loadModReportsCount();
+    })
+    .subscribe();
 }
 
 if ('serviceWorker' in navigator) {
