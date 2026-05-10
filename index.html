@@ -1915,7 +1915,7 @@ async function loadCats() {
   });
   allCats = resS.data || [];
   var CAT2_ID = 'virtual-cat2-0000-0000-000000000002';
-  var CAT2_SUBS = ['5d5b88af-8e7e-4c30-94d2-cd897fc60b4f','f11dd815-1e74-4f7d-80bb-068875b57419','d3e4f5a6-b7c8-9012-defa-234567890123','627ed9b1-4448-40b0-a198-2564d45030a9'];
+  var CAT2_SUBS = ['5d5b88af-8e7e-4c30-94d2-cd897fc60b4f','f11dd815-1e74-4f7d-80bb-068875b57419','d3e4f5a6-b7c8-9012-defa-234567890123','627ed9b1-4448-40b0-a198-2564d45030a9','c2d3e4f5-a6b7-8901-cdef-123456789012'];
   mainCats.splice(1, 0, { id: CAT2_ID, name: 'Catégorie 2', icon: '📂', color: '#3498DB', sort_order: 99 });
   allCats.forEach(function(c) { if (CAT2_SUBS.includes(c.id)) c.main_category_id = CAT2_ID; });
   mainCats.forEach(function(mc) {
