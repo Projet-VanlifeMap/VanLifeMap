@@ -3908,31 +3908,9 @@ function applyMaskLayer() {
   if (maskBorderLayer) { map.removeLayer(maskBorderLayer); maskBorderLayer = null; }
   if (!selectedCountries.length || !worldGeoData) return;
 
-  // Inverted polygon: world bounding box with selected countries punched as holes.
-  // One single SVG path with evenodd fill-rule — no clipping/deformation on zoom.
-  var worldBox = [[-180, -85.05], [180, -85.05], [180, 85.05], [-180, 85.05], [-180, -85.05]];
-  var rings = [worldBox];
-  var borderFeatures = [];
-
-  worldGeoData.features.forEach(function(f) {
-    if (selectedCountries.indexOf(String(f.id)) < 0) return;
-    borderFeatures.push(f);
-    var geom = f.geometry;
-    if (!geom) return;
-    if (geom.type === 'Polygon') {
-      rings.push(geom.coordinates[0]);
-    } else if (geom.type === 'MultiPolygon') {
-      geom.coordinates.forEach(function(poly) { rings.push(poly[0]); });
-    }
+  var borderFeatures = worldGeoData.features.filter(function(f) {
+    return selectedCountries.indexOf(String(f.id)) >= 0;
   });
-
-  maskLayer = L.geoJSON({
-    type: 'Feature',
-    geometry: { type: 'Polygon', coordinates: rings }
-  }, {
-    style: { fillColor: '#000', fillOpacity: 0.55, stroke: false, interactive: false },
-    interactive: false
-  }).addTo(map);
 
   if (borderFeatures.length) {
     maskBorderLayer = L.geoJSON(
