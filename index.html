@@ -1519,9 +1519,10 @@ function closeSrchSubcats() {
 
 function applySrchCatFilters() {
   var anySelected = Object.keys(srchSelectedSubCatIds).length > 0;
+  if (!anySelected) return;
   mainCats.forEach(function(mc) {
-    var hasSub = anySelected && allCats.some(function(c) { return c.main_category_id === mc.id && srchSelectedSubCatIds[c.id]; });
-    filters[mc.id].on = anySelected ? hasSub : true;
+    var hasSub = allCats.some(function(c) { return c.main_category_id === mc.id && srchSelectedSubCatIds[c.id]; });
+    filters[mc.id].on = hasSub;
     ['chk-' + mc.id, 'chk-sm-' + mc.id].forEach(function(cid) {
       var el = document.getElementById(cid);
       var on = anySelected ? hasSub : true;
