@@ -738,6 +738,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   </div>
 </div>
 
+<div id="modal-pub-profile" class="modal-overlay" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" style="padding:0;overflow:hidden;">
+    <div id="pub-prof-content"><div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div></div>
+  </div>
+</div>
+
 <div id="modal-report" class="modal-overlay" style="display:none">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modal-report')">&#10005;</button>
@@ -1403,6 +1409,48 @@ async function loadProfileStats(username) {
   } catch(e) {
     console.warn('Profile stats error:', e);
   }
+}
+
+async function openPublicProfile(username) {
+  if (!username || username === 'Anonyme') return;
+  if (currentUsername && username === currentUsername) {
+    renderProfile(); openSheet('sheet-profile'); return;
+  }
+  var modal = document.getElementById('modal-pub-profile');
+  var content = document.getElementById('pub-prof-content');
+  modal.style.display = 'flex';
+  content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
+  var profileRes = await db.from('profiles').select('id,username,created_at').eq('username', username).maybeSingle();
+  var profile = profileRes.data;
+  var placesCount = 0, commentsCount = 0;
+  if (profile) {
+    var stats = await Promise.all([
+      db.from('places').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.id)
+    ]);
+    placesCount = stats[0].count || 0;
+    commentsCount = stats[1].count || 0;
+  }
+  var initials = username.slice(0, 2).toUpperCase();
+  var joinDate = profile ? new Date(profile.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  var lvl = placesCount >= 100 ? '🥇 Expert' : placesCount >= 30 ? '🥈 Explorateur' : placesCount >= 10 ? '🥉 Débutant' : '⭐ Membre';
+  content.innerHTML =
+    '<div style="background:var(--surface2);padding:28px 20px 20px;text-align:center;border-bottom:1px solid var(--border);">'
+    + '<div style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000;margin:0 auto 12px;">' + escHtml(initials) + '</div>'
+    + '<div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">' + escHtml(username) + '</div>'
+    + '<div style="font-size:12px;color:var(--text2);">' + lvl + (joinDate ? ' &middot; Inscrit le ' + joinDate : '') + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;background:var(--surface);">'
+    + '<div style="padding:18px;text-align:center;border-right:1px solid var(--border);">'
+    + '<div style="font-size:24px;font-weight:800;color:var(--text);">' + placesCount + '</div>'
+    + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Lieux ajoutés</div></div>'
+    + '<div style="padding:18px;text-align:center;">'
+    + '<div style="font-size:24px;font-weight:800;color:var(--text);">' + commentsCount + '</div>'
+    + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">Commentaires</div></div>'
+    + '</div>'
+    + '<div style="padding:12px 16px;border-top:1px solid var(--border);text-align:center;">'
+    + '<button onclick="document.getElementById(\'modal-pub-profile\').style.display=\'none\'" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font-body);">Fermer</button>'
+    + '</div>';
 }
 
 function signOut() {
@@ -2266,7 +2314,7 @@ function makePopup(p) {
     + '<div class="pv2-badges">'
     + availBadge
     + '<span id="val-badge-' + safeId + '"></span>'
-    + '<span class="pv2-badge pv2-badge-user">&#128100; ' + escHtml(p.user_name || 'Anonyme') + '</span>'
+    + '<span class="pv2-badge pv2-badge-user" style="cursor:pointer;" onclick="openPublicProfile(' + JSON.stringify(p.user_name || '') + ')">&#128100; ' + escHtml(p.user_name || 'Anonyme') + '</span>'
     + '</div>'
     + (fuel ? makeFuelHtml(fuel) : (p.description ? '<div class="pv2-desc">' + escHtml(p.description) + '</div>' : ''))
     + '<div id="report-info-' + safeId + '" style="display:none;font-size:11px;color:var(--danger);padding:4px 0 0;"></div>'
@@ -2498,7 +2546,7 @@ async function loadLeaderboard(tab) {
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);' + (isMe ? 'background:rgba(110,231,183,0.05);border-radius:8px;padding:10px;' : '') + '">'
       + '<div style="font-size:20px;width:32px;text-align:center">' + medal + '</div>'
       + '<div style="flex:1">'
-      + '<div style="font-size:14px;font-weight:' + (isMe ? '700' : '500') + ';color:' + (isMe ? 'var(--accent)' : 'var(--text)') + '">' + u.user_name + (isMe ? ' (moi)' : '') + '</div>'
+      + '<div style="font-size:14px;font-weight:' + (isMe ? '700' : '500') + ';color:' + (isMe ? 'var(--accent)' : 'var(--text)') + ';cursor:pointer;" onclick="openPublicProfile(' + JSON.stringify(u.user_name) + ')">' + escHtml(u.user_name) + (isMe ? ' (moi)' : '') + '</div>'
       + '<div style="font-size:12px;color:var(--text2)">' + u[col] + ' ' + label + (u[col] > 1 ? 's' : '') + '</div>'
       + '</div>'
       + '</div>';
@@ -2844,7 +2892,7 @@ async function loadCmts(pid) {
     var isOwn = currentUser && c.user_id === currentUser.id;
     return '<div class="comment-item">'
       + '<div style="display:flex;align-items:center;gap:6px;">'
-      + '<div class="comment-author">' + (c.user_name || 'Anonyme') + '</div>'
+      + '<div class="comment-author" style="cursor:pointer;" onclick="openPublicProfile(' + JSON.stringify(c.user_name || '') + ')">' + escHtml(c.user_name || 'Anonyme') + '</div>'
       + (d ? '<div style="font-size:10px;color:var(--text2)">' + d + '</div>' : '')
       + (isOwn ? '<button onclick="editCmt(\'' + c.id + '\',\'' + pid + '\')" style="margin-left:auto;background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;padding:0 2px;">✏️</button>' : '')
       + '</div>'
