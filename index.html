@@ -679,6 +679,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>
       </div>
       <div id="mod-reports-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
+        <div class="setting-label" style="margin-bottom:10px;">&#9888;&#65039; Lieux signal&#233;s</div>
+        <div id="reported-places-list" style="font-size:13px;color:var(--text2);margin-bottom:14px;">Chargement...</div>
         <div class="setting-label" style="margin-bottom:10px;">&#9888;&#65039; Commentaires signal&#233;s</div>
         <div id="reported-comments-list" style="font-size:13px;color:var(--text2);">Chargement...</div>
       </div>
@@ -1144,7 +1146,7 @@ function openSheet(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'sheet-settings' && (isAdmin || isModerator)) {
     var rep = document.getElementById('mod-reports-section');
-    if (rep) { rep.style.display = 'block'; loadReportedComments(); }
+    if (rep) { rep.style.display = 'block'; loadReportedPlaces(); loadReportedComments(); }
   }
   if (id === 'sheet-settings' && isAdmin) {
     var sec = document.getElementById('admin-validators-section');
@@ -2961,6 +2963,46 @@ async function reportComment(cid) {
   if (!currentUser) { showToast('Connectez-vous pour signaler', 'error'); return; }
   var res = await db.from('comment_reports').upsert({ comment_id: cid, user_id: currentUser.id }, { onConflict: 'comment_id,user_id' });
   if (!res.error) showToast('Commentaire signalé &#9888;&#65039;', 'success');
+}
+
+async function loadReportedPlaces() {
+  var el = document.getElementById('reported-places-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text2);">Chargement...</div>';
+  var res = await db.from('reports').select('place_id,reason,details,user_id,profiles(username),places(id,name,user_name)').order('created_at', { ascending: false });
+  var data = res.data || [];
+  if (!data.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun signalement</div>'; return; }
+  var grouped = {};
+  data.forEach(function(r) {
+    if (!grouped[r.place_id]) grouped[r.place_id] = { place: r.places, reports: [] };
+    grouped[r.place_id].reports.push({ reason: r.reason, details: r.details, user: (r.profiles && r.profiles.username) || r.user_id });
+  });
+  var reasons = { closed: 'Fermé', wrong_info: 'Infos incorrectes', duplicate: 'Doublon', inappropriate: 'Inapproprié', other: 'Autre' };
+  el.innerHTML = Object.entries(grouped).map(function(entry) {
+    var pid = entry[0], g = entry[1];
+    var place = g.place || {};
+    var n = g.reports.length;
+    var reportsList = g.reports.map(function(r) {
+      return '<div style="font-size:11px;color:var(--text2);padding:2px 0;">&#128100; <b>' + escHtml(r.user) + '</b> — ' + escHtml(reasons[r.reason] || r.reason) + (r.details ? ' : ' + escHtml(r.details) : '') + '</div>';
+    }).join('');
+    return '<div style="border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px;margin-bottom:8px;background:rgba(231,76,60,0.05);">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+      + '<span style="font-size:12px;font-weight:700;color:#e74c3c;">&#9888;&#65039; ' + n + ' signalement' + (n > 1 ? 's' : '') + '</span>'
+      + '<span style="font-size:11px;color:var(--text2);">&#128100; ' + escHtml(place.user_name || 'Anonyme') + '</span>'
+      + '</div>'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">&#128205; ' + escHtml(place.name || pid) + '</div>'
+      + reportsList
+      + '<div style="display:flex;gap:6px;margin-top:8px;">'
+      + '<button onclick="hidePlace(\'' + pid + '\');dismissPlaceReport(\'' + pid + '\')" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Masquer</button>'
+      + '<button onclick="dismissPlaceReport(\'' + pid + '\')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function dismissPlaceReport(pid) {
+  await db.from('reports').delete().eq('place_id', pid);
+  showToast('Signalement ignoré', '');
+  loadReportedPlaces();
 }
 
 async function loadReportedComments() {
