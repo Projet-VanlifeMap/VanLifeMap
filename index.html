@@ -729,8 +729,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div class="modal" style="text-align:center">
     <div style="font-size:40px;margin-bottom:12px">&#128100;</div>
     <h2 style="text-align:center;margin-bottom:6px">Choisir un pseudo</h2>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">3 à 20 caractères, lettres, chiffres et _ uniquement.</p>
-    <input id="username-input" type="text" maxlength="20" placeholder="mon_pseudo" autocomplete="off"
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">3 à 20 caractères. Lettres, chiffres, _ et espaces autorisés.</p>
+    <input id="username-input" type="text" maxlength="20" placeholder="Mon Pseudo" autocomplete="off"
       style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-family:var(--font-body);font-size:15px;outline:none;margin-bottom:8px;text-align:center;">
     <div id="username-status" style="font-size:13px;min-height:20px;margin-bottom:14px;"></div>
     <button id="username-confirm-btn" class="btn-p" onclick="saveUsername()" disabled style="opacity:0.5">Confirmer</button>
@@ -1472,9 +1472,9 @@ function openUsernameModal() {
     var v = inp.value.trim();
     if (timer) clearTimeout(timer);
     if (!v) { status.textContent = ''; btn.disabled = true; btn.style.opacity = '0.5'; return; }
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(v)) {
+    if (!/^[a-zA-Z0-9À-ɏ_ ]{3,20}$/.test(v) || /  /.test(v)) {
       status.style.color = '#e74c3c';
-      status.textContent = '✗ 3-20 caractères, lettres, chiffres et _ uniquement';
+      status.textContent = '✗ 3-20 caractères, lettres, chiffres, _ et espaces';
       btn.disabled = true; btn.style.opacity = '0.5'; return;
     }
     status.style.color = 'var(--text2)';
@@ -1498,7 +1498,7 @@ function openUsernameModal() {
 async function saveUsername() {
   var inp = document.getElementById('username-input');
   var v = inp ? inp.value.trim() : '';
-  if (!v || !/^[a-zA-Z0-9_]{3,20}$/.test(v)) return;
+  if (!v || !/^[a-zA-Z0-9À-ɏ_ ]{3,20}$/.test(v) || /  /.test(v)) return;
   var btn = document.getElementById('username-confirm-btn');
   var status = document.getElementById('username-status');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.textContent = 'Enregistrement...'; }
