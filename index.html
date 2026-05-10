@@ -99,6 +99,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 
 
 
+/* SEARCH plein écran */
+#sheet-search{background:var(--surface);align-items:stretch;}
+#sheet-search>.sheet{border-radius:0;max-height:100%;height:100%;border-top:none;}
 /* SEARCH v2 */
 .srch-input-wrap{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .srch-input-icon{font-size:18px;color:var(--text2);flex-shrink:0;}
@@ -539,11 +542,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 </div>
 
 <div class="sheet-overlay" id="sheet-search">
-  <div class="sheet" style="max-height:90vh;">
-    <div class="sheet-handle"></div>
+  <div class="sheet">
     <div class="srch-input-wrap">
-      <button onclick="closeSheet('sheet-search')" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:2px 6px 2px 0;flex-shrink:0;line-height:1;">&#8592;</button>
-      <input type="text" id="search-mobile" placeholder="Lieu, ville, commune..." autocomplete="off">
+      <button onclick="closeSearchSheet()" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:2px 8px 2px 0;flex-shrink:0;line-height:1;">&#8592;</button>
+      <input type="text" id="search-mobile" placeholder="Ville, lieu, commune..." autocomplete="off">
       <button id="srch-clear" onclick="clearSearch()" style="display:none">&#10005;</button>
     </div>
     <div style="flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;">
@@ -560,18 +562,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       </div>
       <div id="srch-subcats" style="display:none;"></div>
       <div id="search-results" style="display:none;"></div>
-    </div>
-    <div id="loc-radius-wrap" style="display:none" class="srch-radius-wrap">
-      <div class="srch-radius-label">&#128205; Rayon autour de <b id="srch-city-name">ce lieu</b></div>
-      <div class="radius-pills">
-        <button class="radius-pill" data-km="0" onclick="setLocationRadius(0)">Tout</button>
-        <button class="radius-pill active" data-km="1" onclick="setLocationRadius(1)">1 km</button>
-        <button class="radius-pill" data-km="2" onclick="setLocationRadius(2)">2 km</button>
-        <button class="radius-pill" data-km="5" onclick="setLocationRadius(5)">5 km</button>
-        <button class="radius-pill" data-km="10" onclick="setLocationRadius(10)">10 km</button>
-        <button class="radius-pill" data-km="50" onclick="setLocationRadius(50)">50 km</button>
-      </div>
-      <button onclick="validerSearch()" style="width:100%;margin-top:12px;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:13px;font-family:var(--font-head);font-size:14px;font-weight:700;cursor:pointer;">&#10003; Valider</button>
     </div>
   </div>
 </div>
@@ -1523,6 +1513,35 @@ function closeSrchSubcats() {
   document.getElementById('srch-subcats').style.display = 'none';
   document.getElementById('srch-default').style.display = 'block';
   renderSrchChips();
+  applySrchCatFilters();
+}
+
+function applySrchCatFilters() {
+  var anySelected = Object.keys(srchSelectedSubCatIds).length > 0;
+  mainCats.forEach(function(mc) {
+    var hasSub = anySelected && allCats.some(function(c) { return c.main_category_id === mc.id && srchSelectedSubCatIds[c.id]; });
+    filters[mc.id].on = anySelected ? hasSub : true;
+    ['chk-' + mc.id, 'chk-sm-' + mc.id].forEach(function(cid) {
+      var el = document.getElementById(cid);
+      var on = anySelected ? hasSub : true;
+      if (el) { el.className = 'chk' + (on ? ' on' : ''); el.innerHTML = on ? '&#10003;' : ''; }
+    });
+    Object.keys(filters[mc.id].subs).forEach(function(subId) {
+      var on = anySelected ? !!srchSelectedSubCatIds[subId] : true;
+      filters[mc.id].subs[subId] = on;
+      ['chk-sub-' + subId, 'chk-ss-' + subId].forEach(function(cid2) {
+        var el2 = document.getElementById(cid2);
+        if (el2) { el2.className = 'chk-sm' + (on ? ' on' : ''); el2.innerHTML = on ? '&#10003;' : ''; }
+      });
+    });
+  });
+  renderMapFilterBar();
+  applyFilters();
+}
+
+function closeSearchSheet() {
+  applySrchCatFilters();
+  closeSheet('sheet-search');
 }
 
 function validerSearch() {
@@ -1559,10 +1578,8 @@ function clearSearch() {
   if (clearBtn) clearBtn.style.display = 'none';
   var def = document.getElementById('srch-default');
   var res = document.getElementById('search-results');
-  var rw = document.getElementById('loc-radius-wrap');
   if (def) def.style.display = 'block';
   if (res) { res.style.display = 'none'; res.innerHTML = ''; }
-  if (rw) rw.style.display = 'none';
 }
 
 async function srchNominatim(q) {
@@ -1577,28 +1594,13 @@ function selectSrchLocation(idx) {
   var r = srchNominatimResults[idx];
   if (!r) return;
   if (srchTimer) { clearTimeout(srchTimer); srchTimer = null; }
-  _searchCloseLocked = true;
-  setTimeout(function() { _searchCloseLocked = false; }, 1200);
   var addr = r.address || {};
-  var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
   selectedLocation = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
   selectedLocRadius = 0;
-  var inp = document.getElementById('search-mobile');
-  if (inp) inp.value = city;
-  var clearBtn = document.getElementById('srch-clear');
-  if (clearBtn) clearBtn.style.display = 'block';
-  var srchDefault = document.getElementById('srch-default');
-  var srchResults = document.getElementById('search-results');
-  if (srchDefault) srchDefault.style.display = 'block';
-  if (srchResults) { srchResults.style.display = 'none'; srchResults.innerHTML = ''; }
-  var cn = document.getElementById('srch-city-name');
-  if (cn) cn.textContent = city;
-  var rw = document.getElementById('loc-radius-wrap');
-  if (rw) rw.style.display = 'block';
-  document.querySelectorAll('.radius-pill').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === 1);
-  });
-  // Le déplacement carte se fait dans setLocationRadius, pas ici
+  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+  map.flyTo([selectedLocation.lat, selectedLocation.lon], 13, { duration: 0.8 });
+  scheduleLoad();
+  closeSearchSheet();
 }
 
 function renderSrchResults(places, cities) {
@@ -1663,20 +1665,14 @@ function setLocationRadius(km) {
 }
 
 function locateMeLocation() {
-  _searchCloseLocked = true;
-  setTimeout(function() { _searchCloseLocked = false; }, 4000);
+  closeSearchSheet();
   map.locate({ setView: false });
   map.once('locationfound', function(e) {
     selectedLocation = { lat: e.latlng.lat, lon: e.latlng.lng };
     selectedLocRadius = 0;
-    var cn = document.getElementById('srch-city-name');
-    if (cn) cn.textContent = 'ma position';
-    var rw = document.getElementById('loc-radius-wrap');
-    if (rw) rw.style.display = 'block';
-    document.querySelectorAll('.radius-pill').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.km) === 1);
-    });
-    map.setView([selectedLocation.lat, selectedLocation.lon], 13);
+    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
+    map.flyTo([e.latlng.lat, e.latlng.lng], 14, { duration: 0.8 });
+    scheduleLoad();
   });
   map.once('locationerror', function() { showToast('Localisation impossible', 'error'); });
 }
