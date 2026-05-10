@@ -821,25 +821,27 @@ async function init() {
       if (arrow) arrow.style.transform = 'rotate(0deg)';
     }
   });
-  // Touch rotate custom — sensibilité réduite à 35%
-  var _rotateTouch = null;
-  var ROTATE_SENSITIVITY = 0.35;
+  // Touch rotate custom — delta incrémental pour éviter les sauts
+  var _lastRotateAngle = null;
+  var ROTATE_SENSITIVITY = 0.39;
   map.getContainer().addEventListener('touchstart', function(e) {
     if (e.touches.length === 2) {
       var dx = e.touches[1].clientX - e.touches[0].clientX;
       var dy = e.touches[1].clientY - e.touches[0].clientY;
-      _rotateTouch = { startAngle: Math.atan2(dy, dx), startBearing: map.getBearing ? (map.getBearing() || 0) : 0 };
-    } else { _rotateTouch = null; }
+      _lastRotateAngle = Math.atan2(dy, dx);
+    } else { _lastRotateAngle = null; }
   }, { passive: true });
   map.getContainer().addEventListener('touchmove', function(e) {
-    if (e.touches.length !== 2 || !_rotateTouch) return;
+    if (e.touches.length !== 2 || _lastRotateAngle === null) return;
     var dx = e.touches[1].clientX - e.touches[0].clientX;
     var dy = e.touches[1].clientY - e.touches[0].clientY;
-    var delta = (Math.atan2(dy, dx) - _rotateTouch.startAngle) * (180 / Math.PI);
-    if (map.setBearing) map.setBearing(_rotateTouch.startBearing + delta * ROTATE_SENSITIVITY);
+    var angle = Math.atan2(dy, dx);
+    var delta = (angle - _lastRotateAngle) * (180 / Math.PI);
+    _lastRotateAngle = angle;
+    if (map.setBearing) map.setBearing((map.getBearing() || 0) + delta * ROTATE_SENSITIVITY);
   }, { passive: true });
   map.getContainer().addEventListener('touchend', function(e) {
-    if (e.touches.length < 2) _rotateTouch = null;
+    if (e.touches.length < 2) _lastRotateAngle = null;
   }, { passive: true });
   layerStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
   layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 19 });
