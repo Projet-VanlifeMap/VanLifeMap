@@ -895,7 +895,7 @@ async function init() {
   map.addLayer(cluster);
   map.on('click', onMapClick);
   map.on('moveend', function() { if (!radiusCenter) scheduleLoad(); });
-  map.on('zoomend', function() { if (!radiusCenter) scheduleLoad(); });
+  map.on('zoomend', function() { if (!radiusCenter) scheduleLoad(); if (maskLayer) maskLayer.redraw(); });
   window.addEventListener('resize', function() { map.invalidateSize(); });
   setTimeout(function() { map.invalidateSize(); }, 200);
 
@@ -3906,6 +3906,7 @@ function applyMaskLayer() {
   if (maskLayer) { map.removeLayer(maskLayer); maskLayer = null; }
   if (!selectedCountries.length || !worldGeoData) return;
   maskLayer = L.geoJSON(worldGeoData, {
+    renderer: L.svg({ padding: 1 }),
     style: function(f) {
       var isSel = selectedCountries.indexOf(String(f.id)) >= 0;
       return {
