@@ -38,8 +38,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 #sidebar-header h1{font-family:var(--font-head);font-size:20px;font-weight:800;color:var(--accent);}
 #sidebar-header p{font-size:11px;color:var(--text2);margin-top:3px;}
 #search-box{margin:12px 14px;position:relative;flex-shrink:0;}
-#search-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px 9px 34px;color:var(--text);font-family:var(--font-body);font-size:13px;outline:none;}
-#search-input:focus{border-color:var(--accent);}
 #search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.5;}
 #categories-list{flex:1;overflow-y:auto;padding:8px 0;}
 #categories-list::-webkit-scrollbar{width:4px;}
@@ -435,11 +433,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <button onclick="closeSidebar()" title="Fermer" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;line-height:1;border-radius:8px;display:none;" id="btn-close-sidebar">&#10005;</button>
       </div>
     </div>
-    <div id="search-box">
-      <span id="search-icon">&#128269;</span>
-      <input type="text" id="search-input" placeholder="Rechercher un lieu...">
-    </div>
-
     <!-- LOCALISATION STYLE LEBONCOIN -->
     <div id="sidebar-loc" style="padding:0 14px 12px;border-bottom:1px solid var(--border);">
       <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:8px;">&#128205; Localisation</p>
@@ -869,7 +862,6 @@ function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
     map.setView([sharedLat, sharedLon], sharedZoom);
     window.history.replaceState({}, '', window.location.pathname);
   }
-  document.getElementById('search-input').addEventListener('input', onSearch);
   document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
@@ -2546,14 +2538,6 @@ function toggleAllFilters(on) {
   applyFilters();
 }
 
-function onSearch(e) {
-  var q = e.target.value.toLowerCase();
-  if (!q) { applyFilters(); return; }
-  showHint(false);
-  renderMarkers(allPlaces.filter(function(p) {
-    return p.name.toLowerCase().indexOf(q) >= 0 || (p.description || '').toLowerCase().indexOf(q) >= 0;
-  }));
-}
 
 function populateForm() {
   var sel = document.getElementById('add-main-cat');
@@ -3154,12 +3138,7 @@ function confirmCountries(all) {
   document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('active'); });
   var nm = document.getElementById('nav-map');
   if (nm) nm.classList.add('active');
-  if (!document.getElementById('search-input')._listenerAdded) {
-    document.getElementById('search-input')._listenerAdded = true;
-    setupListeners(false, 0, 0, 6);
-  } else {
-    applyFilters();
-  }
+  applyFilters();
 }
 
 function applyCountryView() {
