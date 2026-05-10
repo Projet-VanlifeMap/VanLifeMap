@@ -599,6 +599,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   </div>
 </div>
 
+<div class="sheet-overlay" id="sheet-pub-profile" onclick="closeSheet('sheet-pub-profile')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="pub-prof-sheet-title">&#128100; Profil</span>
+      <button class="sheet-close" onclick="closeSheet('sheet-pub-profile')">&#10005;</button>
+    </div>
+    <div class="sheet-content" style="padding:0">
+      <div id="pub-profile-content"></div>
+    </div>
+  </div>
+</div>
+
 <!-- COMMUNITY SHEET -->
 <div class="sheet-overlay" id="sheet-community" onclick="closeSheet('sheet-community')">
   <div class="sheet" onclick="event.stopPropagation()" style="max-height:92vh;">
@@ -1428,34 +1441,45 @@ async function loadProfileStats(username) {
   }
 }
 
+var _pubProfileData = null;
+var _pubPlacesOpen = false, _pubValidatedOpen = false, _pubCmtsOpen = false;
+
 async function openPublicProfile(username) {
   if (!username || username === 'Anonyme') return;
   if (currentUsername && username === currentUsername) {
     renderProfile(); openSheet('sheet-profile'); return;
   }
-  var modal = document.getElementById('modal-pub-profile');
-  var content = document.getElementById('pub-prof-content');
-  modal.style.display = 'flex';
+  _pubProfileUsername = username;
+  _pubPlacesOpen = false; _pubValidatedOpen = false; _pubCmtsOpen = false;
+
+  var content = document.getElementById('pub-profile-content');
+  var titleEl = document.getElementById('pub-prof-sheet-title');
+  if (titleEl) titleEl.textContent = '👤 ' + username;
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
+  openSheet('sheet-pub-profile');
 
   var profileRes = await db.from('profiles').select('id,username,created_at').eq('username', username).maybeSingle();
   var profile = profileRes.data;
-  var placesCount = 0, commentsCount = 0, validatedCount = 0, rankPos = null, rankTotal = null;
+  var placesCount = 0, commentsCount = 0, validatedCount = 0, votesCount = 0, rankPos = null, rankTotal = null;
 
   if (profile) {
+    _pubProfileData = { userId: profile.id, username: username };
     var stats = await Promise.all([
       db.from('places').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
       db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
       db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+      db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
       db.from('leaderboard_places').select('*')
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
     validatedCount = stats[2].count || 0;
-    var lbData = stats[3].data || [];
+    votesCount = stats[3].count || 0;
+    var lbData = stats[4].data || [];
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
     if (myIdx >= 0) { rankPos = myIdx + 1; rankTotal = lbData.length; }
   } else {
+    _pubProfileData = { userId: null, username: username };
     var stats = await Promise.all([
       db.from('places').select('*', { count: 'exact', head: true }).eq('user_name', username),
       db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username)
@@ -1466,9 +1490,8 @@ async function openPublicProfile(username) {
 
   var initials = username.slice(0, 2).toUpperCase();
   var joinDate = profile ? new Date(profile.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-  var lvl = placesCount >= 100 ? '🥇 Expert' : placesCount >= 30 ? '🥈 Explorateur' : placesCount >= 10 ? '🥉 Débutant' : '⭐ Membre';
+  var lvl = placesCount >= 100 ? '&#129351; Expert' : placesCount >= 30 ? '&#129352; Explorateur' : placesCount >= 10 ? '&#129353; D&eacute;butant' : '&#11088; Membre';
 
-  // Couleur de bannière cohérente basée sur le pseudo
   var BANNER_PRESETS = ['135deg,#0a0a0a,#1a1a1a,#2d2d2d','135deg,#13110a,#28230a,#3d3510','135deg,#070d1a,#0d1830,#162544','135deg,#0f0814,#1c1228,#2a1a3d','135deg,#080f08,#0f1f0e,#1a2e18','135deg,#140606,#250a0a,#361010','135deg,#060f0f,#0a1c1c,#112828','135deg,#080b12,#10151f,#1a2030'];
   var hash = username.split('').reduce(function(a, c) { return a + c.charCodeAt(0); }, 0);
   var bannerGrad = BANNER_PRESETS[hash % BANNER_PRESETS.length];
@@ -1476,7 +1499,7 @@ async function openPublicProfile(username) {
   var rankHtml = (rankPos && rankTotal) ?
     '<div class="prof-ranking" style="cursor:default;">'
     + '<div class="prof-rank-icon">&#127942;</div>'
-    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">Classement communauté</div>'
+    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">Classement communaut&eacute;</div>'
     + '<div class="prof-rank-val">#' + rankPos + ' sur ' + rankTotal + '</div>'
     + '<div class="prof-rank-bar"><div class="prof-rank-fill" style="width:' + Math.max(4, Math.round((1 - rankPos / rankTotal) * 100)) + '%"></div></div></div>'
     + '</div>' : '';
@@ -1488,17 +1511,102 @@ async function openPublicProfile(username) {
     + '</div>'
     + '<div class="prof-identity">'
     + '<div class="prof-username">' + escHtml(username) + '</div>'
-    + '<div class="prof-meta">' + (joinDate ? '<span>&#128197; Inscrit le ' + joinDate + '</span>' : '') + '</div>'
+    + '<div class="prof-meta">' + (joinDate ? '<span>&#128197; Inscrit le ' + joinDate + '</span>' : '<span>Ancien membre</span>') + '</div>'
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
-    + '<div class="prof-stat"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajoutés</div></div></div>'
-    + '<div class="prof-stat"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Lieux validés</div></div></div>'
-    + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div></div>'
+    + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Lieux valid&eacute;s</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Votes donn&eacute;s</div></div></div>'
     + '</div></div>'
+    + '<div id="pub-places-panel" style="display:none;padding:0 16px 4px;"></div>'
+    + '<div id="pub-validated-panel" style="display:none;padding:0 16px 4px;"></div>'
+    + '<div id="pub-cmts-panel" style="display:none;padding:0 16px 4px;"></div>'
     + rankHtml
-    + '<div style="padding:12px 16px;border-top:1px solid var(--border);text-align:center;">'
-    + '<button onclick="document.getElementById(\'modal-pub-profile\').style.display=\'none\'" style="background:none;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:var(--font-body);">Fermer</button>'
-    + '</div></div>';
+    + '</div>';
+}
+
+function togglePubPlaces() {
+  _pubPlacesOpen = !_pubPlacesOpen;
+  var panel = document.getElementById('pub-places-panel');
+  var arrow = document.getElementById('pub-places-arrow');
+  if (panel) panel.style.display = _pubPlacesOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = _pubPlacesOpen ? '˅' : '›';
+  if (_pubPlacesOpen) loadPubPlaces();
+}
+
+function togglePubValidated() {
+  _pubValidatedOpen = !_pubValidatedOpen;
+  var panel = document.getElementById('pub-validated-panel');
+  var arrow = document.getElementById('pub-validated-arrow');
+  if (panel) panel.style.display = _pubValidatedOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = _pubValidatedOpen ? '˅' : '›';
+  if (_pubValidatedOpen) loadPubValidated();
+}
+
+function togglePubComments() {
+  _pubCmtsOpen = !_pubCmtsOpen;
+  var panel = document.getElementById('pub-cmts-panel');
+  var arrow = document.getElementById('pub-cmts-arrow');
+  if (panel) panel.style.display = _pubCmtsOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = _pubCmtsOpen ? '˅' : '›';
+  if (_pubCmtsOpen) loadPubComments();
+}
+
+async function loadPubPlaces() {
+  var panel = document.getElementById('pub-places-panel');
+  if (!panel || !_pubProfileData) return;
+  panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
+  var res = _pubProfileData.userId
+    ? await db.from('places').select('id,name,latitude,longitude,categories(icon,name)').eq('user_id', _pubProfileData.userId).order('created_at', { ascending: false }).limit(50)
+    : await db.from('places').select('id,name,latitude,longitude,categories(icon,name)').eq('user_name', _pubProfileData.username).order('created_at', { ascending: false }).limit(50);
+  var data = res.data || [];
+  if (!data.length) { panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Aucun lieu ajouté</div>'; return; }
+  panel.innerHTML = data.map(function(p) {
+    var cat = p.categories || {};
+    return '<div onclick="goToPubSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '&#128205;') + '</div>'
+      + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
+      + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
+  }).join('');
+}
+
+async function loadPubValidated() {
+  var panel = document.getElementById('pub-validated-panel');
+  if (!panel || !_pubProfileData || !_pubProfileData.userId) { if (panel) panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Non disponible</div>'; return; }
+  panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
+  var res = await db.from('place_validations').select('places(id,name,latitude,longitude,categories(icon,name))').eq('user_id', _pubProfileData.userId).order('created_at', { ascending: false }).limit(50);
+  var data = (res.data || []).filter(function(r) { return r.places; });
+  if (!data.length) { panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Aucun lieu confirmé</div>'; return; }
+  panel.innerHTML = data.map(function(r) {
+    var p = r.places; var cat = p.categories || {};
+    return '<div onclick="goToPubSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '&#128205;') + '</div>'
+      + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
+      + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
+  }).join('');
+}
+
+async function loadPubComments() {
+  var panel = document.getElementById('pub-cmts-panel');
+  if (!panel || !_pubProfileData) return;
+  panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
+  var res = _pubProfileData.userId
+    ? await db.from('comments').select('id,content,created_at,places(id,name,latitude,longitude)').eq('user_id', _pubProfileData.userId).order('created_at', { ascending: false }).limit(20)
+    : await db.from('comments').select('id,content,created_at,places(id,name,latitude,longitude)').eq('user_name', _pubProfileData.username).order('created_at', { ascending: false }).limit(20);
+  var data = res.data || [];
+  if (!data.length) { panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Aucun commentaire</div>'; return; }
+  panel.innerHTML = data.map(function(c) {
+    var place = c.places || {}; var hasLoc = place.latitude && place.longitude;
+    var d = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:4px;">' + (place.name ? '&#128205; ' + escHtml(place.name) : '') + (d ? ' &middot; ' + d : '') + '</div>'
+      + '<div style="font-size:13px;color:var(--text);line-height:1.4;">' + escHtml(c.content) + '</div>'
+      + (hasLoc ? '<div onclick="goToPubSoloPlace(\'' + place.id + '\',' + place.latitude + ',' + place.longitude + ')" style="font-size:11px;color:var(--accent);cursor:pointer;margin-top:4px;">Voir le lieu &#8250;</div>' : '')
+      + '</div>';
+  }).join('');
 }
 
 function signOut() {
@@ -2266,6 +2374,23 @@ async function goToSoloPlace(placeId, lat, lng) {
   if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); }
 }
 
+async function goToPubSoloPlace(placeId, lat, lng) {
+  closeSheet('sheet-pub-profile');
+  soloPlaceId = placeId;
+  soloReturnTo = 'pub-profile';
+  var nav = document.getElementById('bottom-nav');
+  if (nav) nav.style.display = 'none';
+  var banner = document.getElementById('solo-banner');
+  if (banner) {
+    banner.style.display = 'flex';
+    var btn = banner.querySelector('button:first-child');
+    if (btn) btn.textContent = '← Retour au Profil';
+  }
+  map.flyTo([lat, lng], 16, { duration: 0.8 });
+  var res = await db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', placeId).maybeSingle();
+  if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); }
+}
+
 function clearSoloMode() {
   soloPlaceId = null;
   var banner = document.getElementById('solo-banner');
@@ -2276,6 +2401,10 @@ function clearSoloMode() {
   if (soloReturnTo === 'settings') {
     soloReturnTo = 'profile';
     openSheet('sheet-settings');
+  } else if (soloReturnTo === 'pub-profile') {
+    var u = _pubProfileUsername;
+    soloReturnTo = 'profile';
+    openPublicProfile(u);
   } else {
     soloReturnTo = 'profile';
     renderProfile();
@@ -3053,7 +3182,8 @@ async function dismissPlaceReport(pid) {
   loadModReportsCount();
 }
 
-var soloReturnTo = 'profile'; // 'profile' ou 'settings'
+var soloReturnTo = 'profile'; // 'profile' | 'settings' | 'pub-profile'
+var _pubProfileUsername = null;
 
 function viewReportedPlace(pid, lat, lng) {
   closeSheet('sheet-settings');
