@@ -1343,9 +1343,9 @@ async function loadProfileStats(username) {
     var uid = currentUser ? currentUser.id : '';
     var res = await Promise.all([
       db.from('leaderboard_places').select('*'),
-      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username),
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', uid),
       db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', uid),
-      db.from('places').select('id').eq('user_name', username),
+      db.from('places').select('id').eq('user_id', uid),
       db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', uid)
     ]);
     var lbData = res[0].data || [];
@@ -2710,11 +2710,9 @@ function toggleProfComments() {
 
 async function loadUserComments() {
   var panel = document.getElementById('prof-cmts-panel');
-  if (!panel) return;
-  var uname = currentUsername;
-  if (!uname) return;
+  if (!panel || !currentUser) return;
   panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
-  var res = await db.from('comments').select('id,content,created_at,place_id,places(id,name,latitude,longitude)').eq('user_name', uname).order('created_at', { ascending: false }).limit(20);
+  var res = await db.from('comments').select('id,content,created_at,place_id,places(id,name,latitude,longitude)').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
   var data = res.data || [];
   if (!data.length) {
     panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Aucun commentaire</div>';
