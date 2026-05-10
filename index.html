@@ -1231,6 +1231,7 @@ async function renderProfile() {
     + '<div class="prof-stat soon"><div class="prof-stat-icon pic-teal">&#9989;</div><div><div class="prof-stat-val">\u2014</div><div class="prof-stat-lbl">Lieux valid\u00e9s</div></div><div class="prof-soon-tag">Bient\u00f4t</div></div>'
     + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">Favoris</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-yellow">&#11088;</div>'
     + '<div style="flex:1"><div style="display:flex;align-items:baseline;gap:8px"><div class="prof-stat-val" id="prof-rating">\u2014</div><div id="prof-stars" style="font-size:16px;line-height:1"></div></div>'
     + '<div class="prof-stat-lbl" id="prof-rating-lbl">Note moyenne re\u00e7ue</div></div></div>'
@@ -1244,13 +1245,7 @@ async function renderProfile() {
     + '<div class="prof-rank-val" id="prof-rank">\u2014</div>'
     + '<div class="prof-rank-bar"><div class="prof-rank-fill" id="prof-rank-fill" style="width:0%"></div></div></div>'
     + '</div>'
-    + '<div style="padding:14px 16px 6px;border-top:1px solid var(--border);">'
-    + '<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleProfFavs(this)">'
-    + '<div style="font-size:14px;font-weight:700;color:var(--text);">&#10084; Mes favoris <span id="prof-fav-count" style="font-size:12px;font-weight:400;color:var(--text2);"></span></div>'
-    + '<span style="color:var(--text2);font-size:18px;" id="prof-fav-arrow">\u203a</span>'
-    + '</div>'
-    + '<div id="prof-favs-list" style="display:none;"></div>'
-    + '</div>'
+    + '<div id="prof-favs-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div class="prof-actions">'
     + '<button class="prof-btn-main" id="prof-btn-zone">&#127758; Changer de zone</button>'
     + '<button class="prof-btn-sec" id="prof-btn-settings">&#9881;&#65039; Param\u00e8tres</button>'
@@ -2471,6 +2466,8 @@ async function loadUserFavorites() {
   var res = await db.from('favorites').select('place_id').eq('user_id', currentUser.id);
   userFavs = {};
   (res.data || []).forEach(function(f) { userFavs[f.place_id] = true; });
+  var el = document.getElementById('prof-favs-count');
+  if (el) el.textContent = Object.keys(userFavs).length || '0';
 }
 
 function checkFavorite(placeId) {
@@ -2603,22 +2600,19 @@ async function loadUserComments() {
   }).join('');
 }
 
-function toggleProfFavs(header) {
-  var list = document.getElementById('prof-favs-list');
-  var arrow = document.getElementById('prof-fav-arrow');
-  var open = list.style.display === 'block';
-  list.style.display = open ? 'none' : 'block';
-  arrow.textContent = open ? '›' : '˅';
-  if (!open) {
-    var count = Object.keys(userFavs).length;
-    var el = document.getElementById('prof-fav-count');
-    if (el) el.textContent = count ? '(' + count + ')' : '';
-    loadFavoritesInProfile();
-  }
+var _profFavsOpen = false;
+function toggleProfFavs() {
+  var panel = document.getElementById('prof-favs-panel');
+  var arrow = document.getElementById('prof-favs-arrow');
+  if (!panel) return;
+  _profFavsOpen = !_profFavsOpen;
+  panel.style.display = _profFavsOpen ? 'block' : 'none';
+  if (arrow) arrow.textContent = _profFavsOpen ? '˅' : '›';
+  if (_profFavsOpen) loadFavoritesInProfile();
 }
 
 async function loadFavoritesInProfile() {
-  var el = document.getElementById('prof-favs-list');
+  var el = document.getElementById('prof-favs-panel');
   if (!el) return;
   el.innerHTML = '<div style="padding:12px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
   var ids = Object.keys(userFavs);
@@ -2631,7 +2625,7 @@ async function loadFavoritesInProfile() {
       + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
       + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name) + '</div>'
       + '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name || '') + '</div></div>'
-      + '<button onclick="event.stopPropagation();toggleFavorite(\'' + p.id + '\');this.closest(\'div\').remove();if(!document.getElementById(\'prof-favs-list\').children.length)loadFavoritesInProfile();" style="background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer;padding:4px;">&#10084;</button>'
+      + '<button onclick="event.stopPropagation();toggleFavorite(\'' + p.id + '\');this.closest(\'div[style]\').remove();loadFavoritesInProfile();" style="background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer;padding:4px;">&#10084;</button>'
       + '</div>';
   }).join('');
 }
