@@ -5764,9 +5764,10 @@ async function loadDashboardTiles() {
     + tile('&#10024;', 'Nouveaux lieux', newPlaces, 'showDashNewPlaces()', 0, 'week', 'cette semaine')
     + tile('&#9888;&#65039;', 'Lieux signal&eacute;s', reportedPlaces, 'showDashReportedPlaces()', reportedPlaces, reportedPlaces > 0 ? 'urgent' : '')
     + tile('&#128172;', 'Commentaires signal&eacute;s', reportedCmts, 'showDashReportedComments()', reportedCmts, reportedCmts > 0 ? 'urgent' : '');
-  if (isAdmin || isModerator) {
-    html += tile('&#9203;', '&Agrave; valider', pendingCount, 'showDashPending()', pendingCount, pendingCount > 0 ? 'urgent' : '');
-  }
+  // Ligne 4 : lieux en attente + statistiques globales
+  html += tile('&#9203;', '&Agrave; valider', pendingCount, 'showDashPending()', pendingCount, pendingCount > 0 ? 'urgent' : '')
+    + tile('&#128202;', 'Statistiques globales', '', 'showDashStats()', 0, '');
+  // Ligne 5 admin : équipe + sanctions
   if (isAdmin) {
     html += tile('&#128737;&#65039;', '&Eacute;quipe', '', 'showDashTeam()', 0, 'admin-only')
       + tile('&#128296;', 'Sanctions', '', 'showDashBan()', 0, 'admin-only');
