@@ -3698,7 +3698,8 @@ function openPlaceSheet(p) {
   sheet.scrollTop = 0;
   sheet.classList.add('open');
   document.getElementById('pbs-bd').classList.add('open');
-  if (currentUser && (p.status === 'pending' || !p.user_id)) loadValidationCount(p.id);
+  if (!p.user_id) loadValidationCount(p.id);
+  else if (currentUser && p.status === 'pending') loadValidationCount(p.id);
 }
 
 function openEditPlace() {
@@ -3845,24 +3846,33 @@ async function voteValidation(pid) {
 }
 
 async function loadValidationCount(pid) {
-  var box = document.getElementById('validation-box-' + pid);
-  var info = document.getElementById('validation-info-' + pid);
-  if (!box || !info) return;
+  var safeId = pid.replace(/-/g, '_');
+  var box = document.getElementById('validation-box-' + safeId);
+  var info = document.getElementById('validation-info-' + safeId);
+  var badge = document.getElementById('val-badge-' + safeId);
   var [countRes, placeRes] = await Promise.all([
     db.from('place_validations').select('id', { count: 'exact', head: true }).eq('place_id', pid),
     db.from('places').select('user_id').eq('id', pid).maybeSingle()
   ]);
   var n = countRes.count || 0;
   var isImport = placeRes.data && !placeRes.data.user_id;
-  if (isImport) {
-    info.style.color = '#3498db';
-    info.textContent = n === 0 ? '🌐 Soyez le premier à confirmer ce lieu !' : '✅ ' + n + ' personne' + (n > 1 ? 's ont' : ' a') + ' confirmé ce lieu';
-  } else {
-    info.textContent = '⏳ ' + n + '/3 votes de validation';
+  if (badge && isImport) {
+    badge.innerHTML = n > 0
+      ? '<span class="pv2-badge" style="background:rgba(52,152,219,0.15);color:#3498db;">&#10003; ' + n + ' confirmation' + (n > 1 ? 's' : '') + '</span>'
+      : '';
   }
+  if (info) {
+    if (isImport) {
+      info.style.color = '#3498db';
+      info.textContent = n === 0 ? '&#127758; Soyez le premier à confirmer ce lieu !' : '&#10003; ' + n + ' personne' + (n > 1 ? 's ont' : ' a') + ' confirmé ce lieu';
+    } else {
+      info.textContent = '⏳ ' + n + '/3 votes de validation';
+    }
+  }
+  if (!currentUser) return;
   var existing = await db.from('place_validations').select('id').eq('place_id', pid).eq('user_id', currentUser.id).maybeSingle();
-  if (existing.data) {
-    var btn = box.querySelector('button');
+  if (existing.data && info) {
+    var btn = box ? box.querySelector('button') : null;
     if (btn) btn.style.display = 'none';
     info.textContent += ' — vous avez déjà ' + (isImport ? 'confirmé' : 'voté');
   }
