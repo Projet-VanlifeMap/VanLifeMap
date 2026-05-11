@@ -743,6 +743,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <img id="add-photo-img" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;display:block;">
         <button onclick="clearAddPhoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);border:none;color:#fff;border-radius:50%;width:26px;height:26px;font-size:14px;cursor:pointer;line-height:1;">&#10005;</button>
       </div>
+      <div id="add-photo-progress" style="display:none;margin-top:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px;">
+          <span>&#128247; Upload en cours...</span><span id="add-photo-pct">0%</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:4px;height:7px;overflow:hidden;">
+          <div id="add-photo-bar" style="height:100%;background:var(--accent);width:0%;transition:width 0.15s ease;border-radius:4px;"></div>
+        </div>
+      </div>
     </div>
     <button class="btn-p" onclick="submitPlace()">Publier le lieu</button>
     <button class="btn-s" onclick="closeModal('modal-add')">Annuler</button>
@@ -3415,11 +3423,24 @@ async function submitPlace() {
 
   var photoInput = document.getElementById('add-photo-input');
   if (photoInput && photoInput.files[0]) {
-    showToast('Upload photo...', 'success');
     var file = photoInput.files[0];
     var ext = file.name.split('.').pop().toLowerCase() || 'jpg';
     var path = newId + '/' + Date.now() + '.' + ext;
-    var upRes = await db.storage.from('place-photos').upload(path, file, { contentType: file.type });
+    var progressEl = document.getElementById('add-photo-progress');
+    var barEl = document.getElementById('add-photo-bar');
+    var pctEl = document.getElementById('add-photo-pct');
+    var previewEl = document.getElementById('add-photo-preview');
+    if (progressEl) { progressEl.style.display = 'block'; }
+    if (previewEl) { previewEl.style.display = 'none'; }
+    var upRes = await db.storage.from('place-photos').upload(path, file, {
+      contentType: file.type,
+      onUploadProgress: function(e) {
+        var pct = e.total ? Math.round((e.loaded / e.total) * 100) : 0;
+        if (barEl) barEl.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+      }
+    });
+    if (progressEl) { progressEl.style.display = 'none'; }
     if (!upRes.error) {
       var url = db.storage.from('place-photos').getPublicUrl(path).data.publicUrl;
       await db.from('place_photos').insert({ place_id: newId, url: url, uploaded_by: currentUser.id, uploader_name: currentUsername || currentUser.email.split('@')[0] });
