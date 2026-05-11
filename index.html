@@ -2328,9 +2328,6 @@ async function renderProfile() {
     + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">Favoris</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val" id="prof-merci">\u2014</div><div class="prof-stat-lbl">Merci re\u00e7us</div></div></div>'
-    + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-yellow">&#11088;</div>'
-    + '<div style="flex:1"><div style="display:flex;align-items:baseline;gap:8px"><div class="prof-stat-val" id="prof-rating">\u2014</div><div id="prof-stars" style="font-size:16px;line-height:1"></div></div>'
-    + '<div class="prof-stat-lbl" id="prof-rating-lbl">Note moyenne re\u00e7ue</div></div></div>'
     + '</div></div>'
     + '<div id="prof-places-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div id="prof-validated-panel" style="display:none;padding:0 16px 4px;"></div>'
@@ -2465,9 +2462,6 @@ async function loadProfileStats(username) {
     var vEl = document.getElementById('prof-votes');
     var rankEl = document.getElementById('prof-rank');
     var rankFill = document.getElementById('prof-rank-fill');
-    var ratingEl = document.getElementById('prof-rating');
-    var starsEl = document.getElementById('prof-stars');
-    var ratingLbl = document.getElementById('prof-rating-lbl');
     var badge = document.getElementById('prof-badge');
     if (pEl) pEl.textContent = placesCount;
     if (cEl) cEl.textContent = commentsCount;
@@ -2493,16 +2487,6 @@ async function loadProfileStats(username) {
     if (roleLabelEl) roleLabelEl.textContent = roleLabel;
     var memberNumEl = document.getElementById('prof-member-num');
     if (memberNumEl) memberNumEl.textContent = memberNum ? '\ud83d\udc64 Membre #' + memberNum : '';
-    if (placeIds.length) {
-      var ratingsRes = await db.from('ratings').select('score').in('place_id', placeIds);
-      var scores = (ratingsRes.data || []).map(function(r) { return r.score; });
-      if (scores.length && ratingEl) {
-        var avg = (scores.reduce(function(s, v) { return s + v; }, 0) / scores.length).toFixed(1);
-        ratingEl.textContent = avg;
-        if (starsEl) starsEl.textContent = avg >= 4.5 ? '\u2b50\u2b50\u2b50\u2b50\u2b50' : avg >= 3.5 ? '\u2b50\u2b50\u2b50\u2b50' : avg >= 2.5 ? '\u2b50\u2b50\u2b50' : avg >= 1.5 ? '\u2b50\u2b50' : '\u2b50';
-        if (ratingLbl) ratingLbl.textContent = 'Note moyenne re\u00e7ue \u00b7 ' + scores.length + ' \u00e9valuation' + (scores.length > 1 ? 's' : '');
-      }
-    }
   } catch(e) {
     console.warn('Profile stats error:', e);
   }
