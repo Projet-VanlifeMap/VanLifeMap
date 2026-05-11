@@ -1066,7 +1066,7 @@ async function initPushToggle() {
   if (!toggle) return;
   var reg = await navigator.serviceWorker.ready;
   var sub = await reg.pushManager.getSubscription();
-  toggle.classList.toggle('active', !!sub);
+  toggle.classList.toggle('on', !!sub);
   var desc = document.getElementById('push-notif-desc');
   if (desc) desc.textContent = sub ? 'Notifications actives sur cet appareil' : 'Recevez une alerte même quand l\'app est fermée';
 }
@@ -1080,7 +1080,7 @@ async function togglePushSetting() {
     await db.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
     await sub.unsubscribe();
     var toggle = document.getElementById('toggle-push');
-    if (toggle) toggle.classList.remove('active');
+    if (toggle) toggle.classList.remove('on');
     var desc = document.getElementById('push-notif-desc');
     if (desc) desc.textContent = "Recevez une alerte même quand l'app est fermée";
     showToast('Notifications désactivées', '');
@@ -1092,7 +1092,7 @@ async function togglePushSetting() {
       var json = newSub.toJSON();
       await db.from('push_subscriptions').upsert({ user_id: currentUser.id, endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }, { onConflict: 'user_id,endpoint' });
       var toggle2 = document.getElementById('toggle-push');
-      if (toggle2) toggle2.classList.add('active');
+      if (toggle2) toggle2.classList.add('on');
       var desc2 = document.getElementById('push-notif-desc');
       if (desc2) desc2.textContent = 'Notifications actives sur cet appareil';
       showToast('&#128276; Notifications activées !', 'success');
