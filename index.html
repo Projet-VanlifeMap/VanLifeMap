@@ -443,6 +443,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 .prof-actions{background:var(--surface);padding:14px 20px;display:flex;flex-direction:column;gap:8px;}
 .prof-btn-main{width:100%;background:#ffd04f;color:#000;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:var(--font-body);letter-spacing:0.3px;}
 .prof-btn-sec{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:12px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;}
+.dash-tile{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;cursor:pointer;transition:transform 0.12s;position:relative;-webkit-tap-highlight-color:transparent;}
+.dash-tile:active{transform:scale(0.95);}
+.dash-tile-icon{font-size:28px;margin-bottom:6px;line-height:1;}
+.dash-tile-val{font-size:22px;font-weight:800;color:var(--text);line-height:1.1;}
+.dash-tile-lbl{font-size:11px;color:var(--text2);margin-top:3px;}
+.dash-tile-badge{position:absolute;top:8px;right:8px;background:#e74c3c;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:2px 6px;}
+.dash-tile.urgent{border-color:rgba(231,76,60,0.35);background:rgba(231,76,60,0.05);}
+.dash-tile.admin-only{border-color:rgba(255,208,79,0.35);background:rgba(255,208,79,0.04);}
 </style>
 </head>
 <body>
@@ -544,10 +553,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <span class="nav-item-icon">&#128100;</span>
       <span>Profil</span>
     </button>
-    <button class="nav-item" id="nav-settings" onclick="navTo('settings')" style="position:relative;">
+    <button class="nav-item" id="nav-settings" onclick="navTo('settings')">
       <span class="nav-item-icon">&#9881;&#65039;</span>
-      <span id="mod-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
       <span>Param&#232;tres</span>
+    </button>
+    <button class="nav-item" id="nav-dashboard" onclick="navTo('dashboard')" style="display:none;position:relative;">
+      <span class="nav-item-icon">&#128737;&#65039;</span>
+      <span id="dash-nav-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
+      <span>Dashboard</span>
     </button>
   </div>
 </div>
@@ -722,76 +735,36 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         </div>
         <div class="toggle" id="toggle-push" onclick="togglePushSetting()"></div>
       </div>
-      <div id="mod-pending-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div class="setting-label" style="margin:0;">&#9203; Lieux en attente <span id="pending-count-badge" style="background:var(--accent);color:#000;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px;">0</span></div>
-          <button onclick="loadPendingPlaces()" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--font-body);">&#8635; Rafraîchir</button>
-        </div>
-        <div id="pending-places-list" style="font-size:13px;color:var(--text2);">Chargement...</div>
-      </div>
-      <div id="mod-reports-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <div class="setting-label" style="margin-bottom:10px;">&#9888;&#65039; Lieux signal&#233;s</div>
-        <div id="reported-places-list" style="font-size:13px;color:var(--text2);margin-bottom:14px;">Chargement...</div>
-        <div class="setting-label" style="margin-bottom:10px;">&#9888;&#65039; Commentaires signal&#233;s</div>
-        <div id="reported-comments-list" style="font-size:13px;color:var(--text2);">Chargement...</div>
-      </div>
-      <div id="admin-stats-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <div class="setting-label" style="margin-bottom:10px;">📊 Tableau de bord</div>
-        <div id="admin-stats-content" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">Chargement...</div>
-      </div>
-      <div id="admin-validators-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <div class="setting-label" style="margin-bottom:10px;">&#128737;&#65039; Gestion des mod&#233;rateurs</div>
-        <div id="validators-list" style="margin-bottom:10px;font-size:13px;color:var(--text2);">Chargement...</div>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input type="text" id="validator-username-input" placeholder="Pseudo de l'utilisateur..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);">
-        </div>
-        <button onclick="addValidator()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">+ Ajouter modérateur</button>
-        <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px;">
-          <div class="setting-label" style="margin-bottom:6px;">&#11088; Membres de confiance</div>
-          <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Leur vote valide un lieu instantanément (comme un mod)</div>
-          <div id="trusted-list" style="margin-bottom:10px;font-size:13px;color:var(--text2);">Chargement...</div>
-          <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <input type="text" id="trusted-username-input" placeholder="Pseudo de l'utilisateur..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);">
-          </div>
-          <button onclick="addTrusted()" style="width:100%;background:rgba(255,208,79,0.15);color:var(--accent);border:1px solid rgba(255,208,79,0.3);border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">+ Ajouter membre de confiance</button>
-        </div>
-        <div id="role-confirm-panel" style="display:none;margin-top:12px;background:rgba(255,208,79,0.07);border:1px solid rgba(255,208,79,0.3);border-radius:10px;padding:14px;">
-          <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;" id="role-confirm-msg"></div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="cancelRoleChange()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>
-            <button onclick="confirmRoleChange()" style="flex:1;background:rgba(255,208,79,0.2);border:1px solid rgba(255,208,79,0.4);color:var(--accent);border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">✓ Confirmer</button>
-          </div>
-        </div>
-      </div>
-      <div id="admin-ban-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
-        <div class="setting-label" style="margin-bottom:10px;">&#128683; Gestion des bannissements</div>
-        <div id="banned-list" style="margin-bottom:12px;font-size:13px;color:var(--text2);">Chargement...</div>
-        <div style="display:flex;gap:8px;margin-bottom:8px;">
-          <input type="text" id="ban-username-input" placeholder="Pseudo à bannir..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);">
-        </div>
-        <button onclick="banByUsername()" style="width:100%;background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">&#128683; Bannir cet utilisateur</button>
-        <div id="unban-confirm-panel" style="display:none;margin-top:12px;background:rgba(110,231,183,0.07);border:1px solid rgba(110,231,183,0.35);border-radius:10px;padding:14px;">
-          <div style="font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:10px;">⚠️ Lever le bannissement de <span id="unban-confirm-name"></span> ?</div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="cancelUnban()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>
-            <button onclick="confirmUnban()" style="flex:1;background:rgba(110,231,183,0.15);border:1px solid rgba(110,231,183,0.4);color:#6ee7b7;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">✓ Confirmer</button>
-          </div>
-        </div>
-        <div id="ban-confirm-panel" style="display:none;margin-top:12px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.4);border-radius:10px;padding:14px;">
-          <div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:10px;">⚠️ Confirmer le bannissement de <span id="ban-confirm-name"></span> ?</div>
-          <input type="text" id="ban-reason-input" placeholder="Raison (optionnel)..." style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:var(--font-body);margin-bottom:10px;">
-          <div style="display:flex;gap:8px;">
-            <button onclick="cancelBan()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>
-            <button onclick="confirmBan()" style="flex:1;background:#e74c3c;border:none;color:#fff;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Confirmer</button>
-          </div>
-        </div>
-      </div>
       <div id="signin-row" style="border-top:1px solid var(--border);padding:16px;display:none;">
         <button onclick="closeSheet('sheet-settings');openModal('modal-auth');" style="width:100%;background:var(--accent);border:none;color:#fff;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128274; Se connecter / S'inscrire</button>
       </div>
       <div id="signout-row" style="border-top:1px solid var(--border);padding:16px;display:none;">
         <button onclick="signOut()" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD MODERATEUR -->
+<div class="sheet-overlay" id="sheet-dashboard" onclick="closeSheet('sheet-dashboard')">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:92vh;">
+    <div class="sheet-handle"></div>
+    <div id="dash-main-view" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+      <div class="sheet-header">
+        <span class="sheet-title">&#128737;&#65039; Tableau de bord</span>
+        <button class="sheet-close" onclick="closeSheet('sheet-dashboard')">&#10005;</button>
+      </div>
+      <div class="sheet-content" style="padding:0;">
+        <div class="dash-grid" id="dash-grid"><div style="color:var(--text2);font-size:13px;padding:16px;">Chargement...</div></div>
+      </div>
+    </div>
+    <div id="dash-detail-view" style="display:none;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <button onclick="showDashMain()" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;">&#8592;</button>
+        <span class="sheet-title" id="dash-detail-title"></span>
+        <button class="sheet-close" style="margin-left:auto;" onclick="closeSheet('sheet-dashboard')">&#10005;</button>
+      </div>
+      <div class="sheet-content" id="dash-detail-content" style="padding:16px;"></div>
     </div>
   </div>
 </div>
@@ -1370,27 +1343,12 @@ function navTo(tab) {
   else if (tab === 'profile') { renderProfile(); openSheet('sheet-profile'); }
   else if (tab === 'settings') { openSheet('sheet-settings'); }
   else if (tab === 'community') { openSheet('sheet-community'); loadCommunity(); document.getElementById('comm-new-btn').style.display = 'flex'; }
+  else if (tab === 'dashboard') { openDashboard(); }
 }
 
 function openSheet(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'sheet-settings') { initPushToggle(); var sr = document.getElementById('signout-row'); if (sr) sr.style.display = currentUser ? 'block' : 'none'; var si = document.getElementById('signin-row'); if (si) si.style.display = currentUser ? 'none' : 'block'; }
-  if (id === 'sheet-settings' && (isAdmin || isModerator)) {
-    var pend = document.getElementById('mod-pending-section');
-    if (pend) { pend.style.display = 'block'; loadPendingPlaces(); }
-    var rep = document.getElementById('mod-reports-section');
-    if (rep) { rep.style.display = 'block'; loadReportedPlaces(); loadReportedComments(); }
-    var mb = document.getElementById('mod-badge');
-    if (mb) mb.style.display = 'none';
-  }
-  if (id === 'sheet-settings' && isAdmin) {
-    var sec = document.getElementById('admin-validators-section');
-    if (sec) { sec.style.display = 'block'; loadValidatorsList(); }
-    var statsSec = document.getElementById('admin-stats-section');
-    if (statsSec) { statsSec.style.display = 'block'; loadAdminStats(); }
-    var banSec = document.getElementById('admin-ban-section');
-    if (banSec) { banSec.style.display = 'block'; loadBannedList(); }
-  }
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -1892,6 +1850,8 @@ async function loadUserRole() {
   }
   if (isAdmin) { isModerator = true; isTrusted = true; }
   if (isModerator) isTrusted = true;
+  var navDash = document.getElementById('nav-dashboard');
+  if (navDash) navDash.style.display = (isAdmin || isModerator) ? 'flex' : 'none';
 }
 
 async function loadUserProfile() {
@@ -2663,9 +2623,9 @@ function clearSoloMode() {
   var nav = document.getElementById('bottom-nav');
   if (nav) nav.style.display = 'block';
   scheduleLoad();
-  if (soloReturnTo === 'settings') {
+  if (soloReturnTo === 'dashboard') {
     soloReturnTo = 'profile';
-    openSheet('sheet-settings');
+    openDashboard();
   } else if (soloReturnTo === 'pub-profile') {
     var u = _pubProfileUsername;
     soloReturnTo = 'profile';
@@ -3863,9 +3823,9 @@ function rejectPendingPlace(pid, name) {
 }
 
 function viewPendingPlace(pid, lat, lng) {
-  closeSheet('sheet-settings');
+  closeSheet('sheet-dashboard');
   soloPlaceId = pid;
-  soloReturnTo = 'settings';
+  soloReturnTo = 'dashboard';
   var nav = document.getElementById('bottom-nav');
   if (nav) nav.style.display = 'none';
   var banner = document.getElementById('solo-banner');
@@ -3926,9 +3886,9 @@ var soloReturnTo = 'profile'; // 'profile' | 'settings' | 'pub-profile'
 var _pubProfileUsername = null;
 
 function viewReportedPlace(pid, lat, lng) {
-  closeSheet('sheet-settings');
+  closeSheet('sheet-dashboard');
   soloPlaceId = pid;
-  soloReturnTo = 'settings';
+  soloReturnTo = 'dashboard';
   var nav = document.getElementById('bottom-nav');
   if (nav) nav.style.display = 'none';
   var banner = document.getElementById('solo-banner');
@@ -4841,7 +4801,7 @@ async function loadModReportsCount() {
     db.from('comment_reports').select('id', { count: 'exact', head: true })
   ]);
   var total = (r1.count || 0) + (r2.count || 0);
-  var badge = document.getElementById('mod-badge');
+  var badge = document.getElementById('dash-nav-badge');
   if (badge) {
     if (total > 0) { badge.textContent = total > 99 ? '99+' : total; badge.style.display = 'block'; }
     else { badge.style.display = 'none'; }
@@ -4860,6 +4820,201 @@ function startRealtimeReports() {
       loadModReportsCount();
     })
     .subscribe();
+}
+
+// ===== DASHBOARD MODERATEUR =====
+
+function openDashboard() {
+  showDashMain();
+  openSheet('sheet-dashboard');
+  loadDashboardTiles();
+}
+
+function showDashMain() {
+  var main = document.getElementById('dash-main-view');
+  var detail = document.getElementById('dash-detail-view');
+  if (main) { main.style.display = 'flex'; main.style.flexDirection = 'column'; }
+  if (detail) detail.style.display = 'none';
+}
+
+function showDashDetail(title, renderFn) {
+  var main = document.getElementById('dash-main-view');
+  var detail = document.getElementById('dash-detail-view');
+  var titleEl = document.getElementById('dash-detail-title');
+  var content = document.getElementById('dash-detail-content');
+  if (main) main.style.display = 'none';
+  if (detail) { detail.style.display = 'flex'; detail.style.flexDirection = 'column'; }
+  if (titleEl) titleEl.textContent = title;
+  if (content) content.innerHTML = '<div style="color:var(--text2);font-size:13px;">Chargement...</div>';
+  renderFn();
+}
+
+async function loadDashboardTiles() {
+  var grid = document.getElementById('dash-grid');
+  if (!grid) return;
+  var results = await Promise.all([
+    db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
+    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    db.from('reports').select('id', { count: 'exact', head: true }),
+    db.from('comment_reports').select('id', { count: 'exact', head: true })
+  ]);
+  var totalMembers = results[0].count || 0;
+  var totalPlaces = results[1].count || 0;
+  var pendingCount = results[2].count || 0;
+  var reportedPlaces = results[3].count || 0;
+  var reportedComments = results[4].count || 0;
+  var totalReports = reportedPlaces + reportedComments;
+  var urgent = pendingCount + totalReports;
+  var nb = document.getElementById('dash-nav-badge');
+  if (nb) { nb.textContent = urgent > 99 ? '99+' : urgent; nb.style.display = urgent > 0 ? 'block' : 'none'; }
+  function tile(icon, label, val, onclick, badge, cls) {
+    var badgeHtml = (badge > 0) ? '<div class="dash-tile-badge">' + (badge > 99 ? '99+' : badge) + '</div>' : '';
+    return '<div class="dash-tile' + (cls ? ' ' + cls : '') + '" onclick="' + onclick + '">'
+      + badgeHtml
+      + '<div class="dash-tile-icon">' + icon + '</div>'
+      + (val !== '' ? '<div class="dash-tile-val">' + val + '</div>' : '')
+      + '<div class="dash-tile-lbl">' + label + '</div>'
+      + '</div>';
+  }
+  var html = tile('&#9203;', '&Agrave; valider', pendingCount, 'showDashPending()', pendingCount, pendingCount > 0 ? 'urgent' : '')
+    + tile('&#9888;&#65039;', 'Signalements', totalReports, 'showDashReports()', totalReports, totalReports > 0 ? 'urgent' : '')
+    + tile('&#128101;', 'Membres', totalMembers, 'showDashMembers()')
+    + tile('&#128205;', 'Lieux actifs', totalPlaces, 'showDashStats()');
+  if (isAdmin) {
+    html += tile('&#128737;&#65039;', '&Eacute;quipe', '', 'showDashTeam()', 0, 'admin-only')
+      + tile('&#128296;', 'Sanctions', '', 'showDashBan()', 0, 'admin-only');
+  }
+  grid.innerHTML = html;
+}
+
+function showDashPending() {
+  showDashDetail('&#9203; Lieux à valider', function() {
+    var c = document.getElementById('dash-detail-content');
+    c.innerHTML = '<div id="pending-places-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    loadPendingPlaces();
+  });
+}
+
+function showDashReports() {
+  showDashDetail('&#9888;&#65039; Signalements', function() {
+    var c = document.getElementById('dash-detail-content');
+    c.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">&#128205; Lieux signalés</div>'
+      + '<div id="reported-places-list"><div style="color:var(--text2);">Chargement...</div></div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 10px;">&#128172; Commentaires signalés</div>'
+      + '<div id="reported-comments-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    loadReportedPlaces();
+    loadReportedComments();
+  });
+}
+
+function showDashMembers() {
+  showDashDetail('&#128101; Membres', function() {
+    var c = document.getElementById('dash-detail-content');
+    c.innerHTML = '<div id="dash-members-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    loadDashMembersList();
+  });
+}
+
+async function loadDashMembersList() {
+  var el = document.getElementById('dash-members-list');
+  if (!el) return;
+  var res = await db.from('profiles').select('user_id,username,registered_at').not('username', 'is', null).order('registered_at', { ascending: true });
+  if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:13px;">Erreur</div>'; return; }
+  var members = res.data || [];
+  var rolesRes = await db.from('trusted_users').select('user_id,role');
+  var rolesMap = {};
+  (rolesRes.data || []).forEach(function(r) { rolesMap[r.user_id] = r.role; });
+  if (!members.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun membre</div>'; return; }
+  el.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">' + members.length + ' membres inscrits</div>'
+    + members.map(function(m, i) {
+      var role = rolesMap[m.user_id] || null;
+      var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
+      var date = m.registered_at ? new Date(m.registered_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '';
+      return '<div onclick="closeSheet(\'sheet-dashboard\');openPublicProfile(\'' + escHtml(m.username).replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+        + '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,208,79,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;">' + (i + 1) + '</div>'
+        + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(m.username) + '</div>'
+        + (date ? '<div style="font-size:11px;color:var(--text2);">Inscrit le ' + date + '</div>' : '') + '</div>'
+        + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
+    }).join('');
+}
+
+function showDashStats() {
+  showDashDetail('&#128202; Statistiques', async function() {
+    var results = await Promise.all([
+      db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
+      db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      db.from('places').select('id', { count: 'exact', head: true }).eq('hidden', true),
+      db.from('comments').select('id', { count: 'exact', head: true }),
+      db.from('banned_users').select('id', { count: 'exact', head: true })
+    ]);
+    var c = document.getElementById('dash-detail-content');
+    if (!c) return;
+    function sitem(icon, label, val) {
+      return '<div style="background:var(--surface2);border-radius:10px;padding:12px;text-align:center;">'
+        + '<div style="font-size:22px;">' + icon + '</div>'
+        + '<div style="font-size:20px;font-weight:800;color:var(--text);">' + (val || 0) + '</div>'
+        + '<div style="font-size:11px;color:var(--text2);margin-top:2px;">' + label + '</div>'
+        + '</div>';
+    }
+    c.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+      + sitem('&#128101;', 'Membres', results[0].count)
+      + sitem('&#128205;', 'Lieux actifs', results[1].count)
+      + sitem('&#9203;', 'En attente', results[2].count)
+      + sitem('&#128274;', 'Masqués', results[3].count)
+      + sitem('&#128172;', 'Commentaires', results[4].count)
+      + sitem('&#128683;', 'Bannis', results[5].count)
+      + '</div>';
+  });
+}
+
+function showDashTeam() {
+  showDashDetail('&#128737;&#65039; Équipe', function() {
+    var c = document.getElementById('dash-detail-content');
+    c.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">&#128737;&#65039; Modérateurs</div>'
+      + '<div id="validators-list" style="margin-bottom:10px;font-size:13px;color:var(--text2);">Chargement...</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:8px;"><input type="text" id="validator-username-input" placeholder="Pseudo de l\'utilisateur..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);"></div>'
+      + '<button onclick="addValidator()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;margin-bottom:16px;">+ Ajouter modérateur</button>'
+      + '<div style="border-top:1px solid var(--border);padding-top:14px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">&#11088; Membres de confiance</div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Leur vote valide un lieu instantanément</div>'
+      + '<div id="trusted-list" style="margin-bottom:10px;font-size:13px;color:var(--text2);">Chargement...</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:8px;"><input type="text" id="trusted-username-input" placeholder="Pseudo de l\'utilisateur..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);"></div>'
+      + '<button onclick="addTrusted()" style="width:100%;background:rgba(255,208,79,0.15);color:var(--accent);border:1px solid rgba(255,208,79,0.3);border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">+ Ajouter membre de confiance</button>'
+      + '</div>'
+      + '<div id="role-confirm-panel" style="display:none;margin-top:12px;background:rgba(255,208,79,0.07);border:1px solid rgba(255,208,79,0.3);border-radius:10px;padding:14px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;" id="role-confirm-msg"></div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="cancelRoleChange()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>'
+      + '<button onclick="confirmRoleChange()" style="flex:1;background:rgba(255,208,79,0.2);border:1px solid rgba(255,208,79,0.4);color:var(--accent);border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#10003; Confirmer</button>'
+      + '</div></div>';
+    loadValidatorsList();
+  });
+}
+
+function showDashBan() {
+  showDashDetail('&#128296; Sanctions', function() {
+    var c = document.getElementById('dash-detail-content');
+    c.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">&#128683; Membres bannis</div>'
+      + '<div id="banned-list" style="margin-bottom:12px;font-size:13px;color:var(--text2);">Chargement...</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:8px;"><input type="text" id="ban-username-input" placeholder="Pseudo à bannir..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);"></div>'
+      + '<button onclick="banByUsername()" style="width:100%;background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid rgba(231,76,60,0.35);border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">&#128683; Bannir cet utilisateur</button>'
+      + '<div id="unban-confirm-panel" style="display:none;margin-top:12px;background:rgba(110,231,183,0.07);border:1px solid rgba(110,231,183,0.35);border-radius:10px;padding:14px;">'
+      + '<div style="font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:10px;">&#9888;&#65039; Lever le bannissement de <span id="unban-confirm-name"></span> ?</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="cancelUnban()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>'
+      + '<button onclick="confirmUnban()" style="flex:1;background:rgba(110,231,183,0.15);border:1px solid rgba(110,231,183,0.4);color:#6ee7b7;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#10003; Confirmer</button>'
+      + '</div></div>'
+      + '<div id="ban-confirm-panel" style="display:none;margin-top:12px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.4);border-radius:10px;padding:14px;">'
+      + '<div style="font-size:13px;font-weight:700;color:#e74c3c;margin-bottom:10px;">&#9888;&#65039; Confirmer le bannissement de <span id="ban-confirm-name"></span> ?</div>'
+      + '<input type="text" id="ban-reason-input" placeholder="Raison (optionnel)..." style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;font-family:var(--font-body);margin-bottom:10px;">'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="cancelBan()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>'
+      + '<button onclick="confirmBan()" style="flex:1;background:#e74c3c;border:none;color:#fff;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Confirmer</button>'
+      + '</div></div>';
+    loadBannedList();
+  });
 }
 
 if ('serviceWorker' in navigator) {
