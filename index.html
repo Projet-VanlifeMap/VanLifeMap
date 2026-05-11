@@ -2327,6 +2327,7 @@ async function renderProfile() {
     + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">Favoris</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val" id="prof-merci">\u2014</div><div class="prof-stat-lbl">Merci re\u00e7us</div></div></div>'
     + '<div class="prof-stat" style="grid-column:1/-1"><div class="prof-stat-icon pic-yellow">&#11088;</div>'
     + '<div style="flex:1"><div style="display:flex;align-items:baseline;gap:8px"><div class="prof-stat-val" id="prof-rating">\u2014</div><div id="prof-stars" style="font-size:16px;line-height:1"></div></div>'
     + '<div class="prof-stat-lbl" id="prof-rating-lbl">Note moyenne re\u00e7ue</div></div></div>'
@@ -2444,7 +2445,8 @@ async function loadProfileStats(username) {
       db.from('places').select('id').eq('user_id', uid),
       db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', uid),
       db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', currentUser.created_at),
-      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', uid)
+      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', uid),
+      db.from('places').select('votes_positifs').eq('user_id', uid)
     ]);
     var BOT_NAMES = ['Import OSM', 'OpenStreetMap', 'Prix-Carburants-gouv'];
     var lbData = (res[0].data || []).filter(function(u) { return BOT_NAMES.indexOf(u.user_name) === -1; });
@@ -2453,6 +2455,7 @@ async function loadProfileStats(username) {
     var placeIds = (res[3].data || []).map(function(p) { return p.id; });
     var validatedCount = (res[4].count || 0) + (res[6].count || 0);
     var memberNum = res[5].count || null;
+    var merciCount = (res[7].data || []).reduce(function(s,p){ return s+(p.votes_positifs||0); }, 0);
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
     var myRank = myIdx + 1;
     var total = lbData.length;
@@ -2473,6 +2476,8 @@ async function loadProfileStats(username) {
     if (fEl) fEl.textContent = Object.keys(userFavs).length;
     var vdEl = document.getElementById('prof-validated');
     if (vdEl) vdEl.textContent = validatedCount;
+    var mEl = document.getElementById('prof-merci');
+    if (mEl) mEl.textContent = merciCount;
     if (rankEl) {
       if (myRank > 0) {
         rankEl.textContent = '#' + myRank + ' / ' + total;
@@ -2535,12 +2540,14 @@ async function openPublicProfile(username) {
       db.from('trusted_users').select('role').eq('user_id', profile.user_id).maybeSingle(),
       db.from('banned_users').select('id').eq('user_id', profile.user_id).maybeSingle(),
       db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', profile.registered_at || profile.created_at),
-      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', profile.user_id)
+      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', profile.user_id),
+      db.from('places').select('votes_positifs').eq('user_id', profile.user_id)
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
     validatedCount = (stats[2].count || 0) + (stats[8].count || 0);
     votesCount = stats[3].count || 0;
+    var merciCount = (stats[9].data || []).reduce(function(s,p){ return s+(p.votes_positifs||0); }, 0);
     var lbData = stats[4].data || [];
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
     if (myIdx >= 0) { rankPos = myIdx + 1; rankTotal = lbData.length; }
@@ -2604,6 +2611,7 @@ async function openPublicProfile(username) {
     + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Confirmations</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Votes donn&eacute;s</div></div></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val">' + merciCount + '</div><div class="prof-stat-lbl">Merci re&ccedil;us</div></div></div>'
     + '</div></div>'
     + '<div id="pub-places-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div id="pub-validated-panel" style="display:none;padding:0 16px 4px;"></div>'
