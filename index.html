@@ -3685,6 +3685,8 @@ function makePopup(p) {
     + '<a href="https://maps.apple.com/?daddr=' + p.latitude + ',' + p.longitude + '" target="_blank" class="pv2-app-btn pv2-app-apple">→ Plans</a>'
     + '</div>'
 
+    + '<div id="validators-row-' + safeId + '"></div>'
+
     + '<div class="pv2-votes">'
     + '<button class="pv2-vote-btn" onclick="vote(\'' + safeId + '\',true)">&#128077; Utile (' + (p.votes_positifs || 0) + ')</button>'
     + '<button class="pv2-vote-btn closed" onclick="vote(\'' + safeId + '\',false)">&#128078; Ferm\u00e9 (' + (p.votes_negatifs || 0) + ')</button>'
@@ -3711,6 +3713,7 @@ function makePopup(p) {
     loadRating(p.id);
   }
   loadReportInfo(p.id);
+  loadValidatorsRow(p.id);
   if (currentUser) { checkFavorite(p.id); loadValidationSection(p.id); }
   return el;
 }
@@ -3917,6 +3920,47 @@ async function loadValidationCount(pid) {
     if (btn) btn.style.display = 'none';
     info.textContent += ' — vous avez déjà ' + (isImport ? 'confirmé' : 'voté');
   }
+}
+
+async function loadValidatorsRow(pid) {
+  var safeId = pid.replace(/-/g, '_');
+  var el = document.getElementById('validators-row-' + safeId);
+  if (!el) return;
+  var countRes = await db.from('place_validations').select('id', { count: 'exact', head: true }).eq('place_id', pid);
+  var n = countRes.count || 0;
+  if (n === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div onclick="toggleValidatorsList(\'' + pid + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--text2);">'
+    + '<span>&#9989; ' + n + ' personne' + (n > 1 ? 's ont' : ' a') + ' validé ce lieu</span>'
+    + '<span id="validators-arrow-' + safeId + '" style="font-size:18px;line-height:1;">&#8250;</span>'
+    + '</div>'
+    + '<div id="validators-list-' + safeId + '" style="display:none;padding:0 16px 8px;"></div>';
+}
+
+async function toggleValidatorsList(pid) {
+  var safeId = pid.replace(/-/g, '_');
+  var list = document.getElementById('validators-list-' + safeId);
+  var arrow = document.getElementById('validators-arrow-' + safeId);
+  if (!list) return;
+  if (list.style.display !== 'none') {
+    list.style.display = 'none';
+    if (arrow) arrow.innerHTML = '&#8250;';
+    return;
+  }
+  if (arrow) arrow.innerHTML = '&#8964;';
+  list.style.display = 'block';
+  list.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:6px 0;">Chargement...</div>';
+  var res = await db.from('place_validations').select('user_id, created_at, profiles(username)').eq('place_id', pid).order('created_at', { ascending: true });
+  var data = res.data || [];
+  if (!data.length) { list.innerHTML = '<div style="color:var(--text2);font-size:12px;padding:6px 0;">Aucune validation</div>'; return; }
+  list.innerHTML = data.map(function(v) {
+    var name = (v.profiles && v.profiles.username) || 'Membre';
+    var d = v.created_at ? new Date(v.created_at) : null;
+    var dateStr = d ? d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">'
+      + '<span style="color:var(--text);font-weight:600;">&#128100; ' + escHtml(name) + '</span>'
+      + '<span style="color:var(--text2);">' + dateStr + '</span>'
+      + '</div>';
+  }).join('');
 }
 
 var _pendingPlaceAction = null;
