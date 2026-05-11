@@ -508,9 +508,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       </div>
       <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer ou ajouter un pays</span></button>
       <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
-      <button id="btn-profile-desk" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#128100; Mon profil</button>
       <div id="auth-zone">
-        <span id="auth-info">Non connect&#233;</span>
+        <span id="auth-info" style="cursor:pointer;" onclick="onAuthInfoClick()">Non connect&#233;</span>
         <button id="btn-auth">Connexion</button>
       </div>
     </div>
@@ -1009,7 +1008,6 @@ function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
   document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
-  document.getElementById('btn-profile-desk').addEventListener('click', function() { renderProfile(); openSheet('sheet-profile'); });
   document.getElementById('btn-locate').addEventListener('click', toggleLiveTracking);
   applyFilters();
 }
@@ -2322,6 +2320,11 @@ async function checkAuth() {
   } else {
     updateSatBtn();
   }
+}
+
+function onAuthInfoClick() {
+  if (currentUser) { renderProfile(); openSheet('sheet-profile'); }
+  else { openModal('modal-auth'); }
 }
 
 function onAuthBtn() {
