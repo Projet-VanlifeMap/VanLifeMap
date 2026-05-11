@@ -897,6 +897,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   </div>
 </div>
 
+<div id="modal-delete-place" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-delete-place')">&#10005;</button>
+    <h2>&#128465;&#65039; Supprimer ce lieu</h2>
+    <div class="info-box" style="color:#e74c3c;">&#9888;&#65039; Cette action est <strong>irréversible</strong>.</div>
+    <p style="font-size:14px;color:var(--text2);margin:12px 0;">Supprimer définitivement <strong id="delete-place-name"></strong> ?</p>
+    <button class="btn-p" style="background:#e74c3c;border-color:#e74c3c;" onclick="confirmDeletePlace()">&#128465;&#65039; Supprimer définitivement</button>
+    <button class="btn-s" onclick="closeModal('modal-delete-place')">Annuler</button>
+  </div>
+</div>
+
 <div id="install-banner">
   <div class="ib-header">
     <div class="ib-title">&#128205; Installer VanLifeMap</div>
@@ -3011,9 +3022,21 @@ async function showPlace(pid) {
   scheduleLoad();
 }
 
-async function deletePlace(pid, name) {
+var _deletePlacePendingId = null;
+
+function deletePlace(pid, name) {
   if (!currentUser || !isAdmin) return;
-  if (!confirm('Supprimer définitivement « ' + name + ' » ?\nCette action est irréversible.')) return;
+  _deletePlacePendingId = pid;
+  var nameEl = document.getElementById('delete-place-name');
+  if (nameEl) nameEl.textContent = '« ' + name + ' »';
+  openModal('modal-delete-place');
+}
+
+async function confirmDeletePlace() {
+  if (!_deletePlacePendingId) return;
+  var pid = _deletePlacePendingId;
+  _deletePlacePendingId = null;
+  closeModal('modal-delete-place');
   var res = await db.from('places').delete().eq('id', pid);
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
   showToast('&#128465;&#65039; Lieu supprimé', 'success');
