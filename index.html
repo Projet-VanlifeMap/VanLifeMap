@@ -3330,7 +3330,7 @@ async function loadMembersList() {
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
       var dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
       var uname = m.username || '(sans pseudo)';
-      return '<div onclick="loadPubProfileByUsername(\'' + escHtml(uname) + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      return '<div onclick="openPublicProfile(\'' + escHtml(uname).replace(/'/g, "\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
         + '<div style="font-size:12px;font-weight:700;color:var(--text2);min-width:24px;text-align:right;">#' + (i + 1) + '</div>'
         + '<div style="flex:1;min-width:0;">'
         + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(uname) + '</div>'
