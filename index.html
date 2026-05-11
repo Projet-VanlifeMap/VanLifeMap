@@ -755,6 +755,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
           </div>
           <button onclick="addTrusted()" style="width:100%;background:rgba(255,208,79,0.15);color:var(--accent);border:1px solid rgba(255,208,79,0.3);border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">+ Ajouter membre de confiance</button>
         </div>
+        <div id="role-confirm-panel" style="display:none;margin-top:12px;background:rgba(255,208,79,0.07);border:1px solid rgba(255,208,79,0.3);border-radius:10px;padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;" id="role-confirm-msg"></div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="cancelRoleChange()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">Annuler</button>
+            <button onclick="confirmRoleChange()" style="flex:1;background:rgba(255,208,79,0.2);border:1px solid rgba(255,208,79,0.4);color:var(--accent);border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body);">✓ Confirmer</button>
+          </div>
+        </div>
       </div>
       <div id="admin-ban-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
         <div class="setting-label" style="margin-bottom:10px;">&#128683; Gestion des bannissements</div>
@@ -3181,7 +3188,7 @@ async function loadValidatorsList() {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">'
       + '<div><span style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(uname) + '</span>'
       + '<span style="font-size:11px;color:var(--text2);margin-left:8px;">&#128737;&#65039; Modérateur</span></div>'
-      + '<button onclick="removeValidator(\'' + u.user_id + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Retirer</button>'
+      + '<button onclick="removeValidator(\'' + u.user_id + '\',\'' + escHtml(uname).replace(/'/g,"\\'") + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Retirer</button>'
       + '</div>';
   }).join(''); }
   loadTrustedList();
@@ -3198,7 +3205,7 @@ async function loadTrustedList() {
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">'
       + '<div><span style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(uname) + '</span>'
       + '<span style="font-size:11px;color:var(--accent);margin-left:8px;">⭐ Confiance</span></div>'
-      + '<button onclick="removeTrusted(\'' + u.user_id + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Retirer</button>'
+      + '<button onclick="removeTrusted(\'' + u.user_id + '\',\'' + escHtml(uname).replace(/'/g,"\\'") + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Retirer</button>'
       + '</div>';
   }).join('');
 }
@@ -3208,19 +3215,25 @@ async function addTrusted() {
   var inp = document.getElementById('trusted-username-input');
   var uname = inp ? inp.value.trim() : '';
   if (!uname) return;
-  var res = await db.from('profiles').select('id').eq('username', uname).maybeSingle();
+  var res = await db.from('profiles').select('user_id').eq('username', uname).maybeSingle();
   if (!res.data) { showToast('Utilisateur introuvable', 'error'); return; }
-  await db.from('trusted_users').upsert({ user_id: res.data.id, role: 'trusted' }, { onConflict: 'user_id' });
-  if (inp) inp.value = '';
-  showToast('⭐ ' + uname + ' ajouté comme membre de confiance', 'success');
-  loadTrustedList();
+  showRoleConfirm('⭐ Ajouter ' + uname + ' comme membre de confiance ?', function() {
+    return db.from('trusted_users').upsert({ user_id: res.data.user_id, role: 'trusted' }, { onConflict: 'user_id' }).then(function() {
+      if (inp) inp.value = '';
+      showToast('⭐ ' + uname + ' ajouté comme membre de confiance', 'success');
+      loadTrustedList();
+    });
+  });
 }
 
-async function removeTrusted(uid) {
+function removeTrusted(uid, uname) {
   if (!isAdmin) return;
-  await db.from('trusted_users').delete().eq('user_id', uid);
-  showToast('Membre de confiance retiré', '');
-  loadTrustedList();
+  showRoleConfirm('Retirer ' + (uname || 'ce membre') + ' des membres de confiance ?', function() {
+    return db.from('trusted_users').delete().eq('user_id', uid).then(function() {
+      showToast('Membre de confiance retiré', '');
+      loadTrustedList();
+    });
+  });
 }
 
 async function banUser(userId, username) {
@@ -3409,19 +3422,45 @@ async function addValidator() {
   var inp = document.getElementById('validator-username-input');
   var uname = (inp ? inp.value.trim() : '');
   if (!uname) return;
-  var res = await db.from('profiles').select('id').eq('username', uname).maybeSingle();
+  var res = await db.from('profiles').select('user_id').eq('username', uname).maybeSingle();
   if (!res.data) { showToast('Utilisateur introuvable', 'error'); return; }
-  var uid = res.data.id;
-  await db.from('trusted_users').upsert({ user_id: uid, role: 'moderator' }, { onConflict: 'user_id' });
-  if (inp) inp.value = '';
-  showToast(uname + ' ajouté comme modérateur', 'success');
-  loadValidatorsList();
+  showRoleConfirm('🛡️ Ajouter ' + uname + ' comme modérateur ?', function() {
+    return db.from('trusted_users').upsert({ user_id: res.data.user_id, role: 'moderator' }, { onConflict: 'user_id' }).then(function() {
+      if (inp) inp.value = '';
+      showToast(uname + ' ajouté comme modérateur', 'success');
+      loadValidatorsList();
+    });
+  });
 }
 
-async function removeValidator(uid) {
-  await db.from('trusted_users').delete().eq('user_id', uid);
-  showToast('Modérateur retiré', '');
-  loadValidatorsList();
+function removeValidator(uid, uname) {
+  if (!isAdmin) return;
+  showRoleConfirm('Retirer ' + (uname || 'ce modérateur') + ' des modérateurs ?', function() {
+    return db.from('trusted_users').delete().eq('user_id', uid).then(function() {
+      showToast('Modérateur retiré', '');
+      loadValidatorsList();
+    });
+  });
+}
+
+var _roleConfirmCallback = null;
+function showRoleConfirm(msg, callback) {
+  _roleConfirmCallback = callback;
+  var msgEl = document.getElementById('role-confirm-msg');
+  if (msgEl) msgEl.textContent = msg;
+  var panel = document.getElementById('role-confirm-panel');
+  if (panel) panel.style.display = 'block';
+}
+function cancelRoleChange() {
+  _roleConfirmCallback = null;
+  var panel = document.getElementById('role-confirm-panel');
+  if (panel) panel.style.display = 'none';
+}
+async function confirmRoleChange() {
+  if (!_roleConfirmCallback) return;
+  var cb = _roleConfirmCallback;
+  cancelRoleChange();
+  await cb();
 }
 
 var _profVotesOpen = false;
