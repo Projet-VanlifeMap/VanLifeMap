@@ -961,7 +961,7 @@ fr:{
   profile_join_desc:'Connecte-toi pour ajouter des lieux, voter, commenter et accéder à la vue satellite',
   profile_login_btn:'Se connecter / S\'inscrire',
   profile_places_added:'Lieux ajoutés', profile_validated:'Confirmations',
-  profile_comments:'Commentaires', profile_votes:'Votes donnés', profile_favorites:'Favoris',
+  profile_comments:'Commentaires', profile_votes:'Remerciements donnés', profile_favorites:'Favoris',
   profile_avg_rating:'Note moyenne reçue', profile_ranking:'Classement communauté',
   profile_settings:'⚙️ Réglages', profile_change_country:'🌍 Changer ou ajouter un pays',
   profile_country_desc:'Sélectionner les pays où chercher des lieux',
@@ -2594,7 +2594,7 @@ async function openPublicProfile(username) {
     + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Confirmations</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
-    + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Votes donn&eacute;s</div></div></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Remerciements donn&eacute;s</div></div></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val">' + merciCount + '</div><div class="prof-stat-lbl">Merci re&ccedil;us</div></div></div>'
     + '</div></div>'
     + '<div id="pub-places-panel" style="display:none;padding:0 16px 4px;"></div>'
