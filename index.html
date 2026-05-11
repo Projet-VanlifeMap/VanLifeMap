@@ -1646,15 +1646,16 @@ function signOut() {
 async function loadUserRole() {
   isAdmin = !!(currentUser && ADMINS.includes(currentUser.email));
   isModerator = false;
-  if (currentUser && !isAdmin) {
+  if (currentUser) {
     try {
       var res = await db.from('trusted_users').select('role').eq('user_id', currentUser.id).maybeSingle();
       if (res.data) {
-        isModerator = res.data.role === 'moderator';
+        if (res.data.role === 'admin') isAdmin = true;
+        if (res.data.role === 'moderator') isModerator = true;
       }
     } catch(e) {}
   }
-  if (isAdmin) { isModerator = true; }
+  if (isAdmin) isModerator = true;
 }
 
 async function loadUserProfile() {
