@@ -553,10 +553,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <span class="nav-item-icon">&#128100;</span>
       <span>Profil</span>
     </button>
-    <button class="nav-item" id="nav-settings" onclick="navTo('settings')">
-      <span class="nav-item-icon">&#9881;&#65039;</span>
-      <span>Param&#232;tres</span>
-    </button>
     <button class="nav-item" id="nav-dashboard" onclick="navTo('dashboard')" style="display:none;position:relative;">
       <span class="nav-item-icon">&#128737;&#65039;</span>
       <span id="dash-nav-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
@@ -700,42 +696,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <button id="rank-tab-ratings" onclick="switchRankTab('ratings')" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:13px;cursor:pointer;">&#11088; Notes</button>
       </div>
       <div id="rank-list">Chargement...</div>
-    </div>
-  </div>
-</div>
-
-<div class="sheet-overlay" id="sheet-settings" onclick="closeSheet('sheet-settings')">
-  <div class="sheet" onclick="event.stopPropagation()">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-      <span class="sheet-title">&#9881;&#65039; Param&#232;tres</span>
-      <button class="sheet-close" onclick="closeSheet('sheet-settings')">&#10005;</button>
-    </div>
-    <div class="sheet-content">
-      <div class="setting-row" style="cursor:pointer;" onclick="closeSheet('sheet-settings');openCountryPicker()">
-        <div><div class="setting-label">&#127758; Changer de zone</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>
-        <span style="color:var(--text2);font-size:20px;">&#8250;</span>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="setting-label">&#128752; Vue satellite hybride</div>
-          <div class="setting-desc">Affiche la carte en vue a&#233;rienne avec noms de rues<br><small style="color:var(--accent)">R&#233;serv&#233; aux membres connect&#233;s</small></div>
-        </div>
-        <div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>
-      </div>
-      <div id="push-notif-row" class="setting-row" style="display:none;">
-        <div>
-          <div class="setting-label">&#128276; Notifications push</div>
-          <div class="setting-desc" id="push-notif-desc">Recevez une alerte même quand l'app est fermée</div>
-        </div>
-        <div class="toggle" id="toggle-push" onclick="togglePushSetting()"></div>
-      </div>
-      <div id="signin-row" style="border-top:1px solid var(--border);padding:16px;display:none;">
-        <button onclick="closeSheet('sheet-settings');openModal('modal-auth');" style="width:100%;background:var(--accent);border:none;color:#fff;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128274; Se connecter / S'inscrire</button>
-      </div>
-      <div id="signout-row" style="border-top:1px solid var(--border);padding:16px;display:none;">
-        <button onclick="signOut()" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1169,7 +1129,7 @@ async function sendPush(userIds, title, body, url) {
 }
 
 function toggleSatSetting() {
-  if (!currentUser) { showToast('Connectez-vous pour activer cette option', 'error'); closeSheet('sheet-settings'); openModal('modal-auth'); return; }
+  if (!currentUser) { showToast('Connectez-vous pour activer cette option', 'error'); closeSheet('sheet-profile'); openModal('modal-auth'); return; }
   var newState = !isSat;
   applySat(newState);
   savePrefs({ satellite: newState });
@@ -1336,14 +1296,13 @@ function navTo(tab) {
   else if (tab === 'search') { renderSrchChips(); openSheet('sheet-search'); setTimeout(function() { document.getElementById('search-mobile').focus(); }, 300); }
   else if (tab === 'rank') { openSheet('sheet-rank'); loadLeaderboard('places'); }
   else if (tab === 'profile') { renderProfile(); openSheet('sheet-profile'); }
-  else if (tab === 'settings') { openSheet('sheet-settings'); }
+  else if (tab === 'settings') { renderProfile(); openSheet('sheet-profile'); }
   else if (tab === 'community') { openSheet('sheet-community'); loadCommunity(); document.getElementById('comm-new-btn').style.display = 'flex'; }
   else if (tab === 'dashboard') { openDashboard(); }
 }
 
 function openSheet(id) {
   document.getElementById(id).classList.add('open');
-  if (id === 'sheet-settings') { initPushToggle(); var sr = document.getElementById('signout-row'); if (sr) sr.style.display = currentUser ? 'block' : 'none'; var si = document.getElementById('signin-row'); if (si) si.style.display = currentUser ? 'none' : 'block'; }
 }
 function closeSheet(id) {
   document.getElementById(id).classList.remove('open');
@@ -1479,6 +1438,22 @@ async function renderProfile() {
     + '<span style="color:var(--text2);font-size:20px;">\u203a</span>'
     + '</div>'
     + '<div id="prof-favs-panel" style="display:none;padding:0 16px 4px;"></div>'
+    + '<div style="border-top:1px solid var(--border);padding:16px 20px 4px;">'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:12px;">&#9881;&#65039; R&#233;glages</div>'
+    + '<div class="setting-row" style="cursor:pointer;" onclick="closeSheet(\'sheet-profile\');openCountryPicker()">'
+    + '<div><div class="setting-label">&#127758; Changer de zone</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>'
+    + '<span style="color:var(--text2);font-size:20px;">&#8250;</span>'
+    + '</div>'
+    + '<div class="setting-row"><div><div class="setting-label">&#128752; Vue satellite hybride</div><div class="setting-desc">Carte en vue a&#233;rienne avec noms de rues</div></div>'
+    + '<div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>'
+    + '</div>'
+    + '<div id="push-notif-row" class="setting-row" style="display:none;"><div><div class="setting-label">&#128276; Notifications push</div><div class="setting-desc" id="push-notif-desc">Recevez une alerte m&#234;me quand l\'app est ferm&#233;e</div></div>'
+    + '<div class="toggle" id="toggle-push" onclick="togglePushSetting()"></div>'
+    + '</div>'
+    + '</div>'
+    + '<div style="padding:16px;">'
+    + '<button onclick="signOut()" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>'
+    + '</div>'
     + '</div>';
 
   // Action buttons
@@ -1518,6 +1493,8 @@ async function renderProfile() {
     inp.click();
   });
 
+  applySat(isSat);
+  initPushToggle();
   loadProfileStats(username);
 }
 
@@ -1820,9 +1797,6 @@ function signOut() {
   document.getElementById('auth-info').textContent = 'Non connect\u00e9';
   document.getElementById('btn-auth').textContent = 'Connexion';
   closeSheet('sheet-profile');
-  closeSheet('sheet-settings');
-  var sr = document.getElementById('signout-row'); if (sr) sr.style.display = 'none';
-  var si = document.getElementById('signin-row'); if (si) si.style.display = 'block';
   showToast('D\u00e9connect\u00e9', 'success');
   setTimeout(function() { openModal('modal-auth'); }, 300);
 }
