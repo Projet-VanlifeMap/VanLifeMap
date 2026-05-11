@@ -1599,7 +1599,7 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
   openSheet('sheet-pub-profile');
 
-  var profileRes = await db.from('profiles').select('id,username,created_at').eq('username', username).maybeSingle();
+  var profileRes = await db.from('profiles').select('id,username,created_at,registered_at').eq('username', username).maybeSingle();
   var profile = profileRes.data;
   var placesCount = 0, commentsCount = 0, validatedCount = 0, votesCount = 0, rankPos = null, rankTotal = null;
 
@@ -1637,7 +1637,7 @@ async function openPublicProfile(username) {
 
   var initials = username.slice(0, 2).toUpperCase();
   var isSelf = !!(currentUser && profile && profile.id === currentUser.id);
-  var rawDate = isSelf ? currentUser.created_at : (profile ? profile.created_at : (typeof firstPlaceDate !== 'undefined' ? firstPlaceDate : null));
+  var rawDate = isSelf ? currentUser.created_at : (profile ? (profile.registered_at || profile.created_at) : (typeof firstPlaceDate !== 'undefined' ? firstPlaceDate : null));
   var joinDate = rawDate ? new Date(rawDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   var pubUserRole = typeof pubUserRole !== 'undefined' ? pubUserRole : null;
   if (isSelf && isAdmin) pubUserRole = 'admin';
@@ -1889,7 +1889,7 @@ async function saveUsername() {
   document.getElementById('auth-info').textContent = currentUsername;
   document.getElementById('modal-username').style.display = 'none';
   // Also try profiles table (best-effort, ignore errors)
-  try { await db.from('profiles').upsert({ id: currentUser.id, username: v }, { onConflict: 'id' }); } catch(e) {}
+  try { await db.from('profiles').upsert({ id: currentUser.id, username: v, registered_at: currentUser.created_at }, { onConflict: 'id' }); } catch(e) {}
   showToast('Pseudo « ' + v + ' » enregistré !', 'success');
 }
 
