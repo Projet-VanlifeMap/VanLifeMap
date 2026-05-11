@@ -3317,7 +3317,7 @@ async function toggleMembersList() {
 async function loadMembersList() {
   var panel = document.getElementById('admin-members-panel');
   if (!panel) return;
-  var res = await db.from('profiles').select('user_id,username,created_at').order('created_at', { ascending: true });
+  var res = await db.from('profiles').select('user_id,username,registered_at,created_at').not('username', 'is', null).order('registered_at', { ascending: true });
   if (res.error) { panel.innerHTML = '<div style="color:#e74c3c;font-size:13px;">Erreur : ' + res.error.message + '</div>'; return; }
   var members = res.data || [];
   var rolesRes = await db.from('trusted_users').select('user_id,role');
@@ -3328,7 +3328,7 @@ async function loadMembersList() {
     + members.map(function(m, i) {
       var role = rolesMap[m.user_id] || null;
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
-      var dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
+      var dateStr = (m.registered_at || m.created_at) ? new Date(m.registered_at || m.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
       var uname = m.username || '(sans pseudo)';
       return '<div onclick="openPublicProfile(\'' + escHtml(uname).replace(/'/g, "\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
         + '<div style="font-size:12px;font-weight:700;color:var(--text2);min-width:24px;text-align:right;">#' + (i + 1) + '</div>'
