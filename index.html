@@ -4681,12 +4681,16 @@ async function loadPendingPlaces() {
     var icon = (p.categories && p.categories.icon) || (p.main_categories && p.main_categories.icon) || '&#128205;';
     var catName = (p.categories && p.categories.name) || (p.main_categories && p.main_categories.name) || 'Autre';
     var date = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '';
-    return '<div id="pending-item-' + p.id + '" style="border:1px solid rgba(255,208,79,0.25);border-radius:8px;padding:10px;margin-bottom:8px;background:rgba(255,208,79,0.04);">'
+    var isImport = !p.user_id;
+    var sourceBadge = isImport ? '<span style="font-size:10px;font-weight:700;background:rgba(52,152,219,0.15);color:#3498db;border:1px solid rgba(52,152,219,0.3);border-radius:4px;padding:1px 6px;margin-left:6px;">&#128200; ' + escHtml(p.user_name || 'Import') + '</span>' : '';
+    var borderColor = isImport ? 'rgba(52,152,219,0.25)' : 'rgba(255,208,79,0.25)';
+    var bgColor = isImport ? 'rgba(52,152,219,0.04)' : 'rgba(255,208,79,0.04)';
+    return '<div id="pending-item-' + p.id + '" style="border:1px solid ' + borderColor + ';border-radius:8px;padding:10px;margin-bottom:8px;background:' + bgColor + ';">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
-      + '<span style="font-size:14px;font-weight:700;color:var(--text);">' + icon + ' ' + escHtml(p.name || 'Sans nom') + '</span>'
+      + '<span style="font-size:14px;font-weight:700;color:var(--text);">' + icon + ' ' + escHtml(p.name || 'Sans nom') + sourceBadge + '</span>'
       + '<span style="font-size:11px;color:var(--text2);">' + date + '</span>'
       + '</div>'
-      + '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">&#128100; ' + escHtml(p.user_name || 'Anonyme') + ' &nbsp;&#8226;&nbsp; ' + escHtml(catName) + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">' + (isImport ? '&#127758;' : '&#128100;') + ' ' + escHtml(p.user_name || 'Anonyme') + ' &nbsp;&#8226;&nbsp; ' + escHtml(catName) + '</div>'
       + '<div style="display:flex;gap:6px;">'
       + (p.latitude ? '<button onclick="viewPendingPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#128205; Voir</button>' : '')
       + '<button onclick="approvePendingPlace(\'' + p.id + '\',\'' + escHtml(p.name || '') + '\')" style="flex:1;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.4);color:#27ae60;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#10003; Valider</button>'

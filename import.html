@@ -396,6 +396,10 @@ input[type=text] { max-width: 100%; }
       <input type="checkbox" id="opt-dryrun">
       Mode aperçu (ne pas insérer)
     </label>
+    <label>
+      <input type="checkbox" id="opt-pending" checked>
+      Importer en attente de validation
+    </label>
     <label style="margin-left:auto;color:#8b91a8;font-size:12px">
       Délai inter-lots :
       <input type="number" id="opt-delay" value="150" min="50" max="2000" style="width:70px;display:inline-block;margin:0 4px;padding:4px 8px">
@@ -535,6 +539,7 @@ function key5(lat, lng) { return parseFloat(lat).toFixed(5)+','+parseFloat(lng).
 async function insertBatch(rows, catName, source) {
   var dryRun = document.getElementById('opt-dryrun').checked;
   var antiDbl = document.getElementById('opt-antidoublons').checked;
+  var pendingOpt = document.getElementById('opt-pending') ? document.getElementById('opt-pending').checked : false;
   var delay   = parseInt(document.getElementById('opt-delay').value) || 150;
   if (dryRun) log('⚠ MODE APERÇU — aucune insertion', 'info');
 
@@ -564,7 +569,8 @@ async function insertBatch(rows, catName, source) {
         name: r.name, description: r.description || null,
         latitude: r.latitude, longitude: r.longitude,
         main_category_id: cat.main_id, category_id: cat.id,
-        user_name: source, disponible_24h: r.h24 || false, approved: true
+        user_name: source, disponible_24h: r.h24 || false, approved: true,
+        status: pendingOpt ? 'pending' : 'active'
       });
       if (antiDbl) existingCoords.add(k);
     });
@@ -1058,6 +1064,7 @@ async function startImportFuel() {
   var cat = catIds[catName];
   if (!cat) { log('ERREUR : catégorie "' + catName + '" introuvable ! Crée-la dans Supabase.', 'err'); return; }
   var dryRun = document.getElementById('opt-dryrun').checked;
+  var pendingOpt = document.getElementById('opt-pending') ? document.getElementById('opt-pending').checked : false;
   var delay  = parseInt(document.getElementById('opt-delay').value) || 150;
   var BATCH  = 50, imported = 0, skipped = 0, errors = 0;
   var existingCoords = new Set();
@@ -1075,7 +1082,8 @@ async function startImportFuel() {
         toInsert.push({ name: r.name, description: r.description,
           latitude: r.latitude, longitude: r.longitude,
           main_category_id: cat.main_id, category_id: cat.id,
-          user_name: 'Prix-Carburants-gouv', disponible_24h: r.h24, approved: true });
+          user_name: 'Prix-Carburants-gouv', disponible_24h: r.h24, approved: true,
+          status: pendingOpt ? 'pending' : 'active' });
         existingCoords.add(k);
       });
       if (toInsert.length > 0 && !dryRun) {
