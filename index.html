@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" id="html-root">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -464,17 +464,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <img src="icon-192.png" alt="VanLifeMap" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
         <div style="flex:1;">
           <h1 style="margin:0;">VanLifeMap</h1>
-          <p style="margin:0;">Spots, services & bons plans vanlife</p>
+          <p style="margin:0;" data-i18n="sidebar_subtitle">Spots, services & bons plans vanlife</p>
         </div>
         <button onclick="closeSidebar()" title="Fermer" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;line-height:1;border-radius:8px;display:none;" id="btn-close-sidebar">&#10005;</button>
       </div>
     </div>
     <!-- LOCALISATION STYLE LEBONCOIN -->
     <div id="sidebar-loc" style="padding:0 14px 12px;border-bottom:1px solid var(--border);">
-      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:8px;">&#128205; Localisation</p>
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:8px;" data-i18n="sidebar_location">&#128205; Localisation</p>
       <div style="position:relative;display:flex;align-items:center;">
         <span style="position:absolute;left:10px;font-size:14px;pointer-events:none;">&#128205;</span>
-        <input type="text" id="loc-input-desk" placeholder="Ville, département..." oninput="onLocationInputDesk(this.value)" autocomplete="off"
+        <input type="text" id="loc-input-desk" data-i18n-ph="loc_ph" placeholder="Ville, département..." oninput="onLocationInputDesk(this.value)" autocomplete="off"
           style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:9px 10px 9px 32px;color:var(--text);font-size:13px;outline:none;font-family:var(--font-body);box-sizing:border-box;transition:border-color 0.2s;">
         <button id="loc-clear-desk" onclick="clearLocationDesk()" style="display:none;position:absolute;right:8px;background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:0;">&#10005;</button>
       </div>
@@ -496,21 +496,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
           <button class="rpill-desk" data-km="200" onclick="setLocationRadiusDesk(200)">+200km</button>
         </div>
       </div>
-      <button onclick="locateMeLocationDesk()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">&#127759; Ma position</button>
+      <button onclick="locateMeLocationDesk()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;" data-i18n="btn_my_position">&#127759; Ma position</button>
     </div>
 
     <div id="categories-list"></div>
     <div id="sidebar-footer">
-      <button id="btn-valider" onclick="closeSidebar()">&#10003; Valider</button>
+      <button id="btn-valider" onclick="closeSidebar()" data-i18n="btn_validate">&#10003; Valider</button>
       <div style="display:flex;gap:8px;">
-        <button id="btn-show-all" onclick="toggleAllFilters(true)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#128065; Tout afficher</button>
-        <button onclick="toggleAllFilters(false)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#10005; Tout masquer</button>
+        <button id="btn-show-all" onclick="toggleAllFilters(true)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;" data-i18n="btn_show_all">&#128065; Tout afficher</button>
+        <button onclick="toggleAllFilters(false)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;" data-i18n="btn_hide_all">&#10005; Tout masquer</button>
       </div>
-      <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer ou ajouter un pays</span></button>
-      <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
+      <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label" data-i18n="btn_change_country">Changer ou ajouter un pays</span></button>
+      <button id="btn-add-desk" data-i18n="btn_add_place">&#65291; Ajouter un lieu</button>
       <div id="auth-zone">
-        <span id="auth-info" style="cursor:pointer;" onclick="onAuthInfoClick()">Non connect&#233;</span>
-        <button id="btn-auth">Connexion</button>
+        <span id="auth-info" style="cursor:pointer;" onclick="onAuthInfoClick()" data-i18n="auth_not_connected">Non connect&#233;</span>
+        <button id="btn-auth" data-i18n="btn_connect">Connexion</button>
       </div>
     </div>
   </div>
@@ -533,28 +533,28 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 <div id="bottom-nav">
   <div id="bottom-nav-inner">
     <button class="nav-item active" id="nav-cats" onclick="navTo('cats')">
-      <span class="nav-item-icon">&#128193;</span><span>Filtres</span>
+      <span class="nav-item-icon">&#128193;</span><span data-i18n="nav_filters">Filtres</span>
     </button>
     <button class="nav-item" id="nav-search" onclick="navTo('search')">
-      <span class="nav-item-icon">&#128269;</span><span>Recherche</span>
+      <span class="nav-item-icon">&#128269;</span><span data-i18n="nav_search">Recherche</span>
     </button>
     <div class="nav-item-add" onclick="onAddBtn()">
       <div class="nav-add-btn">&#65291;</div>
-      <span>Ajouter un lieu</span>
+      <span data-i18n="nav_add">Ajouter un lieu</span>
     </div>
     <button class="nav-item" id="nav-community" onclick="navTo('community')" style="position:relative;">
       <span class="nav-item-icon">&#128172;</span>
       <span id="notif-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#f87171;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
-      <span>Communaut&eacute;</span>
+      <span data-i18n="nav_community">Communaut&eacute;</span>
     </button>
     <button class="nav-item" id="nav-profile" onclick="navTo('profile')">
       <span class="nav-item-icon">&#128100;</span>
-      <span>Profil</span>
+      <span data-i18n="nav_profile">Profil</span>
     </button>
     <button class="nav-item" id="nav-dashboard" onclick="navTo('dashboard')" style="display:none;position:relative;">
       <span class="nav-item-icon">&#128737;&#65039;</span>
       <span id="dash-nav-badge" style="display:none;position:absolute;top:8px;right:calc(50% - 18px);background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;line-height:16px;">0</span>
-      <span>Dashboard</span>
+      <span data-i18n="nav_dashboard">Dashboard</span>
     </button>
   </div>
 </div>
@@ -564,17 +564,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <span class="sheet-title">&#128193; Cat&#233;gories</span>
+      <span class="sheet-title" data-i18n="sheet_cats">&#128193; Cat&#233;gories</span>
       <div style="display:flex;gap:6px;align-items:center;">
-        <button onclick="toggleAllFilters(true)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Tout</button>
-        <button onclick="toggleAllFilters(false)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;">Aucun</button>
+        <button onclick="toggleAllFilters(true)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;" data-i18n="comm_all">Tout</button>
+        <button onclick="toggleAllFilters(false)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;" data-i18n="btn_cancel">Aucun</button>
         <button class="sheet-close" onclick="closeSheet('sheet-cats')">&#10005;</button>
       </div>
     </div>
     <div class="sheet-content" id="sheet-cats-content"></div>
     <div class="sheet-validate-bar">
-      <button class="sheet-btn-retour" onclick="revertCats()">&#8592; Retour</button>
-      <button class="sheet-btn-valider" onclick="closeSheet('sheet-cats')">&#10003; Valider</button>
+      <button class="sheet-btn-retour" onclick="revertCats()" data-i18n="btn_back">&#8592; Retour</button>
+      <button class="sheet-btn-valider" onclick="closeSheet('sheet-cats')" data-i18n="btn_validate">&#10003; Valider</button>
     </div>
   </div>
 </div>
@@ -583,7 +583,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div class="sheet">
     <div class="srch-input-wrap">
       <button onclick="closeSearchSheet()" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:2px 8px 2px 0;flex-shrink:0;line-height:1;">&#8592;</button>
-      <input type="text" id="search-mobile" placeholder="Ville, lieu, commune..." autocomplete="off">
+      <input type="text" id="search-mobile" data-i18n-ph="search_ph" placeholder="Ville, lieu, commune..." autocomplete="off">
       <button id="srch-clear" onclick="clearSearch()" style="display:none">&#10005;</button>
     </div>
     <div style="flex:1;overflow-y:auto;overflow-x:hidden;min-height:0;">
@@ -611,7 +611,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <span class="sheet-title">&#128100; Profil</span>
+      <span class="sheet-title" data-i18n="sheet_profile">&#128100; Profil</span>
       <button class="sheet-close" onclick="closeSheet('sheet-profile')">&#10005;</button>
     </div>
     <div class="sheet-content" style="padding:0">
@@ -638,15 +638,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
   <div class="sheet" onclick="event.stopPropagation()" style="max-height:92vh;">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <span class="sheet-title">&#128172; Communaut&#233;</span>
+      <span class="sheet-title" data-i18n="sheet_community">&#128172; Communaut&#233;</span>
       <button class="sheet-close" onclick="closeSheet('sheet-community')">&#10005;</button>
     </div>
     <div class="comm-filters">
-      <button class="comm-filter active" data-filter="all" onclick="filterComm('all',this)">Tout</button>
-      <button class="comm-filter" data-filter="annonce" onclick="filterComm('annonce',this)">&#128226; Annonces</button>
-      <button class="comm-filter" data-filter="message" onclick="filterComm('message',this)">&#128172; Messages</button>
-      <button class="comm-filter" data-filter="support" onclick="filterComm('support',this)">&#128295; Support</button>
-      <button class="comm-filter" data-filter="notifs" onclick="filterComm('notifs',this)" id="notif-filter-btn">&#128276; Notifications</button>
+      <button class="comm-filter active" data-filter="all" onclick="filterComm('all',this)" data-i18n="comm_all">Tout</button>
+      <button class="comm-filter" data-filter="annonce" onclick="filterComm('annonce',this)" data-i18n="comm_announcements">&#128226; Annonces</button>
+      <button class="comm-filter" data-filter="message" onclick="filterComm('message',this)" data-i18n="comm_messages">&#128172; Messages</button>
+      <button class="comm-filter" data-filter="support" onclick="filterComm('support',this)" data-i18n="comm_support">&#128295; Support</button>
+      <button class="comm-filter" data-filter="notifs" onclick="filterComm('notifs',this)" id="notif-filter-btn" data-i18n="comm_notifications">&#128276; Notifications</button>
     </div>
     <div class="comm-feed" id="comm-feed">
       <div class="comm-empty">Chargement...</div>
@@ -896,6 +896,902 @@ var currentUser = null;
 var currentUsername = '';
 var ADMINS = ['mypoiuytreza@gmail.com', 'unverredericard@gmail.com'];
 var isAdmin = false, isModerator = false, isTrusted = false;
+
+// ===== I18N =====
+var SUPPORTED_LANGS = ['fr','en','es','de','it','pt','nl'];
+var currentLang = (function(){
+  var saved = localStorage.getItem('vlm_lang');
+  if (saved && SUPPORTED_LANGS.indexOf(saved) >= 0) return saved;
+  var nav = (navigator.language || navigator.userLanguage || 'fr').split('-')[0].toLowerCase();
+  return SUPPORTED_LANGS.indexOf(nav) >= 0 ? nav : 'en';
+})();
+
+var i18n = {
+fr:{
+  nav_filters:'Filtres', nav_search:'Recherche', nav_add:'Ajouter un lieu', nav_community:'Communauté', nav_profile:'Profil', nav_dashboard:'Dashboard',
+  btn_validate:'✓ Valider', btn_back:'← Retour', btn_cancel:'Annuler', btn_publish:'Publier', btn_connect:'Connexion', btn_disconnect:'Déconnexion',
+  btn_add_place:'+ Ajouter un lieu', btn_show_all:'👁 Tout afficher', btn_hide_all:'✕ Tout masquer',
+  btn_change_country:'🌍 Changer ou ajouter un pays', btn_my_position:'🌍 Ma position',
+  btn_see_map:'📍 Voir sur la carte', btn_navigate:'🧭 M\'y rendre',
+  sheet_cats:'🗂 Catégories', sheet_profile:'👤 Profil', sheet_community:'💬 Communauté', sheet_dashboard:'🛡️ Tableau de bord',
+  auth_title_login:'Connexion', auth_title_signup:'Créer un compte', auth_email:'Email', auth_password:'Mot de passe',
+  auth_confirm_password:'Confirmer le mot de passe', auth_login_btn:'Se connecter', auth_signup_btn:'Créer le compte',
+  auth_switch_signup:'Créer un compte', auth_switch_login:'J\'ai déjà un compte',
+  auth_not_connected:'Non connecté',
+  form_add_title:'📍 Ajouter un lieu', form_position_click:'Clique sur la carte !',
+  form_name:'Nom du lieu *', form_name_ph:'Ex: Distributeur de pain de la mairie',
+  form_main_cat:'Grande catégorie *', form_sub_cat:'Sous-catégorie *',
+  form_desc:'Description', form_desc_ph:'Infos utiles : horaires, état, prix...',
+  form_available_24h:'Disponible 24h/24 ? *', form_yes:'✅ Oui', form_no:'❌ Non',
+  form_photo:'Photo *', form_add_photo:'📷 Ajouter une photo',
+  form_upload:'📷 Upload en cours...', form_publish_place:'Publier le lieu',
+  form_choose:'-- Choisir --', form_choose_cat_first:'-- Choisir la catégorie d\'abord --',
+  info_adding:'📍 Clique sur la carte pour placer le lieu',
+  comm_all:'Tout', comm_announcements:'📢 Annonces', comm_messages:'💬 Messages',
+  comm_support:'🔧 Support', comm_notifications:'🔔 Notifications',
+  comm_new_post:'💬 Nouveau post', comm_message_type:'💬 Message', comm_support_type:'🔧 Support', comm_announce_type:'📢 Annonce',
+  comm_title_ph:'Titre (optionnel)', comm_content_ph:'Décrivez votre message...',
+  comm_place_ph:'🔍 Rechercher le lieu concerné...', comm_publish:'Publier',
+  comm_loading:'Chargement...', comm_no_replies:'Aucune réponse — lance la discussion !',
+  comm_reply_ph:'Votre réponse...', comm_reply_btn:'Répondre',
+  profile_join:'Rejoindre la communauté',
+  profile_join_desc:'Connecte-toi pour ajouter des lieux, voter, commenter et accéder à la vue satellite',
+  profile_login_btn:'Se connecter / S\'inscrire',
+  profile_places_added:'Lieux ajoutés', profile_validated:'Lieux validés',
+  profile_comments:'Commentaires', profile_votes:'Votes donnés', profile_favorites:'Favoris',
+  profile_avg_rating:'Note moyenne reçue', profile_ranking:'Classement communauté',
+  profile_settings:'⚙️ Réglages', profile_change_country:'🌍 Changer ou ajouter un pays',
+  profile_country_desc:'Sélectionner les pays où chercher des lieux',
+  profile_satellite:'🛰 Vue satellite hybride', profile_satellite_desc:'Carte en vue aérienne avec noms de rues',
+  profile_push:'🔔 Notifications push', profile_push_desc:'Recevez une alerte même quand l\'app est fermée',
+  profile_push_active:'Notifications actives sur cet appareil',
+  profile_signout:'🚪 Se déconnecter', profile_language:'🌐 Langue',
+  profile_member_since:'Inscrit le', profile_member_badge:'Membre #',
+  profile_unranked:'Non classé', profile_banner_close:'✕ Fermer',
+  profile_tab_places:'📍 Ajouts', profile_tab_ratings:'⭐ Notes',
+  profile_no_places:'Aucun lieu ajouté', profile_no_votes:'Aucun vote donné',
+  profile_no_comments:'Aucun commentaire', profile_no_favs:'Aucun favori',
+  picker_title:'Choisir un pays', picker_subtitle:'Sélectionner les pays pour afficher sur la carte',
+  picker_confirm:'Voir les lieux', picker_world:'🌍 Monde entier', picker_zone:'Zone actuelle',
+  place_available:'24h/24', place_limited:'Horaires limités', place_by:'Ajouté par',
+  place_pending_banner:'⏳ En attente de validation — visible uniquement par toi et les modérateurs',
+  place_hidden_banner:'🚫 Lieu masqué — visible uniquement par les modérateurs',
+  place_comments_title:'💬 Commentaires', place_rate:'⭐ Votre note',
+  place_comment_ph:'Ton avis...', place_send:'Envoyer', place_loading:'Chargement...',
+  place_no_reviews:'Aucun avis pour l\'instant', place_validate_btn:'👍 Valider ce lieu',
+  place_vote_useful:'👍 Utile', place_vote_closed:'👎 Fermé',
+  place_nav_btn:'🧭 M\'y rendre', place_share_btn:'Partager',
+  search_ph:'Ville, lieu, commune...', search_my_pos:'Ma position actuelle', search_center:'Centrer la carte sur moi',
+  search_categories:'Catégories',
+  loc_ph:'Ville, département...', loc_radius:'Rayon :', loc_exact:'Exact',
+  sidebar_subtitle:'Spots, services & bons plans vanlife', sidebar_location:'📍 Localisation',
+  places_label:'Lieux :', zone_current:'Zone actuelle',
+  report_title:'⚠️ Signaler un lieu', report_reason:'Motif du signalement *',
+  report_details_ph:'Décrivez le problème...', report_details:'Précisions (optionnel)', report_submit:'Envoyer le signalement',
+  report_reason_closed:'Lieu fermé définitivement', report_reason_maintenance:'En maintenance / Temporairement fermé',
+  report_reason_location:'Emplacement incorrect', report_reason_duplicate:'Doublon',
+  report_reason_info:'Informations incorrectes', report_reason_inappropriate:'Contenu inapproprié', report_reason_other:'Autre',
+  dash_title:'🛡️ Tableau de bord', dash_pending:'À valider', dash_reports:'Signalements',
+  dash_members:'Membres', dash_stats:'Lieux actifs', dash_team:'Équipe', dash_bans:'Sanctions',
+  dash_reported_places:'📍 Lieux signalés', dash_reported_comments:'💬 Commentaires signalés',
+  dash_loading:'Chargement...', dash_no_pending:'Aucun lieu en attente', dash_no_reports:'Aucun signalement',
+  modal_confirm_email_title:'Confirmez votre email',
+  modal_confirm_email_sent:'Un email de confirmation a été envoyé à :',
+  modal_confirm_email_desc:'Cliquez sur le lien dans l\'email pour activer votre compte, puis connectez-vous.',
+  modal_confirm_email_ok:'J\'ai compris',
+  modal_username_title:'Choisir un pseudo', modal_username_desc:'3 à 20 caractères. Lettres, chiffres, _ et espaces autorisés.',
+  modal_username_ph:'Mon Pseudo', modal_username_confirm:'Confirmer',
+  modal_delete_place_title:'🗑️ Supprimer ce lieu', modal_delete_place_warn:'⚠️ Cette action est irréversible.',
+  modal_hide_place_title:'🚫 Masquer ce lieu', modal_approve_place_title:'✅ Valider ce lieu',
+  modal_reject_place_title:'❌ Refuser ce lieu',
+  modal_delete_comment_title:'🗑️ Supprimer ce commentaire',
+  install_title:'📍 Installer VanLifeMap',
+  install_ios_1:'Appuyez sur le bouton Partager ⬇️ en bas de Safari',
+  install_ios_2:'Faites défiler et appuyez sur "Sur l\'écran d\'accueil"',
+  install_ios_3:'Appuyez sur "Ajouter" en haut à droite',
+  install_android_1:'Appuyez sur "Installer" ci-dessous',
+  install_android_2:'Confirmez en appuyant sur "Installer"',
+  install_btn:'💻 Installer l\'application',
+  toast_login_required:'Connectez-vous pour continuer', toast_login_sat:'Connectez-vous pour la vue satellite',
+  toast_login_vote:'Connectez-vous pour voter', toast_login_comment:'Connectez-vous pour commenter',
+  toast_login_report:'Connectez-vous pour signaler', toast_login_fav:'Connectez-vous pour les favoris',
+  toast_login_push:'Connectez-vous pour activer les notifications',
+  toast_login_option:'Connectez-vous pour activer cette option',
+  toast_connected:'Connecté !', toast_disconnected:'Déconnecté',
+  toast_place_published:'Lieu publié !', toast_place_modified:'Lieu modifié !',
+  toast_place_deleted:'Lieu supprimé', toast_place_hidden:'Lieu masqué', toast_place_shown:'Lieu réactivé',
+  toast_place_validated:'Lieu validé et publié', toast_place_rejected:'Lieu refusé et supprimé',
+  toast_report_sent:'Signalement envoyé', toast_comment_sent:'Commentaire envoyé',
+  toast_comment_deleted:'Commentaire supprimé', toast_position_updated:'📍 Position mise à jour !',
+  toast_copied:'Lien copié !', toast_location_error:'Localisation impossible',
+  toast_push_on:'🔔 Notifications activées !', toast_push_off:'Notifications désactivées',
+  toast_push_denied:'Permission refusée', toast_push_unsupported:'Non supporté sur ce navigateur',
+  toast_fav_added:'❤️ Ajouté aux favoris', toast_fav_removed:'Retiré des favoris',
+  toast_voted_useful:'👍 Lieu validé !', toast_voted_closed:'👎 Vote enregistré',
+  toast_err_name:'Indique un nom', toast_err_cat:'Choisis une catégorie',
+  toast_err_24h:'Indique si le lieu est disponible 24h/24',
+  toast_err_photo:'Une photo est obligatoire', toast_err_fields:'Remplis tous les champs',
+  toast_err_name_required:'Le nom est obligatoire',
+  toast_err_passwords:'Les mots de passe ne correspondent pas',
+  toast_banned:'🚫 Compte banni',
+  toast_mod_added:'ajouté comme modérateur', toast_mod_removed:'Modérateur retiré',
+  toast_user_not_found:'Utilisateur introuvable',
+  toast_post_published:'Post publié !', toast_reply_sent:'Réponse envoyée',
+  toast_notif_place:'⏳ Nouveau lieu en attente', toast_notif_report:'⚠️ Nouveau lieu signalé', toast_notif_comment:'⚠️ Nouveau commentaire signalé',
+  solo_back_profile:'← Retour au Profil', solo_back_map:'🗺 Retour sur la carte',
+  translate_link:'Traduire', translate_original:'Voir l\'original', translate_loading:'...',
+  translate_unavailable:'Traduction non disponible', translate_error:'Erreur de traduction',
+  move_mode_title:'Déplacer le lieu', move_mode_desc:'Clique sur la carte pour la nouvelle position',
+  move_mode_cancel:'Annuler',
+  fuel_title:'Prix du carburant', fuel_updated:'Mis à jour',
+  val_loading:'Chargement des votes...', val_validate_btn:'👍 Valider ce lieu',
+  role_admin:'👑 Administrateur', role_moderator:'🛡️ Modérateur', role_trusted:'⭐ Membre de confiance',
+  role_expert:'🥇 Expert', role_explorer:'🥈 Explorateur', role_beginner:'🥉 Débutant',
+  role_active:'Membre actif', role_new:'Nouveau membre',
+  member_registered:'Inscrit le', member_no_pseudo:'(sans pseudo)'
+},
+en:{
+  nav_filters:'Filters', nav_search:'Search', nav_add:'Add a place', nav_community:'Community', nav_profile:'Profile', nav_dashboard:'Dashboard',
+  btn_validate:'✓ Validate', btn_back:'← Back', btn_cancel:'Cancel', btn_publish:'Publish', btn_connect:'Sign in', btn_disconnect:'Sign out',
+  btn_add_place:'+ Add a place', btn_show_all:'👁 Show all', btn_hide_all:'✕ Hide all',
+  btn_change_country:'🌍 Change or add a country', btn_my_position:'🌍 My location',
+  btn_see_map:'📍 See on map', btn_navigate:'🧭 Navigate',
+  sheet_cats:'🗂 Categories', sheet_profile:'👤 Profile', sheet_community:'💬 Community', sheet_dashboard:'🛡️ Dashboard',
+  auth_title_login:'Sign in', auth_title_signup:'Create account', auth_email:'Email', auth_password:'Password',
+  auth_confirm_password:'Confirm password', auth_login_btn:'Sign in', auth_signup_btn:'Create account',
+  auth_switch_signup:'Create account', auth_switch_login:'I already have an account',
+  auth_not_connected:'Not signed in',
+  form_add_title:'📍 Add a place', form_position_click:'Click on the map!',
+  form_name:'Place name *', form_name_ph:'Ex: Town hall bread dispenser',
+  form_main_cat:'Main category *', form_sub_cat:'Subcategory *',
+  form_desc:'Description', form_desc_ph:'Useful info: hours, condition, price...',
+  form_available_24h:'Available 24/7? *', form_yes:'✅ Yes', form_no:'❌ No',
+  form_photo:'Photo *', form_add_photo:'📷 Add a photo',
+  form_upload:'📷 Uploading...', form_publish_place:'Publish place',
+  form_choose:'-- Choose --', form_choose_cat_first:'-- Choose category first --',
+  info_adding:'📍 Click on the map to place the location',
+  comm_all:'All', comm_announcements:'📢 Announcements', comm_messages:'💬 Messages',
+  comm_support:'🔧 Support', comm_notifications:'🔔 Notifications',
+  comm_new_post:'💬 New post', comm_message_type:'💬 Message', comm_support_type:'🔧 Support', comm_announce_type:'📢 Announcement',
+  comm_title_ph:'Title (optional)', comm_content_ph:'Write your message...',
+  comm_place_ph:'🔍 Search for the related place...', comm_publish:'Publish',
+  comm_loading:'Loading...', comm_no_replies:'No replies yet — start the discussion!',
+  comm_reply_ph:'Your reply...', comm_reply_btn:'Reply',
+  profile_join:'Join the community',
+  profile_join_desc:'Sign in to add places, vote, comment and access satellite view',
+  profile_login_btn:'Sign in / Register',
+  profile_places_added:'Places added', profile_validated:'Places validated',
+  profile_comments:'Comments', profile_votes:'Votes given', profile_favorites:'Favorites',
+  profile_avg_rating:'Average rating received', profile_ranking:'Community ranking',
+  profile_settings:'⚙️ Settings', profile_change_country:'🌍 Change or add a country',
+  profile_country_desc:'Select countries to search for places',
+  profile_satellite:'🛰 Hybrid satellite view', profile_satellite_desc:'Aerial map with street names',
+  profile_push:'🔔 Push notifications', profile_push_desc:'Get an alert even when the app is closed',
+  profile_push_active:'Notifications active on this device',
+  profile_signout:'🚪 Sign out', profile_language:'🌐 Language',
+  profile_member_since:'Member since', profile_member_badge:'Member #',
+  profile_unranked:'Unranked', profile_banner_close:'✕ Close',
+  profile_tab_places:'📍 Added', profile_tab_ratings:'⭐ Ratings',
+  profile_no_places:'No places added', profile_no_votes:'No votes given',
+  profile_no_comments:'No comments', profile_no_favs:'No favorites',
+  picker_title:'Choose a country', picker_subtitle:'Select countries to display on map',
+  picker_confirm:'See places', picker_world:'🌍 Entire world', picker_zone:'Current zone',
+  place_available:'24/7', place_limited:'Limited hours', place_by:'Added by',
+  place_pending_banner:'⏳ Pending validation — visible only to you and moderators',
+  place_hidden_banner:'🚫 Hidden place — visible only to moderators',
+  place_comments_title:'💬 Comments', place_rate:'⭐ Your rating',
+  place_comment_ph:'Your review...', place_send:'Send', place_loading:'Loading...',
+  place_no_reviews:'No reviews yet', place_validate_btn:'👍 Validate this place',
+  place_vote_useful:'👍 Useful', place_vote_closed:'👎 Closed',
+  place_nav_btn:'🧭 Navigate', place_share_btn:'Share',
+  search_ph:'City, place, town...', search_my_pos:'My current location', search_center:'Center map on me',
+  search_categories:'Categories',
+  loc_ph:'City, department...', loc_radius:'Radius:', loc_exact:'Exact',
+  sidebar_subtitle:'Van life spots, services & tips', sidebar_location:'📍 Location',
+  places_label:'Places:', zone_current:'Current zone',
+  report_title:'⚠️ Report a place', report_reason:'Reason *',
+  report_details_ph:'Describe the issue...', report_details:'Details (optional)', report_submit:'Send report',
+  report_reason_closed:'Permanently closed', report_reason_maintenance:'Under maintenance / Temporarily closed',
+  report_reason_location:'Wrong location', report_reason_duplicate:'Duplicate',
+  report_reason_info:'Incorrect information', report_reason_inappropriate:'Inappropriate content', report_reason_other:'Other',
+  dash_title:'🛡️ Dashboard', dash_pending:'To validate', dash_reports:'Reports',
+  dash_members:'Members', dash_stats:'Active places', dash_team:'Team', dash_bans:'Bans',
+  dash_reported_places:'📍 Reported places', dash_reported_comments:'💬 Reported comments',
+  dash_loading:'Loading...', dash_no_pending:'No pending places', dash_no_reports:'No reports',
+  modal_confirm_email_title:'Confirm your email',
+  modal_confirm_email_sent:'A confirmation email has been sent to:',
+  modal_confirm_email_desc:'Click the link in the email to activate your account, then sign in.',
+  modal_confirm_email_ok:'Got it',
+  modal_username_title:'Choose a username', modal_username_desc:'3 to 20 characters. Letters, numbers, _ and spaces allowed.',
+  modal_username_ph:'My Username', modal_username_confirm:'Confirm',
+  modal_delete_place_title:'🗑️ Delete this place', modal_delete_place_warn:'⚠️ This action is irreversible.',
+  modal_hide_place_title:'🚫 Hide this place', modal_approve_place_title:'✅ Validate this place',
+  modal_reject_place_title:'❌ Reject this place',
+  modal_delete_comment_title:'🗑️ Delete this comment',
+  install_title:'📍 Install VanLifeMap',
+  install_ios_1:'Tap the Share button ⬇️ at the bottom of Safari',
+  install_ios_2:'Scroll and tap "Add to Home Screen"',
+  install_ios_3:'Tap "Add" in the top right',
+  install_android_1:'Tap "Install" below',
+  install_android_2:'Confirm by tapping "Install"',
+  install_btn:'💻 Install the app',
+  toast_login_required:'Sign in to continue', toast_login_sat:'Sign in for satellite view',
+  toast_login_vote:'Sign in to vote', toast_login_comment:'Sign in to comment',
+  toast_login_report:'Sign in to report', toast_login_fav:'Sign in for favorites',
+  toast_login_push:'Sign in to enable notifications', toast_login_option:'Sign in to enable this option',
+  toast_connected:'Signed in!', toast_disconnected:'Signed out',
+  toast_place_published:'Place published!', toast_place_modified:'Place updated!',
+  toast_place_deleted:'Place deleted', toast_place_hidden:'Place hidden', toast_place_shown:'Place reactivated',
+  toast_place_validated:'Place validated and published', toast_place_rejected:'Place rejected and deleted',
+  toast_report_sent:'Report sent', toast_comment_sent:'Comment sent',
+  toast_comment_deleted:'Comment deleted', toast_position_updated:'📍 Position updated!',
+  toast_copied:'Link copied!', toast_location_error:'Location not available',
+  toast_push_on:'🔔 Notifications enabled!', toast_push_off:'Notifications disabled',
+  toast_push_denied:'Permission denied', toast_push_unsupported:'Not supported on this browser',
+  toast_fav_added:'❤️ Added to favorites', toast_fav_removed:'Removed from favorites',
+  toast_voted_useful:'👍 Place validated!', toast_voted_closed:'👎 Vote recorded',
+  toast_err_name:'Enter a name', toast_err_cat:'Choose a category',
+  toast_err_24h:'Indicate if the place is available 24/7',
+  toast_err_photo:'A photo is required', toast_err_fields:'Fill in all fields',
+  toast_err_name_required:'Name is required',
+  toast_err_passwords:'Passwords do not match',
+  toast_banned:'🚫 Account banned',
+  toast_mod_added:'added as moderator', toast_mod_removed:'Moderator removed',
+  toast_user_not_found:'User not found',
+  toast_post_published:'Post published!', toast_reply_sent:'Reply sent',
+  toast_notif_place:'⏳ New pending place', toast_notif_report:'⚠️ New place reported', toast_notif_comment:'⚠️ New comment reported',
+  solo_back_profile:'← Back to Profile', solo_back_map:'🗺 Back to map',
+  translate_link:'Translate', translate_original:'View original', translate_loading:'...',
+  translate_unavailable:'Translation not available', translate_error:'Translation error',
+  move_mode_title:'Move place', move_mode_desc:'Click on the map for the new position',
+  move_mode_cancel:'Cancel',
+  fuel_title:'Fuel prices', fuel_updated:'Updated',
+  val_loading:'Loading votes...', val_validate_btn:'👍 Validate this place',
+  role_admin:'👑 Administrator', role_moderator:'🛡️ Moderator', role_trusted:'⭐ Trusted member',
+  role_expert:'🥇 Expert', role_explorer:'🥈 Explorer', role_beginner:'🥉 Beginner',
+  role_active:'Active member', role_new:'New member',
+  member_registered:'Registered on', member_no_pseudo:'(no username)'
+},
+es:{
+  nav_filters:'Filtros', nav_search:'Buscar', nav_add:'Añadir lugar', nav_community:'Comunidad', nav_profile:'Perfil', nav_dashboard:'Panel',
+  btn_validate:'✓ Validar', btn_back:'← Volver', btn_cancel:'Cancelar', btn_publish:'Publicar', btn_connect:'Entrar', btn_disconnect:'Salir',
+  btn_add_place:'+ Añadir lugar', btn_show_all:'👁 Mostrar todo', btn_hide_all:'✕ Ocultar todo',
+  btn_change_country:'🌍 Cambiar o añadir país', btn_my_position:'🌍 Mi ubicación',
+  btn_see_map:'📍 Ver en el mapa', btn_navigate:'🧭 Navegar',
+  sheet_cats:'🗂 Categorías', sheet_profile:'👤 Perfil', sheet_community:'💬 Comunidad', sheet_dashboard:'🛡️ Panel de control',
+  auth_title_login:'Iniciar sesión', auth_title_signup:'Crear cuenta', auth_email:'Email', auth_password:'Contraseña',
+  auth_confirm_password:'Confirmar contraseña', auth_login_btn:'Iniciar sesión', auth_signup_btn:'Crear cuenta',
+  auth_switch_signup:'Crear cuenta', auth_switch_login:'Ya tengo cuenta',
+  auth_not_connected:'No conectado',
+  form_add_title:'📍 Añadir un lugar', form_position_click:'¡Haz clic en el mapa!',
+  form_name:'Nombre del lugar *', form_name_ph:'Ej: Distribuidor de pan del ayuntamiento',
+  form_main_cat:'Categoría principal *', form_sub_cat:'Subcategoría *',
+  form_desc:'Descripción', form_desc_ph:'Info útil: horario, estado, precio...',
+  form_available_24h:'¿Disponible 24h? *', form_yes:'✅ Sí', form_no:'❌ No',
+  form_photo:'Foto *', form_add_photo:'📷 Añadir foto',
+  form_upload:'📷 Subiendo...', form_publish_place:'Publicar lugar',
+  form_choose:'-- Elegir --', form_choose_cat_first:'-- Elige categoría primero --',
+  info_adding:'📍 Haz clic en el mapa para colocar el lugar',
+  comm_all:'Todo', comm_announcements:'📢 Anuncios', comm_messages:'💬 Mensajes',
+  comm_support:'🔧 Soporte', comm_notifications:'🔔 Notificaciones',
+  comm_new_post:'💬 Nuevo mensaje', comm_message_type:'💬 Mensaje', comm_support_type:'🔧 Soporte', comm_announce_type:'📢 Anuncio',
+  comm_title_ph:'Título (opcional)', comm_content_ph:'Escribe tu mensaje...',
+  comm_place_ph:'🔍 Buscar el lugar relacionado...', comm_publish:'Publicar',
+  comm_loading:'Cargando...', comm_no_replies:'Sin respuestas — ¡inicia la discusión!',
+  comm_reply_ph:'Tu respuesta...', comm_reply_btn:'Responder',
+  profile_join:'Únete a la comunidad',
+  profile_join_desc:'Inicia sesión para añadir lugares, votar, comentar y acceder a la vista satélite',
+  profile_login_btn:'Iniciar sesión / Registrarse',
+  profile_places_added:'Lugares añadidos', profile_validated:'Lugares validados',
+  profile_comments:'Comentarios', profile_votes:'Votos dados', profile_favorites:'Favoritos',
+  profile_avg_rating:'Nota media recibida', profile_ranking:'Clasificación comunidad',
+  profile_settings:'⚙️ Ajustes', profile_change_country:'🌍 Cambiar o añadir país',
+  profile_country_desc:'Seleccionar países para buscar lugares',
+  profile_satellite:'🛰 Vista satélite híbrida', profile_satellite_desc:'Mapa aéreo con nombres de calles',
+  profile_push:'🔔 Notificaciones push', profile_push_desc:'Recibe una alerta aunque la app esté cerrada',
+  profile_push_active:'Notificaciones activas en este dispositivo',
+  profile_signout:'🚪 Cerrar sesión', profile_language:'🌐 Idioma',
+  profile_member_since:'Miembro desde', profile_member_badge:'Miembro #',
+  profile_unranked:'Sin clasificar', profile_banner_close:'✕ Cerrar',
+  profile_tab_places:'📍 Añadidos', profile_tab_ratings:'⭐ Notas',
+  profile_no_places:'Ningún lugar añadido', profile_no_votes:'Ningún voto dado',
+  profile_no_comments:'Sin comentarios', profile_no_favs:'Sin favoritos',
+  picker_title:'Elegir un país', picker_subtitle:'Seleccionar países para mostrar en el mapa',
+  picker_confirm:'Ver lugares', picker_world:'🌍 Mundo entero', picker_zone:'Zona actual',
+  place_available:'24h', place_limited:'Horario limitado', place_by:'Añadido por',
+  place_pending_banner:'⏳ Pendiente de validación — solo visible para ti y los moderadores',
+  place_hidden_banner:'🚫 Lugar oculto — solo visible para los moderadores',
+  place_comments_title:'💬 Comentarios', place_rate:'⭐ Tu nota',
+  place_comment_ph:'Tu opinión...', place_send:'Enviar', place_loading:'Cargando...',
+  place_no_reviews:'Sin opiniones todavía', place_validate_btn:'👍 Validar este lugar',
+  place_vote_useful:'👍 Útil', place_vote_closed:'👎 Cerrado',
+  place_nav_btn:'🧭 Navegar', place_share_btn:'Compartir',
+  search_ph:'Ciudad, lugar, municipio...', search_my_pos:'Mi ubicación actual', search_center:'Centrar mapa en mí',
+  search_categories:'Categorías',
+  loc_ph:'Ciudad, departamento...', loc_radius:'Radio:', loc_exact:'Exacto',
+  sidebar_subtitle:'Spots, servicios y consejos vanlife', sidebar_location:'📍 Ubicación',
+  places_label:'Lugares:', zone_current:'Zona actual',
+  report_title:'⚠️ Reportar un lugar', report_reason:'Motivo *',
+  report_details_ph:'Describe el problema...', report_details:'Detalles (opcional)', report_submit:'Enviar informe',
+  report_reason_closed:'Cerrado permanentemente', report_reason_maintenance:'En mantenimiento / Cerrado temporalmente',
+  report_reason_location:'Ubicación incorrecta', report_reason_duplicate:'Duplicado',
+  report_reason_info:'Información incorrecta', report_reason_inappropriate:'Contenido inapropiado', report_reason_other:'Otro',
+  dash_title:'🛡️ Panel de control', dash_pending:'Por validar', dash_reports:'Informes',
+  dash_members:'Miembros', dash_stats:'Lugares activos', dash_team:'Equipo', dash_bans:'Sanciones',
+  dash_reported_places:'📍 Lugares reportados', dash_reported_comments:'💬 Comentarios reportados',
+  dash_loading:'Cargando...', dash_no_pending:'Sin lugares pendientes', dash_no_reports:'Sin informes',
+  modal_confirm_email_title:'Confirma tu email',
+  modal_confirm_email_sent:'Se ha enviado un email de confirmación a:',
+  modal_confirm_email_desc:'Haz clic en el enlace del email para activar tu cuenta, luego inicia sesión.',
+  modal_confirm_email_ok:'Entendido',
+  modal_username_title:'Elegir un nombre de usuario', modal_username_desc:'De 3 a 20 caracteres. Letras, números, _ y espacios permitidos.',
+  modal_username_ph:'Mi Usuario', modal_username_confirm:'Confirmar',
+  modal_delete_place_title:'🗑️ Eliminar este lugar', modal_delete_place_warn:'⚠️ Esta acción es irreversible.',
+  modal_hide_place_title:'🚫 Ocultar este lugar', modal_approve_place_title:'✅ Validar este lugar',
+  modal_reject_place_title:'❌ Rechazar este lugar',
+  modal_delete_comment_title:'🗑️ Eliminar este comentario',
+  install_title:'📍 Instalar VanLifeMap',
+  install_ios_1:'Pulsa el botón Compartir ⬇️ en la parte inferior de Safari',
+  install_ios_2:'Desplázate y pulsa "En la pantalla de inicio"',
+  install_ios_3:'Pulsa "Añadir" en la esquina superior derecha',
+  install_android_1:'Pulsa "Instalar" abajo',
+  install_android_2:'Confirma pulsando "Instalar"',
+  install_btn:'💻 Instalar la aplicación',
+  toast_login_required:'Inicia sesión para continuar', toast_login_sat:'Inicia sesión para vista satélite',
+  toast_login_vote:'Inicia sesión para votar', toast_login_comment:'Inicia sesión para comentar',
+  toast_login_report:'Inicia sesión para reportar', toast_login_fav:'Inicia sesión para favoritos',
+  toast_login_push:'Inicia sesión para activar notificaciones', toast_login_option:'Inicia sesión para activar esta opción',
+  toast_connected:'¡Sesión iniciada!', toast_disconnected:'Sesión cerrada',
+  toast_place_published:'¡Lugar publicado!', toast_place_modified:'¡Lugar modificado!',
+  toast_place_deleted:'Lugar eliminado', toast_place_hidden:'Lugar ocultado', toast_place_shown:'Lugar reactivado',
+  toast_place_validated:'Lugar validado y publicado', toast_place_rejected:'Lugar rechazado y eliminado',
+  toast_report_sent:'Informe enviado', toast_comment_sent:'Comentario enviado',
+  toast_comment_deleted:'Comentario eliminado', toast_position_updated:'📍 ¡Posición actualizada!',
+  toast_copied:'¡Enlace copiado!', toast_location_error:'Ubicación no disponible',
+  toast_push_on:'🔔 ¡Notificaciones activadas!', toast_push_off:'Notificaciones desactivadas',
+  toast_push_denied:'Permiso denegado', toast_push_unsupported:'No compatible con este navegador',
+  toast_fav_added:'❤️ Añadido a favoritos', toast_fav_removed:'Eliminado de favoritos',
+  toast_voted_useful:'👍 ¡Lugar validado!', toast_voted_closed:'👎 Voto registrado',
+  toast_err_name:'Introduce un nombre', toast_err_cat:'Elige una categoría',
+  toast_err_24h:'Indica si el lugar está disponible 24h',
+  toast_err_photo:'Se requiere una foto', toast_err_fields:'Rellena todos los campos',
+  toast_err_name_required:'El nombre es obligatorio',
+  toast_err_passwords:'Las contraseñas no coinciden',
+  toast_banned:'🚫 Cuenta baneada',
+  toast_mod_added:'añadido como moderador', toast_mod_removed:'Moderador eliminado',
+  toast_user_not_found:'Usuario no encontrado',
+  toast_post_published:'¡Post publicado!', toast_reply_sent:'Respuesta enviada',
+  toast_notif_place:'⏳ Nuevo lugar pendiente', toast_notif_report:'⚠️ Nuevo lugar reportado', toast_notif_comment:'⚠️ Nuevo comentario reportado',
+  solo_back_profile:'← Volver al Perfil', solo_back_map:'🗺 Volver al mapa',
+  translate_link:'Traducir', translate_original:'Ver original', translate_loading:'...',
+  translate_unavailable:'Traducción no disponible', translate_error:'Error de traducción',
+  move_mode_title:'Mover lugar', move_mode_desc:'Haz clic en el mapa para la nueva posición',
+  move_mode_cancel:'Cancelar',
+  fuel_title:'Precios combustible', fuel_updated:'Actualizado',
+  val_loading:'Cargando votos...', val_validate_btn:'👍 Validar este lugar',
+  role_admin:'👑 Administrador', role_moderator:'🛡️ Moderador', role_trusted:'⭐ Miembro de confianza',
+  role_expert:'🥇 Experto', role_explorer:'🥈 Explorador', role_beginner:'🥉 Principiante',
+  role_active:'Miembro activo', role_new:'Nuevo miembro',
+  member_registered:'Registrado el', member_no_pseudo:'(sin nombre)'
+},
+de:{
+  nav_filters:'Filter', nav_search:'Suche', nav_add:'Ort hinzufügen', nav_community:'Community', nav_profile:'Profil', nav_dashboard:'Dashboard',
+  btn_validate:'✓ Bestätigen', btn_back:'← Zurück', btn_cancel:'Abbrechen', btn_publish:'Veröffentlichen', btn_connect:'Anmelden', btn_disconnect:'Abmelden',
+  btn_add_place:'+ Ort hinzufügen', btn_show_all:'👁 Alle anzeigen', btn_hide_all:'✕ Alle ausblenden',
+  btn_change_country:'🌍 Land ändern oder hinzufügen', btn_my_position:'🌍 Mein Standort',
+  btn_see_map:'📍 Auf Karte anzeigen', btn_navigate:'🧭 Navigieren',
+  sheet_cats:'🗂 Kategorien', sheet_profile:'👤 Profil', sheet_community:'💬 Community', sheet_dashboard:'🛡️ Dashboard',
+  auth_title_login:'Anmelden', auth_title_signup:'Konto erstellen', auth_email:'E-Mail', auth_password:'Passwort',
+  auth_confirm_password:'Passwort bestätigen', auth_login_btn:'Anmelden', auth_signup_btn:'Konto erstellen',
+  auth_switch_signup:'Konto erstellen', auth_switch_login:'Ich habe bereits ein Konto',
+  auth_not_connected:'Nicht angemeldet',
+  form_add_title:'📍 Ort hinzufügen', form_position_click:'Klicke auf die Karte!',
+  form_name:'Ortsname *', form_name_ph:'Bsp: Brotautomat am Rathaus',
+  form_main_cat:'Hauptkategorie *', form_sub_cat:'Unterkategorie *',
+  form_desc:'Beschreibung', form_desc_ph:'Nützliche Infos: Öffnungszeiten, Zustand, Preis...',
+  form_available_24h:'24/7 verfügbar? *', form_yes:'✅ Ja', form_no:'❌ Nein',
+  form_photo:'Foto *', form_add_photo:'📷 Foto hinzufügen',
+  form_upload:'📷 Wird hochgeladen...', form_publish_place:'Ort veröffentlichen',
+  form_choose:'-- Auswählen --', form_choose_cat_first:'-- Zuerst Kategorie wählen --',
+  info_adding:'📍 Klicke auf die Karte um den Ort zu platzieren',
+  comm_all:'Alle', comm_announcements:'📢 Ankündigungen', comm_messages:'💬 Nachrichten',
+  comm_support:'🔧 Support', comm_notifications:'🔔 Benachrichtigungen',
+  comm_new_post:'💬 Neuer Beitrag', comm_message_type:'💬 Nachricht', comm_support_type:'🔧 Support', comm_announce_type:'📢 Ankündigung',
+  comm_title_ph:'Titel (optional)', comm_content_ph:'Schreibe deine Nachricht...',
+  comm_place_ph:'🔍 Zugehörigen Ort suchen...', comm_publish:'Veröffentlichen',
+  comm_loading:'Laden...', comm_no_replies:'Noch keine Antworten — starte die Diskussion!',
+  comm_reply_ph:'Deine Antwort...', comm_reply_btn:'Antworten',
+  profile_join:'Der Community beitreten',
+  profile_join_desc:'Melde dich an um Orte hinzuzufügen, abzustimmen, zu kommentieren und die Satellitenansicht zu nutzen',
+  profile_login_btn:'Anmelden / Registrieren',
+  profile_places_added:'Hinzugefügte Orte', profile_validated:'Validierte Orte',
+  profile_comments:'Kommentare', profile_votes:'Abgegebene Stimmen', profile_favorites:'Favoriten',
+  profile_avg_rating:'Durchschnittliche Bewertung', profile_ranking:'Community-Rangliste',
+  profile_settings:'⚙️ Einstellungen', profile_change_country:'🌍 Land ändern oder hinzufügen',
+  profile_country_desc:'Länder für die Ortesuche auswählen',
+  profile_satellite:'🛰 Hybride Satellitenansicht', profile_satellite_desc:'Luftkarte mit Straßennamen',
+  profile_push:'🔔 Push-Benachrichtigungen', profile_push_desc:'Benachrichtigung auch wenn die App geschlossen ist',
+  profile_push_active:'Benachrichtigungen auf diesem Gerät aktiv',
+  profile_signout:'🚪 Abmelden', profile_language:'🌐 Sprache',
+  profile_member_since:'Mitglied seit', profile_member_badge:'Mitglied #',
+  profile_unranked:'Nicht gerankt', profile_banner_close:'✕ Schließen',
+  profile_tab_places:'📍 Hinzugefügt', profile_tab_ratings:'⭐ Bewertungen',
+  profile_no_places:'Keine Orte hinzugefügt', profile_no_votes:'Keine Stimmen abgegeben',
+  profile_no_comments:'Keine Kommentare', profile_no_favs:'Keine Favoriten',
+  picker_title:'Land auswählen', picker_subtitle:'Länder für die Karte auswählen',
+  picker_confirm:'Orte anzeigen', picker_world:'🌍 Ganze Welt', picker_zone:'Aktuelle Zone',
+  place_available:'24/7', place_limited:'Begrenzte Öffnungszeiten', place_by:'Hinzugefügt von',
+  place_pending_banner:'⏳ Ausstehende Validierung — nur für dich und Moderatoren sichtbar',
+  place_hidden_banner:'🚫 Versteckter Ort — nur für Moderatoren sichtbar',
+  place_comments_title:'💬 Kommentare', place_rate:'⭐ Ihre Bewertung',
+  place_comment_ph:'Ihre Meinung...', place_send:'Senden', place_loading:'Laden...',
+  place_no_reviews:'Noch keine Bewertungen', place_validate_btn:'👍 Diesen Ort validieren',
+  place_vote_useful:'👍 Nützlich', place_vote_closed:'👎 Geschlossen',
+  place_nav_btn:'🧭 Navigieren', place_share_btn:'Teilen',
+  search_ph:'Stadt, Ort, Gemeinde...', search_my_pos:'Mein aktueller Standort', search_center:'Karte auf mich zentrieren',
+  search_categories:'Kategorien',
+  loc_ph:'Stadt, Departement...', loc_radius:'Radius:', loc_exact:'Genau',
+  sidebar_subtitle:'Vanlife-Spots, Services & Tipps', sidebar_location:'📍 Standort',
+  places_label:'Orte:', zone_current:'Aktuelle Zone',
+  report_title:'⚠️ Ort melden', report_reason:'Grund *',
+  report_details_ph:'Beschreibe das Problem...', report_details:'Details (optional)', report_submit:'Meldung senden',
+  report_reason_closed:'Dauerhaft geschlossen', report_reason_maintenance:'In Wartung / Vorübergehend geschlossen',
+  report_reason_location:'Falsche Position', report_reason_duplicate:'Duplikat',
+  report_reason_info:'Falsche Informationen', report_reason_inappropriate:'Unangemessener Inhalt', report_reason_other:'Sonstiges',
+  dash_title:'🛡️ Dashboard', dash_pending:'Zu validieren', dash_reports:'Meldungen',
+  dash_members:'Mitglieder', dash_stats:'Aktive Orte', dash_team:'Team', dash_bans:'Sperren',
+  dash_reported_places:'📍 Gemeldete Orte', dash_reported_comments:'💬 Gemeldete Kommentare',
+  dash_loading:'Laden...', dash_no_pending:'Keine ausstehenden Orte', dash_no_reports:'Keine Meldungen',
+  modal_confirm_email_title:'E-Mail bestätigen',
+  modal_confirm_email_sent:'Eine Bestätigungs-E-Mail wurde gesendet an:',
+  modal_confirm_email_desc:'Klicke auf den Link in der E-Mail um dein Konto zu aktivieren, dann anmelden.',
+  modal_confirm_email_ok:'Verstanden',
+  modal_username_title:'Benutzernamen wählen', modal_username_desc:'3 bis 20 Zeichen. Buchstaben, Zahlen, _ und Leerzeichen erlaubt.',
+  modal_username_ph:'Mein Benutzername', modal_username_confirm:'Bestätigen',
+  modal_delete_place_title:'🗑️ Diesen Ort löschen', modal_delete_place_warn:'⚠️ Diese Aktion ist unwiderruflich.',
+  modal_hide_place_title:'🚫 Diesen Ort ausblenden', modal_approve_place_title:'✅ Diesen Ort validieren',
+  modal_reject_place_title:'❌ Diesen Ort ablehnen',
+  modal_delete_comment_title:'🗑️ Diesen Kommentar löschen',
+  install_title:'📍 VanLifeMap installieren',
+  install_ios_1:'Tippe auf die Teilen-Schaltfläche ⬇️ unten in Safari',
+  install_ios_2:'Scrolle und tippe auf "Zum Home-Bildschirm"',
+  install_ios_3:'Tippe oben rechts auf "Hinzufügen"',
+  install_android_1:'Tippe unten auf "Installieren"',
+  install_android_2:'Bestätige mit "Installieren"',
+  install_btn:'💻 App installieren',
+  toast_login_required:'Anmelden um fortzufahren', toast_login_sat:'Anmelden für Satellitenansicht',
+  toast_login_vote:'Anmelden um abzustimmen', toast_login_comment:'Anmelden zum Kommentieren',
+  toast_login_report:'Anmelden um zu melden', toast_login_fav:'Anmelden für Favoriten',
+  toast_login_push:'Anmelden für Benachrichtigungen', toast_login_option:'Anmelden um diese Option zu aktivieren',
+  toast_connected:'Angemeldet!', toast_disconnected:'Abgemeldet',
+  toast_place_published:'Ort veröffentlicht!', toast_place_modified:'Ort aktualisiert!',
+  toast_place_deleted:'Ort gelöscht', toast_place_hidden:'Ort ausgeblendet', toast_place_shown:'Ort reaktiviert',
+  toast_place_validated:'Ort validiert und veröffentlicht', toast_place_rejected:'Ort abgelehnt und gelöscht',
+  toast_report_sent:'Meldung gesendet', toast_comment_sent:'Kommentar gesendet',
+  toast_comment_deleted:'Kommentar gelöscht', toast_position_updated:'📍 Position aktualisiert!',
+  toast_copied:'Link kopiert!', toast_location_error:'Standort nicht verfügbar',
+  toast_push_on:'🔔 Benachrichtigungen aktiviert!', toast_push_off:'Benachrichtigungen deaktiviert',
+  toast_push_denied:'Berechtigung verweigert', toast_push_unsupported:'In diesem Browser nicht unterstützt',
+  toast_fav_added:'❤️ Zu Favoriten hinzugefügt', toast_fav_removed:'Von Favoriten entfernt',
+  toast_voted_useful:'👍 Ort validiert!', toast_voted_closed:'👎 Stimme gespeichert',
+  toast_err_name:'Namen eingeben', toast_err_cat:'Kategorie auswählen',
+  toast_err_24h:'Angeben ob der Ort 24/7 verfügbar ist',
+  toast_err_photo:'Ein Foto ist erforderlich', toast_err_fields:'Alle Felder ausfüllen',
+  toast_err_name_required:'Name ist erforderlich',
+  toast_err_passwords:'Passwörter stimmen nicht überein',
+  toast_banned:'🚫 Konto gesperrt',
+  toast_mod_added:'als Moderator hinzugefügt', toast_mod_removed:'Moderator entfernt',
+  toast_user_not_found:'Benutzer nicht gefunden',
+  toast_post_published:'Beitrag veröffentlicht!', toast_reply_sent:'Antwort gesendet',
+  toast_notif_place:'⏳ Neuer ausstehender Ort', toast_notif_report:'⚠️ Neuer gemeldeter Ort', toast_notif_comment:'⚠️ Neuer gemeldeter Kommentar',
+  solo_back_profile:'← Zurück zum Profil', solo_back_map:'🗺 Zurück zur Karte',
+  translate_link:'Übersetzen', translate_original:'Original anzeigen', translate_loading:'...',
+  translate_unavailable:'Übersetzung nicht verfügbar', translate_error:'Übersetzungsfehler',
+  move_mode_title:'Ort verschieben', move_mode_desc:'Klicke auf die Karte für die neue Position',
+  move_mode_cancel:'Abbrechen',
+  fuel_title:'Kraftstoffpreise', fuel_updated:'Aktualisiert',
+  val_loading:'Stimmen werden geladen...', val_validate_btn:'👍 Diesen Ort validieren',
+  role_admin:'👑 Administrator', role_moderator:'🛡️ Moderator', role_trusted:'⭐ Vertrauensmitglied',
+  role_expert:'🥇 Experte', role_explorer:'🥈 Entdecker', role_beginner:'🥉 Anfänger',
+  role_active:'Aktives Mitglied', role_new:'Neues Mitglied',
+  member_registered:'Registriert am', member_no_pseudo:'(kein Benutzername)'
+},
+it:{
+  nav_filters:'Filtri', nav_search:'Cerca', nav_add:'Aggiungi luogo', nav_community:'Comunità', nav_profile:'Profilo', nav_dashboard:'Dashboard',
+  btn_validate:'✓ Convalida', btn_back:'← Indietro', btn_cancel:'Annulla', btn_publish:'Pubblica', btn_connect:'Accedi', btn_disconnect:'Esci',
+  btn_add_place:'+ Aggiungi luogo', btn_show_all:'👁 Mostra tutto', btn_hide_all:'✕ Nascondi tutto',
+  btn_change_country:'🌍 Cambia o aggiungi paese', btn_my_position:'🌍 La mia posizione',
+  btn_see_map:'📍 Vedi sulla mappa', btn_navigate:'🧭 Naviga',
+  sheet_cats:'🗂 Categorie', sheet_profile:'👤 Profilo', sheet_community:'💬 Comunità', sheet_dashboard:'🛡️ Dashboard',
+  auth_title_login:'Accedi', auth_title_signup:'Crea account', auth_email:'Email', auth_password:'Password',
+  auth_confirm_password:'Conferma password', auth_login_btn:'Accedi', auth_signup_btn:'Crea account',
+  auth_switch_signup:'Crea account', auth_switch_login:'Ho già un account',
+  auth_not_connected:'Non connesso',
+  form_add_title:'📍 Aggiungi un luogo', form_position_click:'Clicca sulla mappa!',
+  form_name:'Nome del luogo *', form_name_ph:'Es: Distributore di pane del municipio',
+  form_main_cat:'Categoria principale *', form_sub_cat:'Sottocategoria *',
+  form_desc:'Descrizione', form_desc_ph:'Informazioni utili: orari, stato, prezzo...',
+  form_available_24h:'Disponibile 24h? *', form_yes:'✅ Sì', form_no:'❌ No',
+  form_photo:'Foto *', form_add_photo:'📷 Aggiungi foto',
+  form_upload:'📷 Caricamento...', form_publish_place:'Pubblica luogo',
+  form_choose:'-- Scegli --', form_choose_cat_first:'-- Scegli prima la categoria --',
+  info_adding:'📍 Clicca sulla mappa per posizionare il luogo',
+  comm_all:'Tutto', comm_announcements:'📢 Annunci', comm_messages:'💬 Messaggi',
+  comm_support:'🔧 Supporto', comm_notifications:'🔔 Notifiche',
+  comm_new_post:'💬 Nuovo post', comm_message_type:'💬 Messaggio', comm_support_type:'🔧 Supporto', comm_announce_type:'📢 Annuncio',
+  comm_title_ph:'Titolo (opzionale)', comm_content_ph:'Scrivi il tuo messaggio...',
+  comm_place_ph:'🔍 Cerca il luogo correlato...', comm_publish:'Pubblica',
+  comm_loading:'Caricamento...', comm_no_replies:'Nessuna risposta — inizia la discussione!',
+  comm_reply_ph:'La tua risposta...', comm_reply_btn:'Rispondi',
+  profile_join:'Unisciti alla comunità',
+  profile_join_desc:'Accedi per aggiungere luoghi, votare, commentare e accedere alla vista satellitare',
+  profile_login_btn:'Accedi / Registrati',
+  profile_places_added:'Luoghi aggiunti', profile_validated:'Luoghi validati',
+  profile_comments:'Commenti', profile_votes:'Voti dati', profile_favorites:'Preferiti',
+  profile_avg_rating:'Valutazione media ricevuta', profile_ranking:'Classifica comunità',
+  profile_settings:'⚙️ Impostazioni', profile_change_country:'🌍 Cambia o aggiungi paese',
+  profile_country_desc:'Seleziona paesi per cercare luoghi',
+  profile_satellite:'🛰 Vista satellitare ibrida', profile_satellite_desc:'Mappa aerea con nomi delle strade',
+  profile_push:'🔔 Notifiche push', profile_push_desc:'Ricevi un avviso anche quando l\'app è chiusa',
+  profile_push_active:'Notifiche attive su questo dispositivo',
+  profile_signout:'🚪 Esci', profile_language:'🌐 Lingua',
+  profile_member_since:'Membro dal', profile_member_badge:'Membro #',
+  profile_unranked:'Non classificato', profile_banner_close:'✕ Chiudi',
+  profile_tab_places:'📍 Aggiunti', profile_tab_ratings:'⭐ Valutazioni',
+  profile_no_places:'Nessun luogo aggiunto', profile_no_votes:'Nessun voto dato',
+  profile_no_comments:'Nessun commento', profile_no_favs:'Nessun preferito',
+  picker_title:'Scegli un paese', picker_subtitle:'Seleziona paesi da visualizzare sulla mappa',
+  picker_confirm:'Vedi luoghi', picker_world:'🌍 Mondo intero', picker_zone:'Zona attuale',
+  place_available:'24h', place_limited:'Orari limitati', place_by:'Aggiunto da',
+  place_pending_banner:'⏳ In attesa di validazione — visibile solo a te e ai moderatori',
+  place_hidden_banner:'🚫 Luogo nascosto — visibile solo ai moderatori',
+  place_comments_title:'💬 Commenti', place_rate:'⭐ La tua valutazione',
+  place_comment_ph:'La tua opinione...', place_send:'Invia', place_loading:'Caricamento...',
+  place_no_reviews:'Nessuna recensione ancora', place_validate_btn:'👍 Valida questo luogo',
+  place_vote_useful:'👍 Utile', place_vote_closed:'👎 Chiuso',
+  place_nav_btn:'🧭 Naviga', place_share_btn:'Condividi',
+  search_ph:'Città, luogo, comune...', search_my_pos:'La mia posizione attuale', search_center:'Centra mappa su di me',
+  search_categories:'Categorie',
+  loc_ph:'Città, dipartimento...', loc_radius:'Raggio:', loc_exact:'Esatto',
+  sidebar_subtitle:'Spot, servizi e consigli vanlife', sidebar_location:'📍 Posizione',
+  places_label:'Luoghi:', zone_current:'Zona attuale',
+  report_title:'⚠️ Segnala un luogo', report_reason:'Motivo *',
+  report_details_ph:'Descrivi il problema...', report_details:'Dettagli (opzionale)', report_submit:'Invia segnalazione',
+  report_reason_closed:'Chiuso definitivamente', report_reason_maintenance:'In manutenzione / Chiuso temporaneamente',
+  report_reason_location:'Posizione errata', report_reason_duplicate:'Duplicato',
+  report_reason_info:'Informazioni errate', report_reason_inappropriate:'Contenuto inappropriato', report_reason_other:'Altro',
+  dash_title:'🛡️ Dashboard', dash_pending:'Da validare', dash_reports:'Segnalazioni',
+  dash_members:'Membri', dash_stats:'Luoghi attivi', dash_team:'Squadra', dash_bans:'Sanzioni',
+  dash_reported_places:'📍 Luoghi segnalati', dash_reported_comments:'💬 Commenti segnalati',
+  dash_loading:'Caricamento...', dash_no_pending:'Nessun luogo in attesa', dash_no_reports:'Nessuna segnalazione',
+  modal_confirm_email_title:'Conferma la tua email',
+  modal_confirm_email_sent:'Un\'email di conferma è stata inviata a:',
+  modal_confirm_email_desc:'Clicca sul link nell\'email per attivare il tuo account, poi accedi.',
+  modal_confirm_email_ok:'Capito',
+  modal_username_title:'Scegli un nome utente', modal_username_desc:'Da 3 a 20 caratteri. Lettere, numeri, _ e spazi consentiti.',
+  modal_username_ph:'Il mio utente', modal_username_confirm:'Conferma',
+  modal_delete_place_title:'🗑️ Elimina questo luogo', modal_delete_place_warn:'⚠️ Questa azione è irreversibile.',
+  modal_hide_place_title:'🚫 Nascondi questo luogo', modal_approve_place_title:'✅ Valida questo luogo',
+  modal_reject_place_title:'❌ Rifiuta questo luogo',
+  modal_delete_comment_title:'🗑️ Elimina questo commento',
+  install_title:'📍 Installa VanLifeMap',
+  install_ios_1:'Tocca il pulsante Condividi ⬇️ in fondo a Safari',
+  install_ios_2:'Scorri e tocca "Aggiungi alla schermata Home"',
+  install_ios_3:'Tocca "Aggiungi" in alto a destra',
+  install_android_1:'Tocca "Installa" qui sotto',
+  install_android_2:'Conferma toccando "Installa"',
+  install_btn:'💻 Installa l\'app',
+  toast_login_required:'Accedi per continuare', toast_login_sat:'Accedi per la vista satellitare',
+  toast_login_vote:'Accedi per votare', toast_login_comment:'Accedi per commentare',
+  toast_login_report:'Accedi per segnalare', toast_login_fav:'Accedi per i preferiti',
+  toast_login_push:'Accedi per attivare le notifiche', toast_login_option:'Accedi per attivare questa opzione',
+  toast_connected:'Connesso!', toast_disconnected:'Disconnesso',
+  toast_place_published:'Luogo pubblicato!', toast_place_modified:'Luogo modificato!',
+  toast_place_deleted:'Luogo eliminato', toast_place_hidden:'Luogo nascosto', toast_place_shown:'Luogo riattivato',
+  toast_place_validated:'Luogo validato e pubblicato', toast_place_rejected:'Luogo rifiutato ed eliminato',
+  toast_report_sent:'Segnalazione inviata', toast_comment_sent:'Commento inviato',
+  toast_comment_deleted:'Commento eliminato', toast_position_updated:'📍 Posizione aggiornata!',
+  toast_copied:'Link copiato!', toast_location_error:'Posizione non disponibile',
+  toast_push_on:'🔔 Notifiche attivate!', toast_push_off:'Notifiche disattivate',
+  toast_push_denied:'Autorizzazione negata', toast_push_unsupported:'Non supportato su questo browser',
+  toast_fav_added:'❤️ Aggiunto ai preferiti', toast_fav_removed:'Rimosso dai preferiti',
+  toast_voted_useful:'👍 Luogo validato!', toast_voted_closed:'👎 Voto registrato',
+  toast_err_name:'Inserisci un nome', toast_err_cat:'Scegli una categoria',
+  toast_err_24h:'Indica se il luogo è disponibile 24h',
+  toast_err_photo:'Una foto è obbligatoria', toast_err_fields:'Compila tutti i campi',
+  toast_err_name_required:'Il nome è obbligatorio',
+  toast_err_passwords:'Le password non corrispondono',
+  toast_banned:'🚫 Account sospeso',
+  toast_mod_added:'aggiunto come moderatore', toast_mod_removed:'Moderatore rimosso',
+  toast_user_not_found:'Utente non trovato',
+  toast_post_published:'Post pubblicato!', toast_reply_sent:'Risposta inviata',
+  toast_notif_place:'⏳ Nuovo luogo in attesa', toast_notif_report:'⚠️ Nuovo luogo segnalato', toast_notif_comment:'⚠️ Nuovo commento segnalato',
+  solo_back_profile:'← Torna al Profilo', solo_back_map:'🗺 Torna alla mappa',
+  translate_link:'Traduci', translate_original:'Vedi originale', translate_loading:'...',
+  translate_unavailable:'Traduzione non disponibile', translate_error:'Errore di traduzione',
+  move_mode_title:'Sposta luogo', move_mode_desc:'Clicca sulla mappa per la nuova posizione',
+  move_mode_cancel:'Annulla',
+  fuel_title:'Prezzi carburante', fuel_updated:'Aggiornato',
+  val_loading:'Caricamento voti...', val_validate_btn:'👍 Valida questo luogo',
+  role_admin:'👑 Amministratore', role_moderator:'🛡️ Moderatore', role_trusted:'⭐ Membro fidato',
+  role_expert:'🥇 Esperto', role_explorer:'🥈 Esploratore', role_beginner:'🥉 Principiante',
+  role_active:'Membro attivo', role_new:'Nuovo membro',
+  member_registered:'Registrato il', member_no_pseudo:'(nessun nome utente)'
+},
+pt:{
+  nav_filters:'Filtros', nav_search:'Pesquisar', nav_add:'Adicionar local', nav_community:'Comunidade', nav_profile:'Perfil', nav_dashboard:'Painel',
+  btn_validate:'✓ Validar', btn_back:'← Voltar', btn_cancel:'Cancelar', btn_publish:'Publicar', btn_connect:'Entrar', btn_disconnect:'Sair',
+  btn_add_place:'+ Adicionar local', btn_show_all:'👁 Mostrar tudo', btn_hide_all:'✕ Ocultar tudo',
+  btn_change_country:'🌍 Alterar ou adicionar país', btn_my_position:'🌍 Minha posição',
+  btn_see_map:'📍 Ver no mapa', btn_navigate:'🧭 Navegar',
+  sheet_cats:'🗂 Categorias', sheet_profile:'👤 Perfil', sheet_community:'💬 Comunidade', sheet_dashboard:'🛡️ Painel',
+  auth_title_login:'Entrar', auth_title_signup:'Criar conta', auth_email:'Email', auth_password:'Senha',
+  auth_confirm_password:'Confirmar senha', auth_login_btn:'Entrar', auth_signup_btn:'Criar conta',
+  auth_switch_signup:'Criar conta', auth_switch_login:'Já tenho uma conta',
+  auth_not_connected:'Não conectado',
+  form_add_title:'📍 Adicionar um local', form_position_click:'Clique no mapa!',
+  form_name:'Nome do local *', form_name_ph:'Ex: Dispensador de pão da câmara',
+  form_main_cat:'Categoria principal *', form_sub_cat:'Subcategoria *',
+  form_desc:'Descrição', form_desc_ph:'Informações úteis: horários, estado, preço...',
+  form_available_24h:'Disponível 24h? *', form_yes:'✅ Sim', form_no:'❌ Não',
+  form_photo:'Foto *', form_add_photo:'📷 Adicionar foto',
+  form_upload:'📷 A enviar...', form_publish_place:'Publicar local',
+  form_choose:'-- Escolher --', form_choose_cat_first:'-- Escolha a categoria primeiro --',
+  info_adding:'📍 Clique no mapa para posicionar o local',
+  comm_all:'Tudo', comm_announcements:'📢 Anúncios', comm_messages:'💬 Mensagens',
+  comm_support:'🔧 Suporte', comm_notifications:'🔔 Notificações',
+  comm_new_post:'💬 Nova publicação', comm_message_type:'💬 Mensagem', comm_support_type:'🔧 Suporte', comm_announce_type:'📢 Anúncio',
+  comm_title_ph:'Título (opcional)', comm_content_ph:'Escreva sua mensagem...',
+  comm_place_ph:'🔍 Pesquisar o local relacionado...', comm_publish:'Publicar',
+  comm_loading:'Carregando...', comm_no_replies:'Sem respostas — inicie a discussão!',
+  comm_reply_ph:'Sua resposta...', comm_reply_btn:'Responder',
+  profile_join:'Junte-se à comunidade',
+  profile_join_desc:'Entre para adicionar locais, votar, comentar e aceder à vista de satélite',
+  profile_login_btn:'Entrar / Registrar',
+  profile_places_added:'Locais adicionados', profile_validated:'Locais validados',
+  profile_comments:'Comentários', profile_votes:'Votos dados', profile_favorites:'Favoritos',
+  profile_avg_rating:'Avaliação média recebida', profile_ranking:'Classificação comunidade',
+  profile_settings:'⚙️ Configurações', profile_change_country:'🌍 Alterar ou adicionar país',
+  profile_country_desc:'Selecionar países para pesquisar locais',
+  profile_satellite:'🛰 Vista satélite híbrida', profile_satellite_desc:'Mapa aéreo com nomes das ruas',
+  profile_push:'🔔 Notificações push', profile_push_desc:'Receba um alerta mesmo com a app fechada',
+  profile_push_active:'Notificações ativas neste dispositivo',
+  profile_signout:'🚪 Sair', profile_language:'🌐 Idioma',
+  profile_member_since:'Membro desde', profile_member_badge:'Membro #',
+  profile_unranked:'Sem classificação', profile_banner_close:'✕ Fechar',
+  profile_tab_places:'📍 Adicionados', profile_tab_ratings:'⭐ Avaliações',
+  profile_no_places:'Nenhum local adicionado', profile_no_votes:'Nenhum voto dado',
+  profile_no_comments:'Sem comentários', profile_no_favs:'Sem favoritos',
+  picker_title:'Escolher um país', picker_subtitle:'Selecionar países para mostrar no mapa',
+  picker_confirm:'Ver locais', picker_world:'🌍 Mundo inteiro', picker_zone:'Zona atual',
+  place_available:'24h', place_limited:'Horário limitado', place_by:'Adicionado por',
+  place_pending_banner:'⏳ Aguardando validação — visível apenas para você e moderadores',
+  place_hidden_banner:'🚫 Local oculto — visível apenas para moderadores',
+  place_comments_title:'💬 Comentários', place_rate:'⭐ Sua avaliação',
+  place_comment_ph:'Sua opinião...', place_send:'Enviar', place_loading:'Carregando...',
+  place_no_reviews:'Sem avaliações ainda', place_validate_btn:'👍 Validar este local',
+  place_vote_useful:'👍 Útil', place_vote_closed:'👎 Fechado',
+  place_nav_btn:'🧭 Navegar', place_share_btn:'Partilhar',
+  search_ph:'Cidade, local, município...', search_my_pos:'Minha localização atual', search_center:'Centrar mapa em mim',
+  search_categories:'Categorias',
+  loc_ph:'Cidade, departamento...', loc_radius:'Raio:', loc_exact:'Exato',
+  sidebar_subtitle:'Spots, serviços e dicas vanlife', sidebar_location:'📍 Localização',
+  places_label:'Locais:', zone_current:'Zona atual',
+  report_title:'⚠️ Reportar um local', report_reason:'Motivo *',
+  report_details_ph:'Descreva o problema...', report_details:'Detalhes (opcional)', report_submit:'Enviar relatório',
+  report_reason_closed:'Fechado permanentemente', report_reason_maintenance:'Em manutenção / Temporariamente fechado',
+  report_reason_location:'Localização incorreta', report_reason_duplicate:'Duplicado',
+  report_reason_info:'Informação incorreta', report_reason_inappropriate:'Conteúdo inapropriado', report_reason_other:'Outro',
+  dash_title:'🛡️ Painel', dash_pending:'Para validar', dash_reports:'Relatórios',
+  dash_members:'Membros', dash_stats:'Locais ativos', dash_team:'Equipe', dash_bans:'Sanções',
+  dash_reported_places:'📍 Locais reportados', dash_reported_comments:'💬 Comentários reportados',
+  dash_loading:'Carregando...', dash_no_pending:'Nenhum local pendente', dash_no_reports:'Sem relatórios',
+  modal_confirm_email_title:'Confirme seu email',
+  modal_confirm_email_sent:'Um email de confirmação foi enviado para:',
+  modal_confirm_email_desc:'Clique no link do email para ativar sua conta, depois entre.',
+  modal_confirm_email_ok:'Entendido',
+  modal_username_title:'Escolher nome de utilizador', modal_username_desc:'De 3 a 20 caracteres. Letras, números, _ e espaços permitidos.',
+  modal_username_ph:'Meu Utilizador', modal_username_confirm:'Confirmar',
+  modal_delete_place_title:'🗑️ Excluir este local', modal_delete_place_warn:'⚠️ Esta ação é irreversível.',
+  modal_hide_place_title:'🚫 Ocultar este local', modal_approve_place_title:'✅ Validar este local',
+  modal_reject_place_title:'❌ Rejeitar este local',
+  modal_delete_comment_title:'🗑️ Excluir este comentário',
+  install_title:'📍 Instalar VanLifeMap',
+  install_ios_1:'Toque no botão Partilhar ⬇️ na parte inferior do Safari',
+  install_ios_2:'Role e toque em "Adicionar ao Ecrã Principal"',
+  install_ios_3:'Toque em "Adicionar" no canto superior direito',
+  install_android_1:'Toque em "Instalar" abaixo',
+  install_android_2:'Confirme tocando em "Instalar"',
+  install_btn:'💻 Instalar a aplicação',
+  toast_login_required:'Entre para continuar', toast_login_sat:'Entre para vista satélite',
+  toast_login_vote:'Entre para votar', toast_login_comment:'Entre para comentar',
+  toast_login_report:'Entre para reportar', toast_login_fav:'Entre para favoritos',
+  toast_login_push:'Entre para ativar notificações', toast_login_option:'Entre para ativar esta opção',
+  toast_connected:'Conectado!', toast_disconnected:'Desconectado',
+  toast_place_published:'Local publicado!', toast_place_modified:'Local modificado!',
+  toast_place_deleted:'Local excluído', toast_place_hidden:'Local ocultado', toast_place_shown:'Local reativado',
+  toast_place_validated:'Local validado e publicado', toast_place_rejected:'Local rejeitado e excluído',
+  toast_report_sent:'Relatório enviado', toast_comment_sent:'Comentário enviado',
+  toast_comment_deleted:'Comentário excluído', toast_position_updated:'📍 Posição atualizada!',
+  toast_copied:'Link copiado!', toast_location_error:'Localização indisponível',
+  toast_push_on:'🔔 Notificações ativadas!', toast_push_off:'Notificações desativadas',
+  toast_push_denied:'Permissão negada', toast_push_unsupported:'Não suportado neste navegador',
+  toast_fav_added:'❤️ Adicionado aos favoritos', toast_fav_removed:'Removido dos favoritos',
+  toast_voted_useful:'👍 Local validado!', toast_voted_closed:'👎 Voto registrado',
+  toast_err_name:'Insira um nome', toast_err_cat:'Escolha uma categoria',
+  toast_err_24h:'Indique se o local está disponível 24h',
+  toast_err_photo:'Uma foto é obrigatória', toast_err_fields:'Preencha todos os campos',
+  toast_err_name_required:'O nome é obrigatório',
+  toast_err_passwords:'As senhas não correspondem',
+  toast_banned:'🚫 Conta banida',
+  toast_mod_added:'adicionado como moderador', toast_mod_removed:'Moderador removido',
+  toast_user_not_found:'Utilizador não encontrado',
+  toast_post_published:'Publicação publicada!', toast_reply_sent:'Resposta enviada',
+  toast_notif_place:'⏳ Novo local pendente', toast_notif_report:'⚠️ Novo local reportado', toast_notif_comment:'⚠️ Novo comentário reportado',
+  solo_back_profile:'← Voltar ao Perfil', solo_back_map:'🗺 Voltar ao mapa',
+  translate_link:'Traduzir', translate_original:'Ver original', translate_loading:'...',
+  translate_unavailable:'Tradução não disponível', translate_error:'Erro de tradução',
+  move_mode_title:'Mover local', move_mode_desc:'Clique no mapa para a nova posição',
+  move_mode_cancel:'Cancelar',
+  fuel_title:'Preços de combustível', fuel_updated:'Atualizado',
+  val_loading:'A carregar votos...', val_validate_btn:'👍 Validar este local',
+  role_admin:'👑 Administrador', role_moderator:'🛡️ Moderador', role_trusted:'⭐ Membro de confiança',
+  role_expert:'🥇 Especialista', role_explorer:'🥈 Explorador', role_beginner:'🥉 Principiante',
+  role_active:'Membro ativo', role_new:'Novo membro',
+  member_registered:'Registado a', member_no_pseudo:'(sem nome de utilizador)'
+},
+nl:{
+  nav_filters:'Filters', nav_search:'Zoeken', nav_add:'Locatie toevoegen', nav_community:'Community', nav_profile:'Profiel', nav_dashboard:'Dashboard',
+  btn_validate:'✓ Bevestigen', btn_back:'← Terug', btn_cancel:'Annuleren', btn_publish:'Publiceren', btn_connect:'Inloggen', btn_disconnect:'Uitloggen',
+  btn_add_place:'+ Locatie toevoegen', btn_show_all:'👁 Alles tonen', btn_hide_all:'✕ Alles verbergen',
+  btn_change_country:'🌍 Land wijzigen of toevoegen', btn_my_position:'🌍 Mijn locatie',
+  btn_see_map:'📍 Op kaart bekijken', btn_navigate:'🧭 Navigeren',
+  sheet_cats:'🗂 Categorieën', sheet_profile:'👤 Profiel', sheet_community:'💬 Community', sheet_dashboard:'🛡️ Dashboard',
+  auth_title_login:'Inloggen', auth_title_signup:'Account aanmaken', auth_email:'E-mail', auth_password:'Wachtwoord',
+  auth_confirm_password:'Wachtwoord bevestigen', auth_login_btn:'Inloggen', auth_signup_btn:'Account aanmaken',
+  auth_switch_signup:'Account aanmaken', auth_switch_login:'Ik heb al een account',
+  auth_not_connected:'Niet ingelogd',
+  form_add_title:'📍 Locatie toevoegen', form_position_click:'Klik op de kaart!',
+  form_name:'Naam locatie *', form_name_ph:'Bijv: Broodautomaat gemeentehuis',
+  form_main_cat:'Hoofdcategorie *', form_sub_cat:'Subcategorie *',
+  form_desc:'Beschrijving', form_desc_ph:'Nuttige info: openingstijden, staat, prijs...',
+  form_available_24h:'24/7 beschikbaar? *', form_yes:'✅ Ja', form_no:'❌ Nee',
+  form_photo:'Foto *', form_add_photo:'📷 Foto toevoegen',
+  form_upload:'📷 Uploaden...', form_publish_place:'Locatie publiceren',
+  form_choose:'-- Kiezen --', form_choose_cat_first:'-- Kies eerst een categorie --',
+  info_adding:'📍 Klik op de kaart om de locatie te plaatsen',
+  comm_all:'Alles', comm_announcements:'📢 Aankondigingen', comm_messages:'💬 Berichten',
+  comm_support:'🔧 Support', comm_notifications:'🔔 Meldingen',
+  comm_new_post:'💬 Nieuw bericht', comm_message_type:'💬 Bericht', comm_support_type:'🔧 Support', comm_announce_type:'📢 Aankondiging',
+  comm_title_ph:'Titel (optioneel)', comm_content_ph:'Schrijf je bericht...',
+  comm_place_ph:'🔍 Zoek gerelateerde locatie...', comm_publish:'Publiceren',
+  comm_loading:'Laden...', comm_no_replies:'Nog geen reacties — start de discussie!',
+  comm_reply_ph:'Jouw reactie...', comm_reply_btn:'Reageren',
+  profile_join:'Word lid van de community',
+  profile_join_desc:'Log in om locaties toe te voegen, te stemmen, te reageren en satellietweergave te gebruiken',
+  profile_login_btn:'Inloggen / Registreren',
+  profile_places_added:'Locaties toegevoegd', profile_validated:'Gevalideerde locaties',
+  profile_comments:'Reacties', profile_votes:'Gegeven stemmen', profile_favorites:'Favorieten',
+  profile_avg_rating:'Gemiddelde ontvangen beoordeling', profile_ranking:'Community ranglijst',
+  profile_settings:'⚙️ Instellingen', profile_change_country:'🌍 Land wijzigen of toevoegen',
+  profile_country_desc:'Landen selecteren om locaties te zoeken',
+  profile_satellite:'🛰 Hybride satellietweergave', profile_satellite_desc:'Luchtkaart met straatnamen',
+  profile_push:'🔔 Pushmeldingen', profile_push_desc:'Ontvang een melding ook als de app gesloten is',
+  profile_push_active:'Meldingen actief op dit apparaat',
+  profile_signout:'🚪 Uitloggen', profile_language:'🌐 Taal',
+  profile_member_since:'Lid sinds', profile_member_badge:'Lid #',
+  profile_unranked:'Niet gerangschikt', profile_banner_close:'✕ Sluiten',
+  profile_tab_places:'📍 Toegevoegd', profile_tab_ratings:'⭐ Beoordelingen',
+  profile_no_places:'Geen locaties toegevoegd', profile_no_votes:'Geen stemmen gegeven',
+  profile_no_comments:'Geen reacties', profile_no_favs:'Geen favorieten',
+  picker_title:'Kies een land', picker_subtitle:'Selecteer landen voor op de kaart',
+  picker_confirm:'Locaties bekijken', picker_world:'🌍 Hele wereld', picker_zone:'Huidige zone',
+  place_available:'24/7', place_limited:'Beperkte openingstijden', place_by:'Toegevoegd door',
+  place_pending_banner:'⏳ Wacht op validatie — alleen zichtbaar voor jou en moderatoren',
+  place_hidden_banner:'🚫 Verborgen locatie — alleen zichtbaar voor moderatoren',
+  place_comments_title:'💬 Reacties', place_rate:'⭐ Jouw beoordeling',
+  place_comment_ph:'Jouw mening...', place_send:'Versturen', place_loading:'Laden...',
+  place_no_reviews:'Nog geen beoordelingen', place_validate_btn:'👍 Deze locatie valideren',
+  place_vote_useful:'👍 Nuttig', place_vote_closed:'👎 Gesloten',
+  place_nav_btn:'🧭 Navigeren', place_share_btn:'Delen',
+  search_ph:'Stad, locatie, gemeente...', search_my_pos:'Mijn huidige locatie', search_center:'Kaart op mij centreren',
+  search_categories:'Categorieën',
+  loc_ph:'Stad, departement...', loc_radius:'Straal:', loc_exact:'Exact',
+  sidebar_subtitle:'Vanlife-spots, services & tips', sidebar_location:'📍 Locatie',
+  places_label:'Locaties:', zone_current:'Huidige zone',
+  report_title:'⚠️ Locatie melden', report_reason:'Reden *',
+  report_details_ph:'Beschrijf het probleem...', report_details:'Details (optioneel)', report_submit:'Melding versturen',
+  report_reason_closed:'Permanent gesloten', report_reason_maintenance:'In onderhoud / Tijdelijk gesloten',
+  report_reason_location:'Verkeerde locatie', report_reason_duplicate:'Duplicaat',
+  report_reason_info:'Onjuiste informatie', report_reason_inappropriate:'Ongepaste inhoud', report_reason_other:'Anders',
+  dash_title:'🛡️ Dashboard', dash_pending:'Te valideren', dash_reports:'Meldingen',
+  dash_members:'Leden', dash_stats:'Actieve locaties', dash_team:'Team', dash_bans:'Bans',
+  dash_reported_places:'📍 Gemelde locaties', dash_reported_comments:'💬 Gemelde reacties',
+  dash_loading:'Laden...', dash_no_pending:'Geen locaties in afwachting', dash_no_reports:'Geen meldingen',
+  modal_confirm_email_title:'Bevestig je e-mail',
+  modal_confirm_email_sent:'Een bevestigings-e-mail is verstuurd naar:',
+  modal_confirm_email_desc:'Klik op de link in de e-mail om je account te activeren, dan inloggen.',
+  modal_confirm_email_ok:'Begrepen',
+  modal_username_title:'Gebruikersnaam kiezen', modal_username_desc:'3 tot 20 tekens. Letters, cijfers, _ en spaties toegestaan.',
+  modal_username_ph:'Mijn Gebruiker', modal_username_confirm:'Bevestigen',
+  modal_delete_place_title:'🗑️ Deze locatie verwijderen', modal_delete_place_warn:'⚠️ Deze actie is onomkeerbaar.',
+  modal_hide_place_title:'🚫 Locatie verbergen', modal_approve_place_title:'✅ Locatie valideren',
+  modal_reject_place_title:'❌ Locatie weigeren',
+  modal_delete_comment_title:'🗑️ Deze reactie verwijderen',
+  install_title:'📍 VanLifeMap installeren',
+  install_ios_1:'Tik op de Deel-knop ⬇️ onderaan Safari',
+  install_ios_2:'Scroll en tik op "Zet op beginscherm"',
+  install_ios_3:'Tik rechtsboven op "Voeg toe"',
+  install_android_1:'Tik onderaan op "Installeren"',
+  install_android_2:'Bevestig door op "Installeren" te tikken',
+  install_btn:'💻 App installeren',
+  toast_login_required:'Inloggen om door te gaan', toast_login_sat:'Inloggen voor satellietweergave',
+  toast_login_vote:'Inloggen om te stemmen', toast_login_comment:'Inloggen om te reageren',
+  toast_login_report:'Inloggen om te melden', toast_login_fav:'Inloggen voor favorieten',
+  toast_login_push:'Inloggen voor meldingen', toast_login_option:'Inloggen om deze optie in te schakelen',
+  toast_connected:'Ingelogd!', toast_disconnected:'Uitgelogd',
+  toast_place_published:'Locatie gepubliceerd!', toast_place_modified:'Locatie bijgewerkt!',
+  toast_place_deleted:'Locatie verwijderd', toast_place_hidden:'Locatie verborgen', toast_place_shown:'Locatie geheractiveerd',
+  toast_place_validated:'Locatie gevalideerd en gepubliceerd', toast_place_rejected:'Locatie geweigerd en verwijderd',
+  toast_report_sent:'Melding verstuurd', toast_comment_sent:'Reactie verstuurd',
+  toast_comment_deleted:'Reactie verwijderd', toast_position_updated:'📍 Positie bijgewerkt!',
+  toast_copied:'Link gekopieerd!', toast_location_error:'Locatie niet beschikbaar',
+  toast_push_on:'🔔 Meldingen ingeschakeld!', toast_push_off:'Meldingen uitgeschakeld',
+  toast_push_denied:'Toestemming geweigerd', toast_push_unsupported:'Niet ondersteund in deze browser',
+  toast_fav_added:'❤️ Toegevoegd aan favorieten', toast_fav_removed:'Verwijderd uit favorieten',
+  toast_voted_useful:'👍 Locatie gevalideerd!', toast_voted_closed:'👎 Stem opgeslagen',
+  toast_err_name:'Vul een naam in', toast_err_cat:'Kies een categorie',
+  toast_err_24h:'Geef aan of de locatie 24/7 beschikbaar is',
+  toast_err_photo:'Een foto is verplicht', toast_err_fields:'Vul alle velden in',
+  toast_err_name_required:'Naam is verplicht',
+  toast_err_passwords:'Wachtwoorden komen niet overeen',
+  toast_banned:'🚫 Account verbannen',
+  toast_mod_added:'toegevoegd als moderator', toast_mod_removed:'Moderator verwijderd',
+  toast_user_not_found:'Gebruiker niet gevonden',
+  toast_post_published:'Bericht gepubliceerd!', toast_reply_sent:'Reactie verstuurd',
+  toast_notif_place:'⏳ Nieuwe locatie in afwachting', toast_notif_report:'⚠️ Nieuwe locatie gemeld', toast_notif_comment:'⚠️ Nieuwe reactie gemeld',
+  solo_back_profile:'← Terug naar Profiel', solo_back_map:'🗺 Terug naar kaart',
+  translate_link:'Vertalen', translate_original:'Origineel bekijken', translate_loading:'...',
+  translate_unavailable:'Vertaling niet beschikbaar', translate_error:'Vertaalfout',
+  move_mode_title:'Locatie verplaatsen', move_mode_desc:'Klik op de kaart voor de nieuwe positie',
+  move_mode_cancel:'Annuleren',
+  fuel_title:'Brandstofprijzen', fuel_updated:'Bijgewerkt',
+  val_loading:'Stemmen laden...', val_validate_btn:'👍 Deze locatie valideren',
+  role_admin:'👑 Beheerder', role_moderator:'🛡️ Moderator', role_trusted:'⭐ Vertrouwd lid',
+  role_expert:'🥇 Expert', role_explorer:'🥈 Ontdekker', role_beginner:'🥉 Beginner',
+  role_active:'Actief lid', role_new:'Nieuw lid',
+  member_registered:'Geregistreerd op', member_no_pseudo:'(geen gebruikersnaam)'
+}
+};
+
+function t(key) {
+  var d = i18n[currentLang] || i18n['en'];
+  return (d && d[key] !== undefined ? d[key] : (i18n['fr'][key] !== undefined ? i18n['fr'][key] : key));
+}
+
+function setLang(lang) {
+  if (SUPPORTED_LANGS.indexOf(lang) < 0) return;
+  currentLang = lang;
+  localStorage.setItem('vlm_lang', lang);
+  document.documentElement.lang = lang;
+  applyI18n();
+}
+
+function applyI18n() {
+  document.documentElement.lang = currentLang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    var attr = el.getAttribute('data-i18n-attr');
+    if (attr) el.setAttribute(attr, t(key));
+    else el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+    el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+  });
+}
 var mainCats = [], allCats = [], allPlaces = [];
 var filters = {};
 
