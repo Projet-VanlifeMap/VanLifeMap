@@ -688,6 +688,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <button class="sheet-close" onclick="closeSheet('sheet-settings')">&#10005;</button>
     </div>
     <div class="sheet-content">
+      <div class="setting-row" style="cursor:pointer;" onclick="closeSheet('sheet-settings');openCountryPicker()">
+        <div><div class="setting-label">&#127758; Changer de zone</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>
+        <span style="color:var(--text2);font-size:20px;">&#8250;</span>
+      </div>
       <div class="setting-row">
         <div>
           <div class="setting-label">&#128752; Vue satellite hybride</div>
@@ -708,6 +712,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
           <input type="text" id="validator-username-input" placeholder="Pseudo de l'utilisateur..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);">
         </div>
         <button onclick="addValidator()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;">+ Ajouter</button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding:16px;">
+        <button onclick="signOut()" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>
       </div>
     </div>
   </div>
@@ -1321,14 +1328,9 @@ async function renderProfile() {
     + '<span style="color:var(--text2);font-size:20px;">\u203a</span>'
     + '</div>'
     + '<div id="prof-favs-panel" style="display:none;padding:0 16px 4px;"></div>'
-    + '<div class="prof-actions">'
-    + '<button class="prof-btn-main" id="prof-btn-zone">&#127758; Changer de zone</button>'
-    + '<button class="prof-btn-sec" id="prof-btn-signout" style="color:#e74c3c;border-color:#e74c3c;">&#128682; Se d\u00e9connecter</button>'
-    + '</div></div>';
+    + '</div>';
 
   // Action buttons
-  document.getElementById('prof-btn-zone').addEventListener('click', function() { closeSheet('sheet-profile'); openCountryPicker(); });
-  document.getElementById('prof-btn-signout').addEventListener('click', function() { signOut(); });
 
   // Banner edit button
   document.getElementById('prof-banner-edit').addEventListener('click', function(e) {
