@@ -1599,21 +1599,21 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
   openSheet('sheet-pub-profile');
 
-  var profileRes = await db.from('profiles').select('id,username,created_at,registered_at').eq('username', username).maybeSingle();
+  var profileRes = await db.from('profiles').select('user_id,username,created_at,registered_at').eq('username', username).maybeSingle();
   var profile = profileRes.data;
   var placesCount = 0, commentsCount = 0, validatedCount = 0, votesCount = 0, rankPos = null, rankTotal = null;
 
   if (profile) {
-    _pubProfileData = { userId: profile.id, username: username };
+    _pubProfileData = { userId: profile.user_id, username: username };
     var stats = await Promise.all([
-      db.from('places').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
-      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
-      db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
-      db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
+      db.from('places').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+      db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
+      db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', profile.user_id),
       db.from('leaderboard_places').select('*'),
-      db.from('trusted_users').select('role').eq('user_id', profile.id).maybeSingle(),
-      db.from('banned_users').select('id').eq('user_id', profile.id).maybeSingle(),
-      db.from('profiles').select('id', { count: 'exact', head: true }).lte('created_at', profile.created_at)
+      db.from('trusted_users').select('role').eq('user_id', profile.user_id).maybeSingle(),
+      db.from('banned_users').select('id').eq('user_id', profile.user_id).maybeSingle(),
+      db.from('profiles').select('user_id', { count: 'exact', head: true }).lte('created_at', profile.created_at)
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
@@ -1638,7 +1638,7 @@ async function openPublicProfile(username) {
   }
 
   var initials = username.slice(0, 2).toUpperCase();
-  var isSelf = !!(currentUser && profile && profile.id === currentUser.id);
+  var isSelf = !!(currentUser && profile && profile.user_id === currentUser.id);
   var rawDate = isSelf ? currentUser.created_at : (profile ? (profile.registered_at || profile.created_at) : (typeof firstPlaceDate !== 'undefined' ? firstPlaceDate : null));
   var joinDate = rawDate ? new Date(rawDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   var pubUserRole = typeof pubUserRole !== 'undefined' ? pubUserRole : null;
@@ -1828,7 +1828,7 @@ async function loadUserProfile() {
   } else {
     // Also try profiles table as fallback
     try {
-      var res = await db.from('profiles').select('username').eq('id', currentUser.id).maybeSingle();
+      var res = await db.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
       if (res.data && res.data.username) {
         currentUsername = res.data.username;
         document.getElementById('auth-info').textContent = currentUsername;
@@ -1899,7 +1899,7 @@ async function saveUsername() {
   document.getElementById('auth-info').textContent = currentUsername;
   document.getElementById('modal-username').style.display = 'none';
   // Also try profiles table (best-effort, ignore errors)
-  try { await db.from('profiles').upsert({ id: currentUser.id, username: v, registered_at: currentUser.created_at }, { onConflict: 'id' }); } catch(e) {}
+  try { await db.from('profiles').upsert({ user_id: currentUser.id, username: v, registered_at: currentUser.created_at }, { onConflict: 'user_id' }); } catch(e) {}
   showToast('Pseudo « ' + v + ' » enregistré !', 'success');
 }
 
@@ -3317,7 +3317,7 @@ async function toggleMembersList() {
 async function loadMembersList() {
   var panel = document.getElementById('admin-members-panel');
   if (!panel) return;
-  var res = await db.from('profiles').select('id,username,created_at').order('created_at', { ascending: true });
+  var res = await db.from('profiles').select('user_id,username,created_at').order('created_at', { ascending: true });
   if (res.error) { panel.innerHTML = '<div style="color:#e74c3c;font-size:13px;">Erreur : ' + res.error.message + '</div>'; return; }
   var members = res.data || [];
   var rolesRes = await db.from('trusted_users').select('user_id,role');
@@ -3326,7 +3326,7 @@ async function loadMembersList() {
   if (!members.length) { panel.innerHTML = '<div style="color:var(--text2);font-size:13px;">Aucun membre inscrit.</div>'; return; }
   panel.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">' + members.length + ' membres inscrits</div>'
     + members.map(function(m, i) {
-      var role = rolesMap[m.id] || null;
+      var role = rolesMap[m.user_id] || null;
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
       var dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
       var uname = m.username || '(sans pseudo)';
