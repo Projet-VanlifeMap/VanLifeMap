@@ -3866,19 +3866,20 @@ async function voteValidation(pid) {
   if (voteRes.error) { showToast('Erreur : ' + voteRes.error.message, 'error'); return; }
   var countRes = await db.from('place_validations').select('id', { count: 'exact', head: true }).eq('place_id', pid);
   var voteCount = countRes.count || 0;
+  var threshold = isImport ? 2 : 3;
   if (isImport) {
-    if (voteCount >= 3) {
+    if (voteCount >= threshold) {
       await db.from('places').update({ approved_by_id: currentUser.id }).eq('id', pid).is('approved_by_id', null);
     }
-    showToast('&#10003; Confirmation enregistrée (' + voteCount + ')', 'success');
+    showToast('&#10003; Confirmation enregistrée (' + voteCount + '/' + threshold + ')', 'success');
     loadValidationCount(pid);
-  } else if (voteCount >= 3) {
+  } else if (voteCount >= threshold) {
     await validatePlace(pid);
   } else {
-    showToast('&#10003; Vote enregistré (' + voteCount + '/3)', 'success');
+    showToast('&#10003; Vote enregistré (' + voteCount + '/' + threshold + ')', 'success');
     loadValidationCount(pid);
     if (place && place.user_id) {
-      insertPlaceNotif(place.user_id, 'place_vote', '&#128077; ' + voteCount + '/3 votes pour votre lieu « ' + place.name + ' »', pid);
+      insertPlaceNotif(place.user_id, 'place_vote', '&#128077; ' + voteCount + '/' + threshold + ' votes pour votre lieu « ' + place.name + ' »', pid);
     }
   }
 }
@@ -3894,17 +3895,19 @@ async function loadValidationCount(pid) {
   ]);
   var n = countRes.count || 0;
   var isImport = placeRes.data && !placeRes.data.user_id;
+  var threshold = isImport ? 2 : 3;
   if (badge && isImport) {
     badge.innerHTML = n > 0
-      ? '<span class="pv2-badge" style="background:rgba(52,152,219,0.15);color:#3498db;">&#10003; ' + n + ' confirmation' + (n > 1 ? 's' : '') + '</span>'
+      ? '<span class="pv2-badge" style="background:' + (n >= threshold ? 'rgba(39,174,96,0.15);color:#27ae60;' : 'rgba(52,152,219,0.15);color:#3498db;') + '">&#10003; ' + n + '/' + threshold + ' confirmation' + (n > 1 ? 's' : '') + '</span>'
       : '';
   }
   if (info) {
     if (isImport) {
-      info.style.color = '#3498db';
-      info.textContent = n === 0 ? '&#127758; Soyez le premier à confirmer ce lieu !' : '&#10003; ' + n + ' personne' + (n > 1 ? 's ont' : ' a') + ' confirmé ce lieu';
+      var done = n >= threshold;
+      info.style.color = done ? '#27ae60' : '#3498db';
+      info.textContent = n === 0 ? '&#127758; Soyez le premier à confirmer ce lieu !' : (done ? '&#10003; Lieu confirmé par la communauté (' + n + '/' + threshold + ')' : '&#10003; ' + n + '/' + threshold + ' confirmation' + (n > 1 ? 's' : ''));
     } else {
-      info.textContent = '⏳ ' + n + '/3 votes de validation';
+      info.textContent = '⏳ ' + n + '/' + threshold + ' votes de validation';
     }
   }
   if (!currentUser) return;
