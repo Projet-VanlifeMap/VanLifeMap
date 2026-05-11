@@ -6125,6 +6125,8 @@ async function openHistoryPlace(placeId) {
   if (!res.data) { showToast('Lieu introuvable (peut-être supprimé)', 'error'); return; }
   closeSheet('sheet-dashboard');
   map.flyTo([res.data.latitude, res.data.longitude], 16, { duration: 0.8 });
+  allPlaces = [res.data];
+  renderMarkers([res.data]);
   setTimeout(function() { openPlaceSheet(res.data); }, 900);
 }
 
