@@ -506,7 +506,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         <button id="btn-show-all" onclick="toggleAllFilters(true)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#128065; Tout afficher</button>
         <button onclick="toggleAllFilters(false)" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px;font-size:12px;cursor:pointer;">&#10005; Tout masquer</button>
       </div>
-      <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer de zone</span></button>
+      <button id="btn-change-country" onclick="openCountryPicker()">&#127758; <span id="country-label">Changer ou ajouter un pays</span></button>
       <button id="btn-add-desk">&#65291; Ajouter un lieu</button>
       <button id="btn-profile-desk" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#128100; Mon profil</button>
       <button onclick="openSheet('sheet-rank');loadLeaderboard('places')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px;font-family:var(--font-body);font-size:13px;cursor:pointer;">&#127942; Classement</button>
@@ -1361,7 +1361,7 @@ function getZoneBlock() {
     + '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Zone actuelle</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + flagsHtml + '</div>'
     + '</div>'
-    + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">&#127758; Changer de zone</button>';
+    + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">&#127758; Changer ou ajouter un pays</button>';
 }
 
 async function renderProfile() {
@@ -1441,7 +1441,7 @@ async function renderProfile() {
     + '<div style="border-top:1px solid var(--border);padding:16px 20px 4px;">'
     + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:12px;">&#9881;&#65039; R&#233;glages</div>'
     + '<div class="setting-row" style="cursor:pointer;" onclick="closeSheet(\'sheet-profile\');openCountryPicker()">'
-    + '<div><div class="setting-label">&#127758; Changer de zone</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>'
+    + '<div><div class="setting-label">&#127758; Changer ou ajouter un pays</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>'
     + '<span style="color:var(--text2);font-size:20px;">&#8250;</span>'
     + '</div>'
     + '<div class="setting-row"><div><div class="setting-label">&#128752; Vue satellite hybride</div><div class="setting-desc">Carte en vue a&#233;rienne avec noms de rues</div></div>'
@@ -4995,7 +4995,7 @@ function confirmCountries(all) {
     selectedCountries = [];
     localStorage.removeItem('vlm_countries');
     localStorage.setItem('vlm_no_filter', '1');
-    document.getElementById('country-label').textContent = 'Changer de zone';
+    document.getElementById('country-label').textContent = 'Changer ou ajouter un pays';
   } else {
     localStorage.setItem('vlm_countries', JSON.stringify(selectedCountries));
     localStorage.removeItem('vlm_no_filter');
@@ -5023,7 +5023,7 @@ function applyCountryView() {
 function updateCountryLabel() {
   var el = document.getElementById('country-label');
   if (!el) return;
-  if (!selectedCountries.length) { el.textContent = 'Changer de zone'; return; }
+  if (!selectedCountries.length) { el.textContent = 'Changer ou ajouter un pays'; return; }
   var flags = selectedCountries.slice(0,3).map(function(id) { return EU_COUNTRIES[id] ? EU_COUNTRIES[id].flag : ''; }).join(' ');
   el.textContent = flags + (selectedCountries.length > 3 ? ' +' + (selectedCountries.length - 3) : '');
 }
