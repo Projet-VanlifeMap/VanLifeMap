@@ -3553,7 +3553,11 @@ function clearSoloMode() {
   var nav = document.getElementById('bottom-nav');
   if (nav) nav.style.display = 'block';
   scheduleLoad();
-  if (soloReturnTo === 'dashboard') {
+  if (soloReturnTo === 'history') {
+    soloReturnTo = 'profile';
+    openDashboard();
+    setTimeout(function() { showDashReportHistory(); }, 400);
+  } else if (soloReturnTo === 'dashboard') {
     soloReturnTo = 'profile';
     openDashboard();
   } else if (soloReturnTo === 'pub-profile') {
@@ -6124,6 +6128,16 @@ async function openHistoryPlace(placeId) {
   var res = await db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', placeId).maybeSingle();
   if (!res.data) { showToast('Lieu introuvable (peut-être supprimé)', 'error'); return; }
   closeSheet('sheet-dashboard');
+  soloPlaceId = placeId;
+  soloReturnTo = 'history';
+  var nav = document.getElementById('bottom-nav');
+  if (nav) nav.style.display = 'none';
+  var banner = document.getElementById('solo-banner');
+  if (banner) {
+    banner.style.display = 'flex';
+    var btnLeft = banner.querySelector('button:first-child');
+    if (btnLeft) btnLeft.textContent = '← Retour à l\'historique';
+  }
   map.flyTo([res.data.latitude, res.data.longitude], 16, { duration: 0.8 });
   allPlaces = [res.data];
   renderMarkers([res.data]);
