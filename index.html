@@ -3281,19 +3281,64 @@ async function loadAdminStats() {
     db.from('comments').select('id', { count: 'exact', head: true }),
     db.from('banned_users').select('id', { count: 'exact', head: true })
   ]);
-  var statItem = function(icon, label, val) {
-    return '<div style="background:var(--surface2);border-radius:10px;padding:10px;text-align:center;">'
+  var statItem = function(icon, label, val, onclick) {
+    return '<div onclick="' + (onclick || '') + '" style="background:var(--surface2);border-radius:10px;padding:10px;text-align:center;' + (onclick ? 'cursor:pointer;' : '') + '">'
       + '<div style="font-size:20px;">' + icon + '</div>'
       + '<div style="font-size:18px;font-weight:700;color:var(--text);">' + (val || 0) + '</div>'
-      + '<div style="font-size:10px;color:var(--text2);margin-top:2px;">' + label + '</div>'
+      + '<div style="font-size:10px;color:var(--text2);margin-top:2px;">' + label + (onclick ? ' ›' : '') + '</div>'
       + '</div>';
   };
-  el.innerHTML = statItem('👥', 'Membres', results[0].count)
+  el.innerHTML = statItem('👥', 'Membres', results[0].count, 'toggleMembersList()')
     + statItem('📍', 'Lieux actifs', results[1].count)
     + statItem('⏳', 'En attente', results[2].count)
     + statItem('🔒', 'Masqués', results[3].count)
     + statItem('💬', 'Commentaires', results[4].count)
     + statItem('🚫', 'Bannis', results[5].count);
+  var panel = document.getElementById('admin-members-panel');
+  if (!panel) {
+    var p = document.createElement('div');
+    p.id = 'admin-members-panel';
+    p.style.cssText = 'display:none;margin-top:10px;';
+    el.parentNode.appendChild(p);
+  }
+}
+
+var _membersListOpen = false;
+async function toggleMembersList() {
+  var panel = document.getElementById('admin-members-panel');
+  if (!panel) return;
+  _membersListOpen = !_membersListOpen;
+  if (!_membersListOpen) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px 0;">Chargement...</div>';
+  await loadMembersList();
+}
+
+async function loadMembersList() {
+  var panel = document.getElementById('admin-members-panel');
+  if (!panel) return;
+  var res = await db.from('profiles').select('id,username,created_at,registered_at').order('created_at', { ascending: true });
+  var members = res.data || [];
+  var rolesRes = await db.from('trusted_users').select('user_id,role');
+  var rolesMap = {};
+  (rolesRes.data || []).forEach(function(r) { rolesMap[r.user_id] = r.role; });
+  if (!members.length) { panel.innerHTML = '<div style="color:var(--text2);font-size:13px;">Aucun membre inscrit.</div>'; return; }
+  panel.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">' + members.length + ' membres inscrits</div>'
+    + members.map(function(m, i) {
+      var role = rolesMap[m.id] || null;
+      var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
+      var date = m.registered_at || m.created_at;
+      var dateStr = date ? new Date(date).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : '—';
+      var uname = m.username || '(sans pseudo)';
+      return '<div onclick="loadPubProfileByUsername(\'' + escHtml(uname) + '\')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text2);min-width:24px;text-align:right;">#' + (i + 1) + '</div>'
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(uname) + '</div>'
+        + '<div style="font-size:11px;color:var(--text2);">Inscrit le ' + dateStr + '</div>'
+        + '</div>'
+        + '<span style="color:var(--text2);font-size:14px;">&#8250;</span>'
+        + '</div>';
+    }).join('');
 }
 
 async function addValidator() {
