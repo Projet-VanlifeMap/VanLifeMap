@@ -2423,14 +2423,15 @@ async function loadProfileStats(username) {
       db.from('votes').select('*', { count: 'exact', head: true }).eq('user_id', uid),
       db.from('places').select('id').eq('user_id', uid),
       db.from('place_validations').select('*', { count: 'exact', head: true }).eq('user_id', uid),
-      db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', currentUser.created_at)
+      db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', currentUser.created_at),
+      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', uid)
     ]);
     var BOT_NAMES = ['Import OSM', 'OpenStreetMap', 'Prix-Carburants-gouv'];
     var lbData = (res[0].data || []).filter(function(u) { return BOT_NAMES.indexOf(u.user_name) === -1; });
     var commentsCount = res[1].count || 0;
     var votesCount = res[2].count || 0;
     var placeIds = (res[3].data || []).map(function(p) { return p.id; });
-    var validatedCount = res[4].count || 0;
+    var validatedCount = (res[4].count || 0) + (res[6].count || 0);
     var memberNum = res[5].count || null;
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
     var myRank = myIdx + 1;
@@ -2513,11 +2514,12 @@ async function openPublicProfile(username) {
       db.from('leaderboard_places').select('*'),
       db.from('trusted_users').select('role').eq('user_id', profile.user_id).maybeSingle(),
       db.from('banned_users').select('id').eq('user_id', profile.user_id).maybeSingle(),
-      db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', profile.registered_at || profile.created_at)
+      db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', profile.registered_at || profile.created_at),
+      db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', profile.user_id)
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
-    validatedCount = stats[2].count || 0;
+    validatedCount = (stats[2].count || 0) + (stats[8].count || 0);
     votesCount = stats[3].count || 0;
     var lbData = stats[4].data || [];
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
@@ -3869,7 +3871,7 @@ async function confirmApprovePlace() {
   var a = _pendingPlaceAction; _pendingPlaceAction = null;
   closeModal('modal-approve-place');
   var placeRes = await db.from('places').select('user_id, name').eq('id', a.pid).maybeSingle();
-  var res = await db.from('places').update({ status: 'active' }).eq('id', a.pid);
+  var res = await db.from('places').update({ status: 'active', approved_by_id: currentUser.id }).eq('id', a.pid);
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
   if (placeRes.data) {
     insertPlaceNotif(placeRes.data.user_id, 'place_validated', '&#10003; Votre lieu « ' + placeRes.data.name + ' » a été validé et publié !', a.pid);
