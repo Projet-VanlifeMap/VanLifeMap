@@ -700,6 +700,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         </div>
         <div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>
       </div>
+      <div id="mod-pending-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div class="setting-label" style="margin:0;">&#9203; Lieux en attente <span id="pending-count-badge" style="background:var(--accent);color:#000;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px;">0</span></div>
+          <button onclick="loadPendingPlaces()" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--font-body);">&#8635; Rafraîchir</button>
+        </div>
+        <div id="pending-places-list" style="font-size:13px;color:var(--text2);">Chargement...</div>
+      </div>
       <div id="mod-reports-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
         <div class="setting-label" style="margin-bottom:10px;">&#9888;&#65039; Lieux signal&#233;s</div>
         <div id="reported-places-list" style="font-size:13px;color:var(--text2);margin-bottom:14px;">Chargement...</div>
@@ -1202,6 +1209,8 @@ function navTo(tab) {
 function openSheet(id) {
   document.getElementById(id).classList.add('open');
   if (id === 'sheet-settings' && (isAdmin || isModerator)) {
+    var pend = document.getElementById('mod-pending-section');
+    if (pend) { pend.style.display = 'block'; loadPendingPlaces(); }
     var rep = document.getElementById('mod-reports-section');
     if (rep) { rep.style.display = 'block'; loadReportedPlaces(); loadReportedComments(); }
     var mb = document.getElementById('mod-badge');
@@ -3333,6 +3342,77 @@ async function reportComment(cid) {
   if (!currentUser) { showToast('Connectez-vous pour signaler', 'error'); return; }
   var res = await db.from('comment_reports').upsert({ comment_id: cid, user_id: currentUser.id }, { onConflict: 'comment_id,user_id' });
   if (!res.error) showToast('Commentaire signalé &#9888;&#65039;', 'success');
+}
+
+async function loadPendingPlaces() {
+  var el = document.getElementById('pending-places-list');
+  var badge = document.getElementById('pending-count-badge');
+  if (!el) return;
+  el.innerHTML = '<div style="color:var(--text2);">Chargement...</div>';
+  var res = await db.from('places').select('id,name,user_name,user_id,latitude,longitude,created_at,main_categories(name,icon),categories(name,icon)').eq('status', 'pending').order('created_at', { ascending: false });
+  var data = res.data || [];
+  if (badge) badge.textContent = data.length;
+  if (!data.length) { el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:12px 0;">&#10003; Aucun lieu en attente</div>'; return; }
+  el.innerHTML = data.map(function(p) {
+    var icon = (p.categories && p.categories.icon) || (p.main_categories && p.main_categories.icon) || '&#128205;';
+    var catName = (p.categories && p.categories.name) || (p.main_categories && p.main_categories.name) || 'Autre';
+    var date = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '';
+    return '<div id="pending-item-' + p.id + '" style="border:1px solid rgba(255,208,79,0.25);border-radius:8px;padding:10px;margin-bottom:8px;background:rgba(255,208,79,0.04);">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+      + '<span style="font-size:14px;font-weight:700;color:var(--text);">' + icon + ' ' + escHtml(p.name || 'Sans nom') + '</span>'
+      + '<span style="font-size:11px;color:var(--text2);">' + date + '</span>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">&#128100; ' + escHtml(p.user_name || 'Anonyme') + ' &nbsp;&#8226;&nbsp; ' + escHtml(catName) + '</div>'
+      + '<div style="display:flex;gap:6px;">'
+      + (p.latitude ? '<button onclick="viewPendingPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#128205; Voir</button>' : '')
+      + '<button onclick="approvePendingPlace(\'' + p.id + '\',\'' + escHtml(p.name || '') + '\')" style="flex:1;background:rgba(39,174,96,0.15);border:1px solid rgba(39,174,96,0.4);color:#27ae60;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#10003; Valider</button>'
+      + '<button onclick="rejectPendingPlace(\'' + p.id + '\',\'' + escHtml(p.name || '') + '\')" style="flex:1;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#10007; Refuser</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+async function approvePendingPlace(pid, name) {
+  var placeRes = await db.from('places').select('user_id').eq('id', pid).maybeSingle();
+  var res = await db.from('places').update({ status: 'active' }).eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  if (placeRes.data) insertPlaceNotif(placeRes.data.user_id, 'place_validated', '&#10003; Votre lieu « ' + name + ' » a été validé et publié !', pid);
+  showToast('&#10003; Lieu validé et publié !', 'success');
+  var item = document.getElementById('pending-item-' + pid);
+  if (item) item.remove();
+  var badge = document.getElementById('pending-count-badge');
+  if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent || '0') - 1);
+  scheduleLoad();
+}
+
+async function rejectPendingPlace(pid, name) {
+  if (!confirm('Refuser et supprimer « ' + name + ' » ?')) return;
+  var placeRes = await db.from('places').select('user_id').eq('id', pid).maybeSingle();
+  var res = await db.from('places').delete().eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  if (placeRes.data) insertPlaceNotif(placeRes.data.user_id, 'place_rejected', '&#10007; Votre lieu « ' + name + ' » a été refusé par un modérateur', null);
+  showToast('&#10007; Lieu refusé et supprimé', 'success');
+  var item = document.getElementById('pending-item-' + pid);
+  if (item) item.remove();
+  var badge = document.getElementById('pending-count-badge');
+  if (badge) badge.textContent = Math.max(0, parseInt(badge.textContent || '0') - 1);
+}
+
+function viewPendingPlace(pid, lat, lng) {
+  closeSheet('sheet-settings');
+  soloPlaceId = pid;
+  soloReturnTo = 'settings';
+  var nav = document.getElementById('bottom-nav');
+  if (nav) nav.style.display = 'none';
+  var banner = document.getElementById('solo-banner');
+  if (banner) {
+    banner.style.display = 'flex';
+    var btnLeft = banner.querySelector('button:first-child');
+    if (btnLeft) btnLeft.textContent = '← Retour aux lieux en attente';
+  }
+  map.flyTo([lat, lng], 16, { duration: 0.8 });
+  db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
+    if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); openPlaceSheet(res.data); }
+  });
 }
 
 async function loadReportedPlaces() {
