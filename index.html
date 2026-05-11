@@ -5451,6 +5451,9 @@ async function submitReport() {
   if (result.error) { showToast('Erreur : ' + result.error.message, 'error'); return; }
   closeModal('modal-report');
   showToast('&#9888;&#65039; Signalement envoyé, merci !', 'success');
+  var placeNameForNotif = document.getElementById('report-place-name').textContent || reportPlaceId;
+  var reasonLabels = { closed:'Fermé définitivement', maintenance:'En maintenance', wrong_location:'Emplacement incorrect', duplicate:'Doublon', wrong_info:'Infos incorrectes', inappropriate:'Contenu inapproprié', other:'Autre' };
+  notifyMods('signalement', '&#9888;&#65039; Signalement reçu — ' + (reasonLabels[reason] || reason) + ' — « ' + placeNameForNotif + ' »', reportPlaceId);
   reportPlaceId = null;
 }
 
@@ -5917,11 +5920,13 @@ async function loadModReportsCount() {
 function startRealtimeReports() {
   if (!currentUser || realtimeReportsChannel) return;
   realtimeReportsChannel = db.channel('mod-reports')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, function(payload) {
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, function() {
       showToast('&#9888;&#65039; Nouveau lieu signalé', 'error');
       loadModReportsCount();
+      var el = document.getElementById('reported-places-list');
+      if (el) loadReportedPlaces();
     })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comment_reports' }, function(payload) {
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comment_reports' }, function() {
       showToast('&#9888;&#65039; Nouveau commentaire signalé', 'error');
       loadModReportsCount();
     })
