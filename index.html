@@ -5760,7 +5760,7 @@ async function loadDashboardTiles() {
 
   var html = tile('&#128101;', 'Membres inscrits', totalMembers, 'showDashMembers()')
     + tile('&#127381;', 'Nouveaux membres cette semaine', newMembers, 'showDashNewMembers()', 0, 'week')
-    + tile('&#128205;', 'Lieux actifs', totalPlaces, 'showDashStats()')
+    + tile('&#128205;', 'Lieux actifs total', totalPlaces, 'showDashStats()')
     + tile('&#10024;', 'Nouveaux lieux', newPlaces, 'showDashNewPlaces()', 0, 'week', 'cette semaine')
     + tile('&#9888;&#65039;', 'Lieux signal&eacute;s', reportedPlaces, 'showDashReportedPlaces()', reportedPlaces, reportedPlaces > 0 ? 'urgent' : '')
     + tile('&#128172;', 'Commentaires signal&eacute;s', reportedCmts, 'showDashReportedComments()', reportedCmts, reportedCmts > 0 ? 'urgent' : '');
