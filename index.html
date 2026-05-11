@@ -1616,7 +1616,7 @@ async function openPublicProfile(username) {
       db.from('leaderboard_places').select('*'),
       db.from('trusted_users').select('role').eq('user_id', profile.user_id).maybeSingle(),
       db.from('banned_users').select('id').eq('user_id', profile.user_id).maybeSingle(),
-      db.from('profiles').select('user_id', { count: 'exact', head: true }).lte('created_at', profile.created_at)
+      db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', profile.registered_at || profile.created_at)
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
