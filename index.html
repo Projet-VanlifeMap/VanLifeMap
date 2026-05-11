@@ -249,6 +249,12 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .pv2-photos-strip::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .photo-thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;cursor:pointer;flex-shrink:0;border:2px solid transparent;transition:border-color 0.15s;}
 .photo-thumb:hover{border-color:var(--accent);}
+.photo-wrap{position:relative;flex-shrink:0;width:72px;height:72px;}
+.photo-wrap .photo-thumb{width:100%;height:100%;}
+.photo-btn{position:absolute;top:3px;width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;line-height:1;opacity:0.85;}
+.photo-btn-report{right:3px;background:rgba(0,0,0,0.6);color:#fff;}
+.photo-btn-delete{right:3px;background:rgba(231,76,60,0.9);color:#fff;}
+.photo-reported .photo-thumb{border-color:rgba(231,76,60,0.6);}
 .photo-add-btn{width:72px;height:72px;border-radius:8px;background:var(--surface2);border:2px dashed var(--border);color:var(--text2);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:border-color 0.15s,color 0.15s;}
 .photo-add-btn:hover{border-color:var(--accent);color:var(--accent);}
 .pv2-nav{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;}
@@ -3710,7 +3716,7 @@ function makePopup(p) {
     + '</div>' : '');
 
   if (!isFuel) {
-    loadPhotos(p.id, p.category_id);
+    loadPhotos(p.id, p.category_id, p.user_id);
     loadCmts(p.id);
     loadRating(p.id);
   }
@@ -4690,20 +4696,31 @@ function goToFavorite(lat, lng) {
 var lbPhotos = [], lbIndex = 0;
 var SPOT_CAT_ID = '5a0e2084-afb1-476e-94f4-661c54f6fea3';
 
-async function loadPhotos(pid, catId) {
-  var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
+async function loadPhotos(pid, catId, placeOwnerId) {
+  var res = await db.from('place_photos').select('id,url,uploader_name,uploaded_by,reported').eq('place_id', pid).order('created_at');
   var el = document.getElementById('photos-' + pid);
   if (!el) return;
   var maxPhotos = catId === SPOT_CAT_ID ? 3 : 1;
-  renderPhotos(pid, res.data || [], maxPhotos);
+  el.dataset.catId = catId || '';
+  el.dataset.ownerId = placeOwnerId || '';
+  renderPhotos(pid, res.data || [], maxPhotos, placeOwnerId);
 }
 
-function renderPhotos(pid, photos, maxPhotos) {
+function renderPhotos(pid, photos, maxPhotos, placeOwnerId) {
   var el = document.getElementById('photos-' + pid);
   if (!el) return;
   var urls = photos.map(function(ph) { return ph.url; });
+  var canMod = currentUser && (isAdmin || isModerator || (placeOwnerId && currentUser.id === placeOwnerId));
   var thumbs = photos.map(function(ph, i) {
-    return '<img class="photo-thumb" src="' + ph.url + '" onclick=\'openLightbox(' + JSON.stringify(urls) + ',' + i + ')\'>';
+    var isReported = !!ph.reported;
+    var wrapClass = 'photo-wrap' + (isReported ? ' photo-reported' : '');
+    var actionBtn = '';
+    if (canMod && isReported) {
+      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')" title="Supprimer cette photo">🗑</button>';
+    } else if (currentUser && !isReported && currentUser.id !== ph.uploaded_by) {
+      actionBtn = '<button class="photo-btn photo-btn-report" onclick="reportPhoto(\'' + escHtml(ph.id) + '\',\'' + pid + '\')" title="Signaler cette photo">🚩</button>';
+    }
+    return '<div class="' + wrapClass + '"><img class="photo-thumb" src="' + escHtml(ph.url) + '" onclick=\'openLightbox(' + JSON.stringify(urls) + ',' + i + ')\'>' + actionBtn + '</div>';
   }).join('');
   var canAdd = currentUser && photos.length < maxPhotos;
   var addBtn = canAdd
@@ -4732,8 +4749,36 @@ async function uploadPhoto(pid, input) {
   var url = pub.data.publicUrl;
   await db.from('place_photos').insert({ place_id: pid, url: url, uploaded_by: currentUser.id, uploader_name: currentUsername || currentUser.email.split('@')[0] });
   showToast('Photo ajoutée !', 'success');
-  var res = await db.from('place_photos').select('url,uploader_name').eq('place_id', pid).order('created_at');
-  renderPhotos(pid, res.data || [], maxPhotos);
+  var el2 = document.getElementById('photos-' + pid);
+  var ownerId = el2 ? el2.dataset.ownerId : '';
+  var res = await db.from('place_photos').select('id,url,uploader_name,uploaded_by,reported').eq('place_id', pid).order('created_at');
+  renderPhotos(pid, res.data || [], maxPhotos, ownerId);
+}
+
+async function reportPhoto(photoId, pid) {
+  if (!currentUser) { showToast('Connectez-vous pour signaler', 'error'); return; }
+  await db.from('place_photos').update({ reported: true }).eq('id', photoId);
+  showToast('📷 Photo signalée — un modérateur va l\'examiner', 'success');
+  var el = document.getElementById('photos-' + pid);
+  var catId = el ? el.dataset.catId : '';
+  var ownerId = el ? el.dataset.ownerId : '';
+  loadPhotos(pid, catId, ownerId);
+}
+
+async function deleteReportedPhoto(photoId, photoUrl, pid) {
+  if (!currentUser || (!isAdmin && !isModerator)) {
+    var el0 = document.getElementById('photos-' + pid);
+    var ownerId0 = el0 ? el0.dataset.ownerId : '';
+    if (!ownerId0 || currentUser.id !== ownerId0) { showToast('Non autorisé', 'error'); return; }
+  }
+  var pathMatch = photoUrl.match(/place-photos\/(.+)$/);
+  if (pathMatch) await db.storage.from('place-photos').remove([decodeURIComponent(pathMatch[1])]);
+  await db.from('place_photos').delete().eq('id', photoId);
+  showToast('Photo supprimée', 'success');
+  var el = document.getElementById('photos-' + pid);
+  var catId = el ? el.dataset.catId : '';
+  var ownerId = el ? el.dataset.ownerId : '';
+  loadPhotos(pid, catId, ownerId);
 }
 
 function openLightbox(urls, index) {
