@@ -3274,7 +3274,7 @@ async function loadAdminStats() {
   var el = document.getElementById('admin-stats-content');
   if (!el) return;
   var results = await Promise.all([
-    db.from('profiles').select('id', { count: 'exact', head: true }),
+    db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     db.from('places').select('id', { count: 'exact', head: true }).eq('hidden', true),
