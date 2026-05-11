@@ -4942,14 +4942,20 @@ async function loadReportedPlaces() {
   var el = document.getElementById('reported-places-list');
   if (!el) return;
   el.innerHTML = '<div style="color:var(--text2);">Chargement...</div>';
-  var res = await db.from('reports').select('place_id,reason,details,photo_url,user_id,profiles(username),places(id,name,user_name,latitude,longitude)').order('created_at', { ascending: false });
+  var res = await db.from('reports').select('place_id,reason,details,photo_url,user_id,places(id,name,user_name,latitude,longitude)').order('created_at', { ascending: false });
   if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:12px;">Erreur : ' + escHtml(res.error.message) + '</div>'; return; }
   var data = res.data || [];
   if (!data.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun signalement</div>'; return; }
+  var userIds = [...new Set(data.map(function(r) { return r.user_id; }).filter(Boolean))];
+  var usernameMap = {};
+  if (userIds.length) {
+    var profRes = await db.from('profiles').select('user_id,username').in('user_id', userIds);
+    (profRes.data || []).forEach(function(p) { usernameMap[p.user_id] = p.username; });
+  }
   var grouped = {};
   data.forEach(function(r) {
     if (!grouped[r.place_id]) grouped[r.place_id] = { place: r.places, reports: [] };
-    grouped[r.place_id].reports.push({ reason: r.reason, details: r.details, photo_url: r.photo_url, user: (r.profiles && r.profiles.username) || r.user_id });
+    grouped[r.place_id].reports.push({ reason: r.reason, details: r.details, photo_url: r.photo_url, user: usernameMap[r.user_id] || r.user_id });
   });
   var reasons = { closed: 'Fermé', wrong_info: 'Infos incorrectes', duplicate: 'Doublon', inappropriate: 'Inapproprié', bad_photo: 'Photo inappropriée', other: 'Autre', maintenance: 'En maintenance', wrong_location: 'Emplacement incorrect' };
   el.innerHTML = Object.entries(grouped).map(function(entry) {
