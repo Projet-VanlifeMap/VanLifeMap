@@ -700,6 +700,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
         </div>
         <div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>
       </div>
+      <div id="push-notif-row" class="setting-row" style="display:none;">
+        <div>
+          <div class="setting-label">&#128276; Notifications push</div>
+          <div class="setting-desc" id="push-notif-desc">Recevez une alerte même quand l'app est fermée</div>
+        </div>
+        <div class="toggle" id="toggle-push" onclick="togglePushSetting()"></div>
+      </div>
       <div id="mod-pending-section" style="display:none;border-top:1px solid var(--border);padding-top:14px;margin-top:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div class="setting-label" style="margin:0;">&#9203; Lieux en attente <span id="pending-count-badge" style="background:var(--accent);color:#000;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px;">0</span></div>
@@ -872,6 +879,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
 <script>
 var SUPABASE_URL = 'https://xssfehwbmvrxtxmocowc.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_lB89hOOAXUCIheGRbS2wEQ_L7uVajNV';
+var VAPID_PUBLIC_KEY = 'CPBzALfWxkBC_BcI7P2wZ5_l-y67fnob5v-pbXN3x-Sobf6CfgLFIuJk9w9HethVkeNa-8YN6hMODFSKY8C1GQ';
 var db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var map, cluster;
@@ -1040,6 +1048,63 @@ function toggleSat() {
   var newState = !isSat;
   applySat(newState);
   savePrefs({ satellite: newState });
+}
+
+function urlBase64ToUint8Array(b) {
+  var pad = '='.repeat((4 - b.length % 4) % 4);
+  var raw = atob((b + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  var arr = new Uint8Array(raw.length);
+  for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+async function initPushToggle() {
+  if (!currentUser || !('PushManager' in window)) return;
+  var row = document.getElementById('push-notif-row');
+  if (row) row.style.display = 'flex';
+  var toggle = document.getElementById('toggle-push');
+  if (!toggle) return;
+  var reg = await navigator.serviceWorker.ready;
+  var sub = await reg.pushManager.getSubscription();
+  toggle.classList.toggle('active', !!sub);
+  var desc = document.getElementById('push-notif-desc');
+  if (desc) desc.textContent = sub ? 'Notifications actives sur cet appareil' : 'Recevez une alerte même quand l\'app est fermée';
+}
+
+async function togglePushSetting() {
+  if (!currentUser) { showToast('Connectez-vous pour activer les notifications', 'error'); return; }
+  if (!('PushManager' in window)) { showToast('Non supporté sur ce navigateur', 'error'); return; }
+  var reg = await navigator.serviceWorker.ready;
+  var sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    await db.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+    await sub.unsubscribe();
+    var toggle = document.getElementById('toggle-push');
+    if (toggle) toggle.classList.remove('active');
+    var desc = document.getElementById('push-notif-desc');
+    if (desc) desc.textContent = "Recevez une alerte même quand l'app est fermée";
+    showToast('Notifications désactivées', '');
+  } else {
+    var perm = await Notification.requestPermission();
+    if (perm !== 'granted') { showToast('Permission refusée', 'error'); return; }
+    try {
+      var newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
+      var json = newSub.toJSON();
+      await db.from('push_subscriptions').upsert({ user_id: currentUser.id, endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth }, { onConflict: 'user_id,endpoint' });
+      var toggle2 = document.getElementById('toggle-push');
+      if (toggle2) toggle2.classList.add('active');
+      var desc2 = document.getElementById('push-notif-desc');
+      if (desc2) desc2.textContent = 'Notifications actives sur cet appareil';
+      showToast('&#128276; Notifications activées !', 'success');
+    } catch(e) { showToast('Erreur : ' + e.message, 'error'); }
+  }
+}
+
+async function sendPush(userIds, title, body, url) {
+  if (!userIds || !userIds.length) return;
+  try {
+    await db.functions.invoke('send-push', { body: { user_ids: userIds, title: title, body: body, url: url || '/' } });
+  } catch(e) {}
 }
 
 function toggleSatSetting() {
@@ -1216,6 +1281,7 @@ function navTo(tab) {
 
 function openSheet(id) {
   document.getElementById(id).classList.add('open');
+  if (id === 'sheet-settings') { initPushToggle(); }
   if (id === 'sheet-settings' && (isAdmin || isModerator)) {
     var pend = document.getElementById('mod-pending-section');
     if (pend) { pend.style.display = 'block'; loadPendingPlaces(); }
@@ -2838,6 +2904,7 @@ async function validatePlace(pid) {
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
   if (placeRes.data) {
     insertPlaceNotif(placeRes.data.user_id, 'place_validated', '✅ Votre lieu « ' + placeRes.data.name + ' » a été validé et publié !', pid);
+    sendPush([placeRes.data.user_id], '✅ Lieu validé !', 'Votre lieu « ' + placeRes.data.name + ' » a été publié sur la carte', '/');
   }
   showToast('✅ Lieu validé et publié !', 'success');
   closePlaceSheet();
@@ -2852,6 +2919,7 @@ async function rejectPlace(pid, name) {
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
   if (placeRes.data) {
     insertPlaceNotif(placeRes.data.user_id, 'place_rejected', '❌ Votre lieu « ' + name + ' » a été refusé par un modérateur', null);
+    sendPush([placeRes.data.user_id], '❌ Lieu refusé', 'Votre lieu « ' + name + ' » a été refusé par un modérateur', '/');
   }
   showToast('❌ Lieu refusé et supprimé', 'success');
   closePlaceSheet();
@@ -3492,7 +3560,10 @@ async function approvePendingPlace(pid, name) {
   var placeRes = await db.from('places').select('user_id').eq('id', pid).maybeSingle();
   var res = await db.from('places').update({ status: 'active' }).eq('id', pid);
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
-  if (placeRes.data) insertPlaceNotif(placeRes.data.user_id, 'place_validated', '&#10003; Votre lieu « ' + name + ' » a été validé et publié !', pid);
+  if (placeRes.data) {
+    insertPlaceNotif(placeRes.data.user_id, 'place_validated', '&#10003; Votre lieu « ' + name + ' » a été validé et publié !', pid);
+    sendPush([placeRes.data.user_id], '&#10003; Lieu validé !', 'Votre lieu « ' + name + ' » a été publié sur la carte', '/');
+  }
   showToast('&#10003; Lieu validé et publié !', 'success');
   var item = document.getElementById('pending-item-' + pid);
   if (item) item.remove();
@@ -3506,7 +3577,10 @@ async function rejectPendingPlace(pid, name) {
   var placeRes = await db.from('places').select('user_id').eq('id', pid).maybeSingle();
   var res = await db.from('places').delete().eq('id', pid);
   if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
-  if (placeRes.data) insertPlaceNotif(placeRes.data.user_id, 'place_rejected', '&#10007; Votre lieu « ' + name + ' » a été refusé par un modérateur', null);
+  if (placeRes.data) {
+    insertPlaceNotif(placeRes.data.user_id, 'place_rejected', '&#10007; Votre lieu « ' + name + ' » a été refusé par un modérateur', null);
+    sendPush([placeRes.data.user_id], '&#10007; Lieu refusé', 'Votre lieu « ' + name + ' » a été refusé par un modérateur', '/');
+  }
   showToast('&#10007; Lieu refusé et supprimé', 'success');
   var item = document.getElementById('pending-item-' + pid);
   if (item) item.remove();
@@ -4370,6 +4444,7 @@ async function notifyMods(type, message, placeId) {
   var res = await db.from('trusted_users').select('user_id').in('role', ['admin', 'moderator']);
   var ids = (res.data || []).map(function(u) { return u.user_id; });
   await Promise.all(ids.map(function(uid) { return insertPlaceNotif(uid, type, message, placeId); }));
+  sendPush(ids, '&#9203; Lieu en attente', message, '/');
 }
 
 function timeAgo(dateStr) {
