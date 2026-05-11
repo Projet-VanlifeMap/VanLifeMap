@@ -940,7 +940,7 @@ fr:{
   profile_join:'Rejoindre la communauté',
   profile_join_desc:'Connecte-toi pour ajouter des lieux, voter, commenter et accéder à la vue satellite',
   profile_login_btn:'Se connecter / S\'inscrire',
-  profile_places_added:'Lieux ajoutés', profile_validated:'Lieux validés',
+  profile_places_added:'Lieux ajoutés', profile_validated:'Confirmations',
   profile_comments:'Commentaires', profile_votes:'Votes donnés', profile_favorites:'Favoris',
   profile_avg_rating:'Note moyenne reçue', profile_ranking:'Classement communauté',
   profile_settings:'⚙️ Réglages', profile_change_country:'🌍 Changer ou ajouter un pays',
@@ -1063,7 +1063,7 @@ en:{
   profile_join:'Join the community',
   profile_join_desc:'Sign in to add places, vote, comment and access satellite view',
   profile_login_btn:'Sign in / Register',
-  profile_places_added:'Places added', profile_validated:'Places validated',
+  profile_places_added:'Places added', profile_validated:'Confirmations',
   profile_comments:'Comments', profile_votes:'Votes given', profile_favorites:'Favorites',
   profile_avg_rating:'Average rating received', profile_ranking:'Community ranking',
   profile_settings:'⚙️ Settings', profile_change_country:'🌍 Change or add a country',
@@ -1185,7 +1185,7 @@ es:{
   profile_join:'Únete a la comunidad',
   profile_join_desc:'Inicia sesión para añadir lugares, votar, comentar y acceder a la vista satélite',
   profile_login_btn:'Iniciar sesión / Registrarse',
-  profile_places_added:'Lugares añadidos', profile_validated:'Lugares validados',
+  profile_places_added:'Lugares añadidos', profile_validated:'Confirmaciones',
   profile_comments:'Comentarios', profile_votes:'Votos dados', profile_favorites:'Favoritos',
   profile_avg_rating:'Nota media recibida', profile_ranking:'Clasificación comunidad',
   profile_settings:'⚙️ Ajustes', profile_change_country:'🌍 Cambiar o añadir país',
@@ -1307,7 +1307,7 @@ de:{
   profile_join:'Der Community beitreten',
   profile_join_desc:'Melde dich an um Orte hinzuzufügen, abzustimmen, zu kommentieren und die Satellitenansicht zu nutzen',
   profile_login_btn:'Anmelden / Registrieren',
-  profile_places_added:'Hinzugefügte Orte', profile_validated:'Validierte Orte',
+  profile_places_added:'Hinzugefügte Orte', profile_validated:'Bestätigungen',
   profile_comments:'Kommentare', profile_votes:'Abgegebene Stimmen', profile_favorites:'Favoriten',
   profile_avg_rating:'Durchschnittliche Bewertung', profile_ranking:'Community-Rangliste',
   profile_settings:'⚙️ Einstellungen', profile_change_country:'🌍 Land ändern oder hinzufügen',
@@ -1429,7 +1429,7 @@ it:{
   profile_join:'Unisciti alla comunità',
   profile_join_desc:'Accedi per aggiungere luoghi, votare, commentare e accedere alla vista satellitare',
   profile_login_btn:'Accedi / Registrati',
-  profile_places_added:'Luoghi aggiunti', profile_validated:'Luoghi validati',
+  profile_places_added:'Luoghi aggiunti', profile_validated:'Conferme',
   profile_comments:'Commenti', profile_votes:'Voti dati', profile_favorites:'Preferiti',
   profile_avg_rating:'Valutazione media ricevuta', profile_ranking:'Classifica comunità',
   profile_settings:'⚙️ Impostazioni', profile_change_country:'🌍 Cambia o aggiungi paese',
@@ -1551,7 +1551,7 @@ pt:{
   profile_join:'Junte-se à comunidade',
   profile_join_desc:'Entre para adicionar locais, votar, comentar e aceder à vista de satélite',
   profile_login_btn:'Entrar / Registrar',
-  profile_places_added:'Locais adicionados', profile_validated:'Locais validados',
+  profile_places_added:'Locais adicionados', profile_validated:'Confirmações',
   profile_comments:'Comentários', profile_votes:'Votos dados', profile_favorites:'Favoritos',
   profile_avg_rating:'Avaliação média recebida', profile_ranking:'Classificação comunidade',
   profile_settings:'⚙️ Configurações', profile_change_country:'🌍 Alterar ou adicionar país',
@@ -1673,7 +1673,7 @@ nl:{
   profile_join:'Word lid van de community',
   profile_join_desc:'Log in om locaties toe te voegen, te stemmen, te reageren en satellietweergave te gebruiken',
   profile_login_btn:'Inloggen / Registreren',
-  profile_places_added:'Locaties toegevoegd', profile_validated:'Gevalideerde locaties',
+  profile_places_added:'Locaties toegevoegd', profile_validated:'Bevestigingen',
   profile_comments:'Reacties', profile_votes:'Gegeven stemmen', profile_favorites:'Favorieten',
   profile_avg_rating:'Gemiddelde ontvangen beoordeling', profile_ranking:'Community ranglijst',
   profile_settings:'⚙️ Instellingen', profile_change_country:'🌍 Land wijzigen of toevoegen',
@@ -2303,7 +2303,7 @@ async function renderProfile() {
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
     + '<div class="prof-stat" onclick="toggleProfPlaces()" style="cursor:pointer;" title="Voir mes lieux"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">Lieux ajout\u00e9s</div></div><span id="prof-places-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat" onclick="toggleProfValidated()" style="cursor:pointer;" title="Voir mes lieux valid\u00e9s"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val" id="prof-validated">\u2014</div><div class="prof-stat-lbl">Lieux valid\u00e9s</div></div><span id="prof-validated-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfValidated()" style="cursor:pointer;" title="Voir mes confirmations de lieux"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val" id="prof-validated">\u2014</div><div class="prof-stat-lbl">Confirmations</div></div><span id="prof-validated-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Votes donn\u00e9s</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
     + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">Favoris</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
@@ -2579,7 +2579,7 @@ async function openPublicProfile(username) {
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
     + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
-    + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Lieux valid&eacute;s</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Confirmations</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Votes donn&eacute;s</div></div></div>'
     + '</div></div>'
