@@ -1627,14 +1627,17 @@ async function openPublicProfile(username) {
     _pubProfileData = { userId: null, username: username };
     var stats = await Promise.all([
       db.from('places').select('*', { count: 'exact', head: true }).eq('user_name', username),
-      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username)
+      db.from('comments').select('*', { count: 'exact', head: true }).eq('user_name', username),
+      db.from('places').select('created_at').eq('user_name', username).order('created_at', { ascending: true }).limit(1)
     ]);
     placesCount = stats[0].count || 0;
     commentsCount = stats[1].count || 0;
+    var firstPlaceDate = stats[2].data && stats[2].data[0] ? stats[2].data[0].created_at : null;
   }
 
   var initials = username.slice(0, 2).toUpperCase();
-  var joinDate = profile ? new Date(profile.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+  var rawDate = profile ? profile.created_at : (typeof firstPlaceDate !== 'undefined' ? firstPlaceDate : null);
+  var joinDate = rawDate ? new Date(rawDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   var pubUserRole = typeof pubUserRole !== 'undefined' ? pubUserRole : null;
   var pubUserBanned = typeof pubUserBanned !== 'undefined' ? pubUserBanned : false;
   var roleBadge = pubUserRole === 'admin' ? '&#128081; Administrateur' : pubUserRole === 'moderator' ? '&#128737;&#65039; Modérateur' : pubUserRole === 'trusted' ? '&#11088; Membre de confiance' : null;
@@ -1659,7 +1662,7 @@ async function openPublicProfile(username) {
     + '</div>'
     + '<div class="prof-identity">'
     + '<div class="prof-username">' + escHtml(username) + '</div>'
-    + '<div class="prof-meta">' + (joinDate ? '<span>&#128197; Inscrit le ' + joinDate + '</span>' : '<span>Ancien membre</span>') + '</div>'
+    + '<div class="prof-meta">' + (joinDate ? '<span>&#128197; Inscrit le ' + joinDate + '</span>' : '') + '</div>'
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
     + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
