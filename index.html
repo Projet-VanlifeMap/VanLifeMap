@@ -2182,6 +2182,7 @@ function goToPlace(lat, lng) {
 }
 
 function onMapClick(e) {
+  if (_moveModePlaceId) { handleMoveModeClick(e.latlng); return; }
   closePlaceSheet();
   if (radiusMode) { setRadiusCenter(e.latlng); return; }
   if (!addingMode) return;
@@ -2540,6 +2541,7 @@ function makeFuelHtml(fuel) {
 }
 
 function makePopup(p) {
+  window._currentPopupPlace = p;
   var cat = p.categories;
   var color = cat ? cat.color : '#ffd04f';
   var icon  = cat ? cat.icon  : '\ud83d\udccd';
@@ -2605,7 +2607,7 @@ function makePopup(p) {
     + '<div class="pv2-nav">'
     + '<button onclick="toggleNav(\'' + safeId + '\')" class="pv2-nav-btn pv2-btn-goto">&#128205; M\'y rendre</button>'
     + (currentUser ? '<button id="btn-fav-' + safeId + '" onclick="toggleFavorite(\'' + safeId + '\')" class="pv2-nav-btn pv2-btn-fav" title="Favoris">&#9825;</button>' : '')
-    + (currentUser && (currentUser.id === p.user_id || isAdmin) ? '<button onclick="openEditPlace(\'' + safeId + '\',\'' + safeName + '\',\'' + (p.description||'').replace(/'/g,"\\'") + '\')" class="pv2-nav-btn pv2-btn-edit" title="Modifier">&#9998;</button>' : '')
+    + (currentUser && (currentUser.id === p.user_id || isAdmin) ? '<button onclick="openEditPlace()" class="pv2-nav-btn pv2-btn-edit" title="Modifier">&#9998;</button>' : '')
     + '<button onclick="sharePlace(\'' + safeId + '\',\'' + safeName + '\',' + p.latitude + ',' + p.longitude + ')" class="pv2-nav-btn pv2-btn-share" title="Partager"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>'
     + '</div>'
     + (currentUser && p.status === 'pending' ? '<div id="validation-box-' + safeId + '" class="pv2-validation-box"><div id="validation-info-' + safeId + '" style="font-size:12px;color:#f59e0b;margin-bottom:8px;">⏳ Chargement des votes...</div><button class="pv2-mod-btn pv2-mod-show" onclick="voteValidation(\'' + safeId + '\')">👍 Valider ce lieu</button></div>' : '')
@@ -2670,12 +2672,33 @@ function openPlaceSheet(p) {
   if (p.status === 'pending' && currentUser) loadValidationCount(p.id);
 }
 
-function openEditPlace(pid, name, desc) {
-  document.getElementById('edit-place-id').value = pid;
-  document.getElementById('edit-place-name').value = name;
-  document.getElementById('edit-place-desc').value = desc;
+function openEditPlace() {
+  var p = window._currentPopupPlace;
+  if (!p) return;
+  document.getElementById('edit-place-id').value = p.id;
+  document.getElementById('edit-place-name').value = p.name || '';
+  document.getElementById('edit-place-desc').value = p.description || '';
+  var subCat = allCats.find(function(c) { return c.id === p.category_id; });
+  var currentMainId = p.main_category_id || (subCat ? subCat.main_category_id : '');
+  var mainSel = document.getElementById('edit-main-cat');
+  mainSel.innerHTML = '<option value="">-- Choisir --</option>' + mainCats.map(function(mc) {
+    return '<option value="' + mc.id + '"' + (mc.id === currentMainId ? ' selected' : '') + '>' + mc.icon + ' ' + mc.name + '</option>';
+  }).join('');
+  loadEditSubCats(p.category_id);
+  var catRow = document.getElementById('edit-cat-row');
+  if (catRow) catRow.style.display = isAdmin ? 'block' : 'none';
+  var repoBtn = document.getElementById('edit-repo-btn');
+  if (repoBtn) repoBtn.style.display = isAdmin ? 'block' : 'none';
   document.getElementById('edit-place-modal').style.display = 'block';
   document.getElementById('edit-place-bd').style.display = 'block';
+}
+
+function loadEditSubCats(selectedCatId) {
+  var mid = document.getElementById('edit-main-cat').value;
+  var sel = document.getElementById('edit-sub-cat');
+  sel.innerHTML = '<option value="">-- Choisir --</option>' + allCats.filter(function(c) { return c.main_category_id === mid; }).map(function(c) {
+    return '<option value="' + c.id + '"' + (c.id === selectedCatId ? ' selected' : '') + '>' + c.icon + ' ' + c.name + '</option>';
+  }).join('');
 }
 
 function closeEditPlace() {
@@ -2688,10 +2711,46 @@ async function saveEditPlace() {
   var name = document.getElementById('edit-place-name').value.trim();
   var desc = document.getElementById('edit-place-desc').value.trim();
   if (!name) { showToast('Le nom est obligatoire', 'error'); return; }
-  var res = await db.from('places').update({ name: name, description: desc }).eq('id', pid).eq('user_id', currentUser.id);
+  var updates = { name: name, description: desc };
+  var res;
+  if (isAdmin) {
+    var mainCatId = document.getElementById('edit-main-cat').value;
+    var catId = document.getElementById('edit-sub-cat').value;
+    if (mainCatId) updates.main_category_id = mainCatId;
+    if (catId) updates.category_id = catId;
+    res = await db.from('places').update(updates).eq('id', pid);
+  } else {
+    res = await db.from('places').update(updates).eq('id', pid).eq('user_id', currentUser.id);
+  }
   if (res.error) { showToast('Erreur lors de la modification', 'error'); return; }
   closeEditPlace();
   showToast('Lieu modifié !', 'success');
+  scheduleLoad();
+}
+
+var _moveModePlaceId = null;
+function startMoveMode() {
+  var pid = document.getElementById('edit-place-id').value;
+  if (!pid) return;
+  _moveModePlaceId = pid;
+  closeEditPlace();
+  closePlaceSheet();
+  var banner = document.getElementById('move-mode-banner');
+  if (banner) banner.style.display = 'flex';
+}
+
+function cancelMoveMode() {
+  _moveModePlaceId = null;
+  var banner = document.getElementById('move-mode-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+async function handleMoveModeClick(latlng) {
+  var pid = _moveModePlaceId;
+  cancelMoveMode();
+  var res = await db.from('places').update({ latitude: latlng.lat, longitude: latlng.lng }).eq('id', pid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('&#128205; Position mise à jour !', 'success');
   scheduleLoad();
 }
 
@@ -4455,15 +4514,28 @@ function applyMaskLayer() {
   </div>
 </div>
 
+<!-- MOVE MODE BANNER -->
+<div id="move-mode-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:6000;background:rgba(255,140,0,0.95);color:#000;padding:14px 16px;align-items:center;justify-content:space-between;gap:10px;">
+  <span style="font-size:14px;font-weight:700;">&#128205; Tapez sur la carte pour déplacer le lieu</span>
+  <button onclick="cancelMoveMode()" style="background:rgba(0,0,0,0.18);border:none;color:#000;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">Annuler</button>
+</div>
+
 <!-- EDIT PLACE MODAL -->
 <div id="edit-place-bd" onclick="closeEditPlace()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:5000;"></div>
-<div id="edit-place-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5001;background:var(--surface);border-radius:16px;padding:20px;width:min(340px,calc(100vw - 32px));box-shadow:0 8px 40px rgba(0,0,0,0.7);">
-  <div style="font-size:15px;font-weight:700;margin-bottom:14px;">✏️ Modifier le lieu</div>
+<div id="edit-place-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5001;background:var(--surface);border-radius:16px;padding:20px;width:min(340px,calc(100vw - 32px));box-shadow:0 8px 40px rgba(0,0,0,0.7);max-height:90vh;overflow-y:auto;">
+  <div style="font-size:15px;font-weight:700;margin-bottom:14px;">&#9998; Modifier le lieu</div>
   <input type="hidden" id="edit-place-id">
   <label style="font-size:12px;color:var(--text2);">Nom</label>
   <input id="edit-place-name" type="text" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 10px;box-sizing:border-box;">
   <label style="font-size:12px;color:var(--text2);">Description</label>
-  <textarea id="edit-place-desc" rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 14px;box-sizing:border-box;resize:vertical;"></textarea>
+  <textarea id="edit-place-desc" rows="3" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 10px;box-sizing:border-box;resize:vertical;"></textarea>
+  <div id="edit-cat-row" style="display:none;">
+    <label style="font-size:12px;color:var(--text2);">Grande catégorie</label>
+    <select id="edit-main-cat" onchange="loadEditSubCats(null)" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 10px;box-sizing:border-box;"></select>
+    <label style="font-size:12px;color:var(--text2);">Sous-catégorie</label>
+    <select id="edit-sub-cat" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 10px;box-sizing:border-box;"></select>
+  </div>
+  <button id="edit-repo-btn" onclick="startMoveMode()" style="display:none;width:100%;background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.4);color:#ff8c00;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px;box-sizing:border-box;">&#128205; Repositionner sur la carte</button>
   <div style="display:flex;gap:8px;">
     <button onclick="saveEditPlace()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">Sauvegarder</button>
     <button onclick="closeEditPlace()" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:13px;cursor:pointer;">Annuler</button>
