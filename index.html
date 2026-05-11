@@ -651,11 +651,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
       <button class="comm-filter active" data-filter="all" onclick="filterComm('all',this)">Tout</button>
       <button class="comm-filter" data-filter="annonce" onclick="filterComm('annonce',this)">&#128226; Annonces</button>
       <button class="comm-filter" data-filter="message" onclick="filterComm('message',this)">&#128172; Messages</button>
-      <button class="comm-filter" data-filter="signalement" onclick="filterComm('signalement',this)">&#9888;&#65039; Signalements</button>
       <button class="comm-filter" data-filter="support" onclick="filterComm('support',this)">&#128295; Support</button>
-      <button class="comm-filter" data-filter="activite" onclick="filterComm('activite',this)">&#128205; Activité</button>
-      <button class="comm-filter" data-filter="stats" onclick="filterComm('stats',this)">&#128202; Stats</button>
-      <button class="comm-filter" data-filter="rank" onclick="filterComm('rank',this)">&#127942; Classement</button>
       <button class="comm-filter" data-filter="notifs" onclick="filterComm('notifs',this)" id="notif-filter-btn">&#128276; Notifications</button>
     </div>
     <div class="comm-feed" id="comm-feed">
@@ -677,7 +673,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-body);ba
     </div>
     <div class="comm-type-selector">
       <button class="comm-type-btn active" data-type="message" onclick="selectPostType('message',this)">&#128172; Message</button>
-      <button class="comm-type-btn" data-type="signalement" onclick="selectPostType('signalement',this)">&#9888;&#65039; Signalement</button>
       <button class="comm-type-btn" data-type="support" onclick="selectPostType('support',this)">&#128295; Support</button>
       <button class="comm-type-btn" id="comm-type-annonce" data-type="annonce" onclick="selectPostType('annonce',this)" style="display:none;">&#128226; Annonce</button>
     </div>
@@ -4383,15 +4378,11 @@ async function loadCommunity() {
   detail.style.display = 'none';
   feed.style.display = 'block';
   feed.innerHTML = '<div class="comm-empty">Chargement...</div>';
-  if (commFilter === 'rank') { renderLeaderboardInComm(); return; }
-  if (commFilter === 'stats') { renderCommStats(); return; }
-  if (commFilter === 'activite') { renderCommActivite(); return; }
   var query = db.from('community_posts').select('*').order('created_at', { ascending: false }).limit(60);
   if (commFilter === 'all') {
-    // Annonces épinglées en premier, puis le reste
     var [anRes, restRes] = await Promise.all([
       db.from('community_posts').select('*').eq('type', 'annonce').order('created_at', { ascending: false }),
-      db.from('community_posts').select('*').neq('type', 'annonce').order('created_at', { ascending: false }).limit(60)
+      db.from('community_posts').select('*').in('type', ['message', 'support']).order('created_at', { ascending: false }).limit(60)
     ]);
     commPosts = [...(anRes.data || []), ...(restRes.data || [])];
   } else {
@@ -4438,70 +4429,6 @@ function filterComm(type, btn) {
   loadCommunity();
 }
 
-async function renderCommStats() {
-  var feed = document.getElementById('comm-feed');
-  feed.innerHTML = '<div class="comm-empty">Chargement...</div>';
-  var now = new Date();
-  var startMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  var startWeek = new Date(now.getTime() - 7 * 86400000).toISOString();
-  var [totalRes, monthRes, weekRes, commentsRes, membersRes, topCatRes] = await Promise.all([
-    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active').gte('created_at', startMonth),
-    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active').gte('created_at', startWeek),
-    db.from('comments').select('id', { count: 'exact', head: true }),
-    db.from('profiles').select('id', { count: 'exact', head: true }),
-    db.from('places').select('categories(name,icon)').eq('status', 'active').limit(500)
-  ]);
-  // Top catégorie
-  var catCount = {};
-  (topCatRes.data || []).forEach(function(p) {
-    if (p.categories) {
-      var key = (p.categories.icon || '') + ' ' + (p.categories.name || '');
-      catCount[key] = (catCount[key] || 0) + 1;
-    }
-  });
-  var topCat = Object.entries(catCount).sort(function(a, b) { return b[1] - a[1]; })[0];
-  feed.innerHTML = '<div style="padding:4px 0 8px;font-size:12px;color:var(--text2);font-weight:600;">&#128202; Statistiques communautaires</div>'
-    + '<div class="comm-stat-grid">'
-    + '<div class="comm-stat-card"><div class="comm-stat-val">' + (totalRes.count || 0) + '</div><div class="comm-stat-label">&#128205; Lieux actifs</div></div>'
-    + '<div class="comm-stat-card"><div class="comm-stat-val">' + (membersRes.count || 0) + '</div><div class="comm-stat-label">&#128100; Membres</div></div>'
-    + '<div class="comm-stat-card"><div class="comm-stat-val">' + (monthRes.count || 0) + '</div><div class="comm-stat-label">&#128197; Ajoutés ce mois</div></div>'
-    + '<div class="comm-stat-card"><div class="comm-stat-val">' + (weekRes.count || 0) + '</div><div class="comm-stat-label">&#128336; Ajoutés cette semaine</div></div>'
-    + '<div class="comm-stat-card"><div class="comm-stat-val">' + (commentsRes.count || 0) + '</div><div class="comm-stat-label">&#128172; Commentaires</div></div>'
-    + (topCat ? '<div class="comm-stat-card"><div class="comm-stat-val" style="font-size:14px;">' + escHtml(topCat[0]) + '</div><div class="comm-stat-label">&#127942; Top catégorie</div></div>' : '')
-    + '</div>';
-}
-
-async function renderCommActivite() {
-  var feed = document.getElementById('comm-feed');
-  feed.innerHTML = '<div class="comm-empty">Chargement...</div>';
-  var res = await db.from('places').select('id,name,user_name,created_at,latitude,longitude,categories(name,icon),main_categories(name,icon)').eq('status', 'active').order('created_at', { ascending: false }).limit(40);
-  var data = res.data || [];
-  if (!data.length) { feed.innerHTML = '<div class="comm-empty">Aucune activité récente</div>'; return; }
-  feed.innerHTML = '<div style="padding:4px 0 8px;font-size:12px;color:var(--text2);font-weight:600;">&#128205; Derniers lieux ajoutés</div>'
-    + data.map(function(p) {
-      var icon = (p.categories && p.categories.icon) || (p.main_categories && p.main_categories.icon) || '&#128205;';
-      var cat = (p.categories && p.categories.name) || (p.main_categories && p.main_categories.name) || '';
-      var ago = timeAgo(p.created_at);
-      return '<div class="comm-activity-item">'
-        + '<div class="comm-activity-icon">' + icon + '</div>'
-        + '<div class="comm-activity-info">'
-        + '<div class="comm-activity-name">' + escHtml(p.name) + '</div>'
-        + '<div class="comm-activity-meta">' + escHtml(cat) + ' &bull; par ' + escHtml(p.user_name || 'Anonyme') + ' &bull; ' + ago + '</div>'
-        + '</div>'
-        + (p.latitude ? '<button onclick="goToActivityPlace(' + p.latitude + ',' + p.longitude + ',\'' + p.id + '\')" style="flex-shrink:0;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Voir</button>' : '')
-        + '</div>';
-    }).join('');
-}
-
-function goToActivityPlace(lat, lng, pid) {
-  closeSheet('sheet-community');
-  map.flyTo([lat, lng], 16, { duration: 0.8 });
-  setTimeout(function() {
-    var place = allPlaces.find(function(p) { return p.id === pid; });
-    if (place) openPlaceSheet(place);
-  }, 900);
-}
 
 async function openPostDetail(id) {
   var post = commPosts.find(function(p) { return p.id === id; });
@@ -4670,12 +4597,6 @@ async function cycleStatus(id) {
   await db.from('community_posts').update({ status: next }).eq('id', id);
   post.status = next;
   openPostDetail(id);
-}
-
-function renderLeaderboardInComm() {
-  var feed = document.getElementById('comm-feed');
-  feed.innerHTML = '<div class="comm-empty">Chargement classement...</div>';
-  loadLeaderboard('places');
 }
 
 // ===== NOTIFICATIONS =====
