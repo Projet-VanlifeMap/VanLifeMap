@@ -1797,6 +1797,9 @@ async function loadUserRole() {
         if (res.data.role === 'moderator') isModerator = true;
         if (res.data.role === 'trusted') isTrusted = true;
       }
+      if (isAdmin && (!res.data || res.data.role !== 'admin')) {
+        await db.from('trusted_users').upsert({ user_id: currentUser.id, role: 'admin' }, { onConflict: 'user_id' });
+      }
     } catch(e) {}
   }
   if (isAdmin) { isModerator = true; isTrusted = true; }
