@@ -5729,8 +5729,8 @@ async function loadDashboardTiles() {
   var results = await Promise.all([
     db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
     db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null).gte('registered_at', weekStart),
-    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-    db.from('places').select('id', { count: 'exact', head: true }).gte('created_at', weekStart),
+    db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active').not('user_id', 'is', null),
+    db.from('places').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).not('user_id', 'is', null),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     db.from('reports').select('id', { count: 'exact', head: true }),
     db.from('comment_reports').select('id', { count: 'exact', head: true })
