@@ -5321,32 +5321,32 @@ function renderPostCard(p) {
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 async function translateText(divId, linkId, original) {
-  var lang = (navigator.language || 'fr').split('-')[0];
+  var targetLang = currentLang || (navigator.language || 'fr').split('-')[0];
   var link = document.getElementById(linkId);
   var div = document.getElementById(divId);
   if (!div || !link) return;
   if (link.dataset.translated === '1') {
     div.textContent = original;
-    link.textContent = 'Traduire';
+    link.textContent = t('translate_link');
     link.dataset.translated = '0';
     return;
   }
-  link.textContent = '...';
+  link.textContent = t('translate_loading');
   try {
-    var resp = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(original) + '&langpair=auto|' + lang);
+    var resp = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(original) + '&langpair=fr%7C' + encodeURIComponent(targetLang));
     var json = await resp.json();
     var translated = json.responseData && json.responseData.translatedText;
-    if (translated && translated !== original) {
+    if (translated && translated !== original && translated.indexOf('MYMEMORY WARNING') < 0) {
       div.textContent = translated;
-      link.textContent = 'Voir l\'original';
+      link.textContent = t('translate_original');
       link.dataset.translated = '1';
     } else {
-      link.textContent = 'Traduire';
-      showToast('Traduction non disponible', 'error');
+      link.textContent = t('translate_link');
+      showToast(t('translate_unavailable'), 'error');
     }
   } catch(e) {
-    link.textContent = 'Traduire';
-    showToast('Erreur de traduction', 'error');
+    link.textContent = t('translate_link');
+    showToast(t('translate_error'), 'error');
   }
 }
 
