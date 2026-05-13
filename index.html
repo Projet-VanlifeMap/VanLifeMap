@@ -6292,7 +6292,7 @@ async function loadDashboardTiles() {
 
   var html = tile('&#128101;', 'Membres inscrits', totalMembers, 'showDashMembers()')
     + tile('&#127381;', 'Nouveaux membres', newMembers, 'showDashNewMembers()', 0, 'week', 'cette semaine')
-    + tile('&#128205;', 'Lieux validés total', totalPlaces, 'showDashStats()')
+    + tile('&#128205;', 'Lieux validés total', totalPlaces, 'showDashValidatedPlaces()')
     + tile('&#10024;', 'Nouveaux lieux', newPlaces, 'showDashNewPlaces()', 0, 'week', 'cette semaine')
     + tile('&#9888;&#65039;', 'Lieux signal&eacute;s', reportedPlaces, 'showDashReportedPlaces()', reportedPlaces, reportedPlaces > 0 ? 'urgent' : '')
     + tile('&#128172;', 'Commentaires signal&eacute;s', reportedCmts, 'showDashReportedComments()', reportedCmts, reportedCmts > 0 ? 'urgent' : '');
@@ -6430,7 +6430,7 @@ function showDashNewPlaces() {
           var statusColor = p.status === 'active' ? '#27ae60' : p.status === 'pending' ? '#f39c12' : '#e74c3c';
           var statusLabel = p.status === 'active' ? 'Actif' : p.status === 'pending' ? 'En attente' : 'Masqué';
           var date = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
-          return '<div onclick="viewFromDashboard(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ',\'← Retour aux nouveaux lieux\') style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+          return '<div onclick="viewFromDashboard(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ',\'← Retour aux nouveaux lieux\')\" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
             + '<div style="font-size:22px;flex-shrink:0;">' + icon + '</div>'
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || 'Sans nom') + '</div>'
@@ -6485,6 +6485,34 @@ async function loadDashMembersList() {
         + (date ? '<div style="font-size:11px;color:var(--text2);">Inscrit le ' + date + '</div>' : '') + '</div>'
         + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
     }).join('');
+}
+
+function showDashValidatedPlaces() {
+  showDashDetail('&#128205; Lieux validés', function() {
+    var el = document.getElementById('dash-detail-content');
+    el.innerHTML = '<div id="validated-places-list"><div style="color:var(--text2);font-size:13px;">Chargement...</div></div>';
+    (async function() {
+      var listEl = document.getElementById('validated-places-list');
+      if (!listEl) return;
+      var res = await db.from('places').select('id,name,user_name,created_at,latitude,longitude,categories(icon,name)').eq('status', 'active').order('created_at', { ascending: false }).limit(60);
+      var places = res.data || [];
+      if (!places.length) { listEl.innerHTML = '<div style="color:var(--text2);font-size:13px;text-align:center;padding:16px 0;">Aucun lieu actif</div>'; return; }
+      listEl.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">' + places.length + ' dernier' + (places.length > 1 ? 's' : '') + ' lieu' + (places.length > 1 ? 'x' : '') + ' validé' + (places.length > 1 ? 's' : '') + '</div>'
+        + places.map(function(p) {
+          var icon = (p.categories && p.categories.icon) || '\uD83D\uDCCD';
+          var catName = (p.categories && p.categories.name) || '';
+          var date = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '';
+          return '<div onclick="viewFromDashboard(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ',\'← Retour aux lieux validés\')" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+            + '<div style="font-size:20px;flex-shrink:0;width:32px;text-align:center;">' + icon + '</div>'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || 'Sans nom') + '</div>'
+            + '<div style="font-size:11px;color:var(--text2);">' + escHtml(catName) + (date ? ' · ' + date : '') + '</div>'
+            + '</div>'
+            + '<span style="color:var(--text2);font-size:14px;">›</span>'
+            + '</div>';
+        }).join('');
+    })();
+  });
 }
 
 function showDashStats() {
