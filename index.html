@@ -5184,8 +5184,12 @@ async function vote(pid, pos) {
   var place = allPlaces.find(function(p) { return p.id === pid; });
   if (place) {
     var f = pos ? 'votes_positifs' : 'votes_negatifs';
-    await db.from('places').update({ [f]: (place[f] || 0) + 1 }).eq('id', pid);
+    var newCount = (place[f] || 0) + 1;
+    await db.from('places').update({ [f]: newCount }).eq('id', pid);
     showToast(pos ? t('toast_voted_useful') : t('toast_voted_closed'), 'success');
+    if (!pos) {
+      notifyMods('closed_vote', '🚫 Signalé Fermé / HS — « ' + place.name + ' » (' + newCount + ' vote' + (newCount > 1 ? 's' : '') + ')', pid);
+    }
     scheduleLoad();
   }
 }
