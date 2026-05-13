@@ -270,7 +270,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .pv2-app-google{background:#33ccff22;border:1px solid #33ccff55;color:#33ccff;}
 .pv2-app-apple{background:#33ccff22;border:1px solid #33ccff55;color:#33ccff;}
 .pv2-votes{padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;}
-.pv2-vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);}
+.pv2-vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:7px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);line-height:1.3;}
 .pv2-vote-btn.closed{color:var(--danger);border-color:rgba(248,113,113,0.3);}
 .pv2-report-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:15px;cursor:pointer;padding:7px 10px;border-radius:6px;flex-shrink:0;line-height:1;}
 
@@ -3254,6 +3254,7 @@ function goToPlace(lat, lng) {
 
 function onMapClick(e) {
   if (_moveModePlaceId) { handleMoveModeClick(e.latlng); return; }
+  if (_locationSuggestionReportId) { handleLocationSuggestionClick(e.latlng); return; }
   closePlaceSheet();
   if (radiusMode) { setRadiusCenter(e.latlng); return; }
   if (!addingMode) return;
@@ -3734,9 +3735,8 @@ function makePopup(p) {
     + '<div id="validators-row-' + safeId + '"></div>'
 
     + '<div class="pv2-votes">'
-    + '<button class="pv2-vote-btn" onclick="vote(\'' + safeId + '\',true)">' + t('place_vote_useful') + ' (' + (p.votes_positifs || 0) + ')</button>'
-    + '<button class="pv2-vote-btn closed" onclick="openClosedHSModal(\'' + safeId + '\',\'' + safeName + '\')">' + t('place_vote_closed') + ' (' + (p.votes_negatifs || 0) + ')</button>'
-    + '<button class="pv2-report-btn" onclick="openReport(\'' + safeId + '\',\'' + safeName + '\')" title="Signaler">&#9888;&#65039;</button>'
+    + '<button class="pv2-vote-btn" onclick="vote(\'' + safeId + '\',true)">Merci<br><span style=\"font-size:10px;font-weight:400;opacity:0.8;\">(tout est ok)</span> (' + (p.votes_positifs || 0) + ')</button>'
+    + '<button class="pv2-vote-btn closed" onclick="openReport(\'' + safeId + '\',\'' + safeName + '\')">Quelque chose<br>ne va pas</button>'
     + '</div>'
     + modHtml
 
@@ -3886,6 +3886,48 @@ function cancelMoveMode() {
   _moveModePlaceId = null;
   var banner = document.getElementById('move-mode-banner');
   if (banner) banner.style.display = 'none';
+}
+var _locationSuggestionReportId = null;
+var _locationSuggestionPlaceId = null;
+var _locationSuggestionMarker = null;
+
+function cancelLocationSuggestion() {
+  _locationSuggestionReportId = null;
+  _locationSuggestionPlaceId = null;
+  if (_locationSuggestionMarker) { map.removeLayer(_locationSuggestionMarker); _locationSuggestionMarker = null; }
+  var banner = document.getElementById('location-suggest-banner');
+  if (banner) banner.style.display = 'none';
+}
+
+function handleLocationSuggestionClick(latlng) {
+  if (_locationSuggestionMarker) map.removeLayer(_locationSuggestionMarker);
+  _locationSuggestionMarker = L.marker(latlng).addTo(map);
+  var lat = latlng.lat, lng = latlng.lng;
+  _locationSuggestionMarker.bindPopup(
+    '<div style="text-align:center;padding:4px;">' +
+    '<div style="font-size:12px;color:#666;margin-bottom:8px;">Nouvel emplacement?</div>' +
+    '<button onclick="confirmLocationSuggestion(' + lat + ',' + lng + ')" style="background:#2980b9;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;">✓ Confirmer</button>' +
+    '</div>'
+  ).openPopup();
+}
+
+async function confirmLocationSuggestion(lat, lng) {
+  var reportId = _locationSuggestionReportId;
+  if (!reportId) return;
+  map.closePopup();
+  var res = await db.from('reports').update({ suggested_lat: lat, suggested_lng: lng }).eq('id', reportId);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  cancelLocationSuggestion();
+  showToast('📍 Emplacement suggéré envoyé — un modérateur va l'examiner', 'success');
+}
+
+async function approveLocationSuggestion(reportId, placeId, lat, lng, placeName) {
+  if (!isAdmin && !isModerator) return;
+  var res = await db.from('places').update({ latitude: lat, longitude: lng }).eq('id', placeId);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  await db.from('reports').delete().eq('id', reportId);
+  await dismissPlaceReport(placeId, placeName, 'location_updated');
+  showToast('📍 Emplacement mis à jour !', 'success');
 }
 
 async function handleMoveModeClick(latlng) {
@@ -4997,7 +5039,7 @@ async function loadReportedPlaces() {
   var el = document.getElementById('reported-places-list');
   if (!el) return;
   el.innerHTML = '<div style="color:var(--text2);">Chargement...</div>';
-  var res = await db.from('reports').select('place_id,reason,details,photo_url,user_id,places(id,name,user_name,latitude,longitude)').order('created_at', { ascending: false });
+  var res = await db.from('reports').select('id,place_id,reason,details,photo_url,user_id,suggested_lat,suggested_lng,places(id,name,user_name,latitude,longitude)').order('created_at', { ascending: false });
   if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:12px;">Erreur : ' + escHtml(res.error.message) + '</div>'; return; }
   var data = res.data || [];
   if (!data.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun signalement</div>'; return; }
@@ -5010,7 +5052,7 @@ async function loadReportedPlaces() {
   var grouped = {};
   data.forEach(function(r) {
     if (!grouped[r.place_id]) grouped[r.place_id] = { place: r.places, reports: [] };
-    grouped[r.place_id].reports.push({ reason: r.reason, details: r.details, photo_url: r.photo_url, user: usernameMap[r.user_id] || r.user_id });
+    grouped[r.place_id].reports.push({ id: r.id, reason: r.reason, details: r.details, photo_url: r.photo_url, user: usernameMap[r.user_id] || r.user_id, suggested_lat: r.suggested_lat, suggested_lng: r.suggested_lng });
   });
   var reasons = { closed: 'Fermé', wrong_info: 'Infos incorrectes', duplicate: 'Doublon', inappropriate: 'Inapproprié', bad_photo: 'Photo inappropriée', other: 'Autre', maintenance: 'En maintenance', wrong_location: 'Emplacement incorrect' };
   el.innerHTML = Object.entries(grouped).map(function(entry) {
@@ -5033,6 +5075,7 @@ async function loadReportedPlaces() {
       + (place.latitude ? '<button onclick="viewReportedPlace(\'' + pid + '\',' + place.latitude + ',' + place.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128205; Voir sur la carte</button>' : '')
       + '<button onclick="hidePlace(\'' + pid + '\',\'' + escHtml(place.name||'').replace(/'/g,"\\'") + '\',true)" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Masquer</button>'
       + '<button onclick="dismissPlaceReport(\'' + pid + '\',\'' + escHtml((place.name||'').replace(/'/g,"\\'")) + '\',\'dismissed\')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
+      + (g.reports.some(function(r) { return r.suggested_lat && r.suggested_lng; }) ? (function() { var sr = g.reports.find(function(r) { return r.suggested_lat && r.suggested_lng; }); return '<div style="margin:6px 0;padding:6px 8px;background:rgba(41,128,185,0.1);border:1px solid rgba(41,128,185,0.3);border-radius:6px;font-size:11px;color:#3498db;">&#128205; Emplacement suggéré : ' + sr.suggested_lat.toFixed(5) + ', ' + sr.suggested_lng.toFixed(5) + '<br><button onclick="approveLocationSuggestion(\'' + sr.id + '\',\'' + pid + '\'' + ',' + sr.suggested_lat + ',' + sr.suggested_lng + ',\'' + escHtml((place.name||'').replace(/'/g,"\'")) + '\')" style="margin-top:4px;background:rgba(41,128,185,0.2);border:1px solid rgba(41,128,185,0.5);color:#3498db;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">&#128205; Approuver cet emplacement</button></div>'; })() : '')
       + '</div></div>';
   }).join('');
 }
@@ -5578,13 +5621,20 @@ async function submitReport() {
   }
   var payload = { place_id: reportPlaceId, user_id: currentUser.id, reason: reason, details: details || null };
   if (photoUrl) payload.photo_url = photoUrl;
-  var result = await db.from('reports').insert(payload);
+  var result = await db.from('reports').insert(payload).select('id').single();
   if (result.error) { showToast('Erreur : ' + result.error.message, 'error'); return; }
+  var insertedReportId = result.data && result.data.id;
   closeModal('modal-report');
-  showToast('&#9888;&#65039; Signalement envoyé, merci !', 'success');
+  showToast('&#9888;&#65039; Signalement envoy\u00e9, merci !', 'success');
   var placeNameForNotif = document.getElementById('report-place-name').textContent || reportPlaceId;
-  var reasonLabels = { closed:'Fermé définitivement', maintenance:'En maintenance', wrong_location:'Emplacement incorrect', duplicate:'Doublon', wrong_info:'Infos incorrectes', inappropriate:'Contenu inapproprié', other:'Autre' };
-  notifyMods('signalement', '&#9888;&#65039; Signalement reçu — ' + (reasonLabels[reason] || reason) + ' — « ' + placeNameForNotif + ' »', reportPlaceId);
+  var reasonLabels = { closed:'Ferm\u00e9 d\u00e9finitivement', maintenance:'En maintenance', wrong_location:'Emplacement incorrect', duplicate:'Doublon', wrong_info:'Infos incorrectes', inappropriate:'Contenu inappropri\u00e9', other:'Autre' };
+  notifyMods('signalement', '&#9888;&#65039; Signalement re\u00e7u \u2014 ' + (reasonLabels[reason] || reason) + ' \u2014 \u00ab ' + placeNameForNotif + ' \u00bb', reportPlaceId);
+  if (reason === 'wrong_location' && insertedReportId) {
+    _locationSuggestionReportId = insertedReportId;
+    _locationSuggestionPlaceId = reportPlaceId;
+    var banner = document.getElementById('location-suggest-banner');
+    if (banner) banner.style.display = 'flex';
+  }
   reportPlaceId = null;
 }
 
@@ -6575,6 +6625,11 @@ function applyMaskLayer() {
 </div>
 
 <!-- MOVE MODE BANNER -->
+<div id="location-suggest-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:6000;background:rgba(41,128,185,0.95);color:#fff;padding:14px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;">
+  <span style="font-size:13px;font-weight:700;">&#128205; Appuyez sur la carte pour indiquer le bon emplacement</span>
+  <button onclick="cancelLocationSuggestion()" style="background:rgba(0,0,0,0.2);border:none;color:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">Passer</button>
+</div>
+
 <div id="move-mode-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:6000;background:rgba(255,140,0,0.95);color:#000;padding:14px 16px;align-items:center;justify-content:space-between;gap:10px;">
   <span style="font-size:14px;font-weight:700;">&#128205; Tapez sur la carte pour déplacer le lieu</span>
   <button onclick="cancelMoveMode()" style="background:rgba(0,0,0,0.18);border:none;color:#000;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer;">Annuler</button>
