@@ -176,7 +176,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1500;display:none;align-items:flex-end;}
 #sheet-pub-profile{z-index:5000;}
 .sheet-overlay.open{display:flex;}
-.sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);max-height:85vh;display:flex;flex-direction:column;animation:slideUp 0.3s ease;padding-bottom:var(--safe-bottom);}
+.sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;border-top:1px solid var(--border);max-height:calc(85vh - env(safe-area-inset-top,0px));display:flex;flex-direction:column;animation:slideUp 0.3s ease;padding-bottom:var(--safe-bottom);}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;flex-shrink:0;}
 .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:0 18px 12px;flex-shrink:0;border-bottom:1px solid var(--border);}
@@ -645,7 +645,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 
 <!-- COMMUNITY SHEET -->
 <div class="sheet-overlay" id="sheet-community" onclick="closeSheet('sheet-community')">
-  <div class="sheet" onclick="event.stopPropagation()" style="max-height:92vh;">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:calc(92vh - env(safe-area-inset-top,0px));">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
       <span class="sheet-title" data-i18n="sheet_community">&#128172; Communaut&#233;</span>
@@ -693,7 +693,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 
 <!-- DASHBOARD MODERATEUR -->
 <div class="sheet-overlay" id="sheet-dashboard" onclick="closeSheet('sheet-dashboard')">
-  <div class="sheet" onclick="event.stopPropagation()" style="max-height:92vh;">
+  <div class="sheet" onclick="event.stopPropagation()" style="max-height:calc(92vh - env(safe-area-inset-top,0px));">
     <div class="sheet-handle"></div>
     <div id="dash-main-view" style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;">
       <div class="sheet-header">
