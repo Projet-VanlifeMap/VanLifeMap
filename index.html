@@ -929,6 +929,34 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   </div>
 </div>
 
+<div id="modal-generic-confirm" class="modal-overlay" style="display:none">
+  <div class="modal" style="max-width:340px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 id="gc-title" style="font-family:var(--font-head);font-size:17px;margin:0;"></h3>
+      <button class="modal-close" onclick="closeModal('modal-generic-confirm')">&#10005;</button>
+    </div>
+    <p id="gc-msg" style="font-size:14px;color:var(--text2);line-height:1.5;margin:0 0 20px;"></p>
+    <div style="display:flex;gap:8px;">
+      <button id="gc-confirm-btn" class="btn-p" onclick="_gcCallback && _gcCallback(); closeModal('modal-generic-confirm');">Confirmer</button>
+      <button class="btn-s" onclick="closeModal('modal-generic-confirm')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-generic-confirm" class="modal-overlay" style="display:none">
+  <div class="modal" style="max-width:340px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 id="gc-title" style="font-family:var(--font-head);font-size:17px;margin:0;"></h3>
+      <button class="modal-close" onclick="closeModal('modal-generic-confirm')">&#10005;</button>
+    </div>
+    <p id="gc-msg" style="font-size:14px;color:var(--text2);line-height:1.5;margin:0 0 20px;"></p>
+    <div style="display:flex;gap:8px;">
+      <button id="gc-confirm-btn" class="btn-p" onclick="_gcCallback && _gcCallback(); closeModal('modal-generic-confirm');">Confirmer</button>
+      <button class="btn-s" onclick="closeModal('modal-generic-confirm')">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <div id="install-banner">
   <div class="ib-header">
     <div class="ib-title">&#128205; Installer VanLifeMap</div>
@@ -2403,7 +2431,7 @@ async function renderProfile() {
     + '</div>'
     + '</div>'
     + '<div style="padding:16px;">'
-    + '<button onclick="signOut()" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>'
+    + '<button onclick="showConfirm(\'Se déconnecter ?\',\'Vous serez déconnecté de votre compte VanLifeMap.\',\'Déconnecter\',\'#e74c3c\',signOut)" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>'
     + '</div>'
     + '</div>';
 
@@ -2731,6 +2759,30 @@ async function loadPubComments() {
       + (hasLoc ? '<div onclick="goToPubSoloPlace(\'' + place.id + '\',' + place.latitude + ',' + place.longitude + ')" style="font-size:11px;color:var(--accent);cursor:pointer;margin-top:4px;">Voir le lieu &#8250;</div>' : '')
       + '</div>';
   }).join('');
+}
+
+var _gcCallback = null;
+function showConfirm(title, msg, confirmLabel, confirmColor, callback) {
+  _gcCallback = callback;
+  document.getElementById('gc-title').textContent = title;
+  document.getElementById('gc-msg').textContent = msg;
+  var btn = document.getElementById('gc-confirm-btn');
+  btn.textContent = confirmLabel || 'Confirmer';
+  btn.style.background = confirmColor || '';
+  btn.style.borderColor = confirmColor || '';
+  openModal('modal-generic-confirm');
+}
+
+var _gcCallback = null;
+function showConfirm(title, msg, confirmLabel, confirmColor, callback) {
+  _gcCallback = callback;
+  document.getElementById('gc-title').textContent = title;
+  document.getElementById('gc-msg').textContent = msg;
+  var btn = document.getElementById('gc-confirm-btn');
+  btn.textContent = confirmLabel || 'Confirmer';
+  btn.style.background = confirmColor || 'var(--accent)';
+  btn.style.borderColor = confirmColor || 'var(--accent)';
+  openModal('modal-generic-confirm');
 }
 
 function signOut() {
@@ -4830,9 +4882,9 @@ function renderPhotos(pid, photos, maxPhotos, placeOwnerId) {
     var wrapClass = 'photo-wrap' + (isReported ? ' photo-reported' : '');
     var actionBtn = '';
     if (isAdmin) {
-      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')" title="Supprimer cette photo">🗑</button>';
+      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="showConfirm(\'Supprimer cette photo ?\',\'La photo sera supprimée définitivement. Action irréversible.\',\'🗑 Supprimer\',\'#e74c3c\',function(){deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')})" title="Supprimer cette photo">🗑</button>';
     } else if (canMod && isReported) {
-      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')" title="Supprimer cette photo">🗑</button>';
+      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="showConfirm(\'Supprimer cette photo ?\',\'La photo sera supprimée définitivement. Action irréversible.\',\'🗑 Supprimer\',\'#e74c3c\',function(){deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')})" title="Supprimer cette photo">🗑</button>';
     } else if (currentUser && !isReported && currentUser.id !== ph.uploaded_by) {
       actionBtn = '<button class="photo-btn photo-btn-report" onclick="reportPhoto(\'' + escHtml(ph.id) + '\',\'' + pid + '\')" title="Signaler cette photo">🚩</button>';
     }
@@ -4958,7 +5010,7 @@ async function loadCmts(pid) {
       + (currentUser ? '<div style="display:flex;align-items:center;gap:4px;margin-top:5px;">'
         + '<button onclick="voteComment(\'' + c.id + '\',true,\'' + pid + '\')" style="' + likeStyle + '">&#128077; ' + (likes[c.id] || 0) + '</button>'
         + '<button onclick="voteComment(\'' + c.id + '\',false,\'' + pid + '\')" style="' + dislikeStyle + '">&#128078; ' + (dislikes[c.id] || 0) + '</button>'
-        + (isAdmin ? '<button onclick="adminDeleteComment(\'' + c.id + '\',\'' + pid + '\')" title="Supprimer" style="background:none;border:none;cursor:pointer;font-size:12px;color:#e74c3c;padding:2px 4px;margin-left:auto;">&#128465;&#65039;</button>' : (!isOwn ? '<button onclick="reportComment(\'' + c.id + '\')" title="Signaler" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text2);padding:2px 4px;margin-left:auto;">&#9888;&#65039;</button>' : ''))
+        + (isAdmin ? '<button onclick="showConfirm(\'Supprimer ce commentaire ?\',\'Ce commentaire sera supprimé définitivement. Action irréversible.\',\'🗑 Supprimer\',\'#e74c3c\',function(){adminDeleteComment(\'' + c.id + '\',\'' + pid + '\')})" title="Supprimer" style="background:none;border:none;cursor:pointer;font-size:12px;color:#e74c3c;padding:2px 4px;margin-left:auto;">&#128465;&#65039;</button>' : (!isOwn ? '<button onclick="showConfirm(\'Signaler ce commentaire ?\',\'Ce commentaire sera signalé aux modérateurs pour examen.\',\'⚠️ Signaler\',\'#e67e22\',function(){reportComment(\'' + c.id + '\')})" title="Signaler" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text2);padding:2px 4px;margin-left:auto;">&#9888;&#65039;</button>' : ''))
         + '</div>' : '')
       + '</div>';
   }).join('');
@@ -5082,8 +5134,8 @@ async function loadReportedPlaces() {
       + '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
       + (place.latitude ? '<button onclick="viewReportedPlace(\'' + pid + '\',' + place.latitude + ',' + place.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128205; Voir sur la carte</button>' : '')
       + '<button onclick="hidePlace(\'' + pid + '\',\'' + escHtml(place.name||'').replace(/'/g,"\\'") + '\',true)" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Masquer</button>'
-      + '<button onclick="dismissPlaceReport(\'' + pid + '\',\'' + escHtml((place.name||'').replace(/'/g,"\\'")) + '\',\'dismissed\')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
-      + (g.reports.some(function(r) { return r.suggested_lat && r.suggested_lng; }) ? (function() { var sr = g.reports.find(function(r) { return r.suggested_lat && r.suggested_lng; }); return '<div style="margin:6px 0;padding:6px 8px;background:rgba(41,128,185,0.1);border:1px solid rgba(41,128,185,0.3);border-radius:6px;font-size:11px;color:#3498db;">&#128205; Emplacement suggéré : ' + sr.suggested_lat.toFixed(5) + ', ' + sr.suggested_lng.toFixed(5) + '<br><button onclick="approveLocationSuggestion(\'' + sr.id + '\',\'' + pid + '\'' + ',' + sr.suggested_lat + ',' + sr.suggested_lng + ',\'' + escHtml((place.name||'').replace(/'/g,"\'")) + '\')" style="margin-top:4px;background:rgba(41,128,185,0.2);border:1px solid rgba(41,128,185,0.5);color:#3498db;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">&#128205; Approuver cet emplacement</button></div>'; })() : '')
+      + '<button onclick="showConfirm(\'Ignorer ce signalement ?\',\'Le lieu sera conservé sans modification. Cette action est irréversible.\',\'✓ Ignorer\',\'\',function(){dismissPlaceReport(\'' + pid + '\',\'' + escHtml((place.name||'').replace(/'/g,"\\'")) + '\',\'dismissed\')})" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
+      + (g.reports.some(function(r) { return r.suggested_lat && r.suggested_lng; }) ? (function() { var sr = g.reports.find(function(r) { return r.suggested_lat && r.suggested_lng; }); return '<div style="margin:6px 0;padding:6px 8px;background:rgba(41,128,185,0.1);border:1px solid rgba(41,128,185,0.3);border-radius:6px;font-size:11px;color:#3498db;">&#128205; Emplacement suggéré : ' + sr.suggested_lat.toFixed(5) + ', ' + sr.suggested_lng.toFixed(5) + '<br><button onclick="showConfirm(\'Approuver cet emplacement ?\',\'Les coordonnées du lieu seront mises à jour avec la suggestion.\',\'📍 Approuver\',\'#2980b9\',function(){approveLocationSuggestion(\'' + sr.id + '\',\'' + pid + '\'' + ',' + sr.suggested_lat + ',' + sr.suggested_lng + ',\'' + escHtml((place.name||'').replace(/'/g,"\'")) + '\')})" style="margin-top:4px;background:rgba(41,128,185,0.2);border:1px solid rgba(41,128,185,0.5);color:#3498db;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">&#128205; Approuver cet emplacement</button></div>'; })() : '')
       + '</div></div>';
   }).join('');
 }
@@ -5172,7 +5224,7 @@ async function loadReportedComments() {
       + '<div style="margin-bottom:8px;font-size:11px;color:var(--text2);">Signal&#233; par : ' + reporterList + '</div>'
       + '<div style="display:flex;gap:6px;">'
       + '<button onclick="deleteReportedComment(\'' + c.id + '\',\'' + escHtml(c.content || '').replace(/'/g,"\\'").slice(0,80) + '\')" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128465;&#65039; Supprimer</button>'
-      + '<button onclick="dismissCommentReport(\'' + c.id + '\')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
+      + '<button onclick="showConfirm(\'Ignorer ce signalement ?\',\'Le signalement sera supprimé. Le commentaire restera visible.\',\'✓ Ignorer\',\'\',function(){dismissCommentReport(\'' + c.id + '\')})" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
       + '</div></div>';
   }).join('');
 }
