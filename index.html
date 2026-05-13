@@ -5050,7 +5050,7 @@ function viewReportedPlace(pid, lat, lng) {
   }
   map.flyTo([lat, lng], 16, { duration: 0.8 });
   db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
-    if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); }
+    if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); openPlaceSheet(res.data); }
   });
 }
 
@@ -5115,15 +5115,19 @@ async function confirmDeleteComment() {
   var cid = _deleteCommentPendingId;
   _deleteCommentPendingId = null;
   closeModal('modal-delete-comment');
-  await db.from('comments').delete().eq('id', cid);
+  await Promise.all([
+    db.from('comments').delete().eq('id', cid),
+    db.from('comment_reports').delete().eq('comment_id', cid)
+  ]);
   showToast('Commentaire supprimé', 'success');
   loadReportedComments();
   loadModReportsCount();
 }
 
 async function dismissCommentReport(cid) {
-  await db.from('comment_reports').delete().eq('comment_id', cid);
-  showToast('Signalement ignoré', '');
+  var res = await db.from('comment_reports').delete().eq('comment_id', cid);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('Signalement ignoré', 'success');
   loadReportedComments();
   loadModReportsCount();
 }
