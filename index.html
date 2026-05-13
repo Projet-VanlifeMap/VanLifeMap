@@ -5164,6 +5164,25 @@ async function dismissPlaceReport(pid, placeName, action) {
 var soloReturnTo = 'profile'; // 'profile' | 'settings' | 'pub-profile'
 var _pubProfileUsername = null;
 
+function viewFromDashboard(pid, lat, lng, backLabel) {
+  closeSheet('sheet-dashboard');
+  soloPlaceId = pid;
+  soloReturnTo = 'dashboard';
+  var nav = document.getElementById('bottom-nav');
+  if (nav) nav.style.display = 'none';
+  var banner = document.getElementById('solo-banner');
+  if (banner) {
+    banner.style.display = 'flex';
+    var btnLeft = banner.querySelector('button:first-child');
+    if (btnLeft) btnLeft.textContent = (backLabel || '← Retour au tableau de bord');
+  }
+  map.flyTo([lat, lng], 16, { duration: 0.8 });
+  db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
+    if (res.data) { allPlaces = [res.data]; renderMarkers([res.data]); openPlaceSheet(res.data); }
+    else showToast('Lieu introuvable', 'error');
+  });
+}
+
 function viewReportedPlace(pid, lat, lng) {
   closeSheet('sheet-dashboard');
   soloPlaceId = pid;
@@ -6098,6 +6117,17 @@ async function openNotifPlace(notifId, placeId) {
   var res = await db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', placeId).maybeSingle();
   if (!res.data) { showToast('Lieu introuvable (peut-être supprimé)', 'error'); return; }
   closeSheet('sheet-community');
+  soloPlaceId = placeId;
+  soloReturnTo = null;
+  var nav = document.getElementById('bottom-nav');
+  var banner = document.getElementById('solo-banner');
+  if (banner) {
+    banner.style.display = 'flex';
+    var btnLeft = banner.querySelector('button:first-child');
+    if (btnLeft) btnLeft.textContent = '← Retour aux notifications';
+  }
+  if (nav) nav.style.display = 'none';
+  allPlaces = [res.data]; renderMarkers([res.data]);
   map.flyTo([res.data.latitude, res.data.longitude], 16, { duration: 0.8 });
   setTimeout(function() { openPlaceSheet(res.data); }, 900);
 }
@@ -6400,13 +6430,14 @@ function showDashNewPlaces() {
           var statusColor = p.status === 'active' ? '#27ae60' : p.status === 'pending' ? '#f39c12' : '#e74c3c';
           var statusLabel = p.status === 'active' ? 'Actif' : p.status === 'pending' ? 'En attente' : 'Masqué';
           var date = p.created_at ? new Date(p.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : '';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">'
+          return '<div onclick="viewFromDashboard(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ',\'← Retour aux nouveaux lieux\') style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
             + '<div style="font-size:22px;flex-shrink:0;">' + icon + '</div>'
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || 'Sans nom') + '</div>'
             + '<div style="font-size:11px;color:var(--text2);">' + escHtml(p.user_name || 'Anonyme') + (date ? ' · ' + date : '') + '</div>'
             + '</div>'
             + '<span style="font-size:10px;font-weight:700;color:' + statusColor + ';background:' + statusColor + '22;border-radius:5px;padding:2px 7px;flex-shrink:0;">' + statusLabel + '</span>'
+            + '<span style="color:var(--text2);font-size:14px;margin-left:4px;">›</span>'
             + '</div>';
         }).join('');
     })();
