@@ -4756,7 +4756,9 @@ function renderPhotos(pid, photos, maxPhotos, placeOwnerId) {
     var isReported = !!ph.reported;
     var wrapClass = 'photo-wrap' + (isReported ? ' photo-reported' : '');
     var actionBtn = '';
-    if (canMod && isReported) {
+    if (isAdmin) {
+      actionBtn = '<button class="photo-btn photo-btn-delete" onclick="deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')" title="Supprimer cette photo">🗑</button>';
+    } else if (canMod && isReported) {
       actionBtn = '<button class="photo-btn photo-btn-delete" onclick="deleteReportedPhoto(\'' + escHtml(ph.id) + '\',\'' + escHtml(ph.url) + '\',\'' + pid + '\')" title="Supprimer cette photo">🗑</button>';
     } else if (currentUser && !isReported && currentUser.id !== ph.uploaded_by) {
       actionBtn = '<button class="photo-btn photo-btn-report" onclick="reportPhoto(\'' + escHtml(ph.id) + '\',\'' + pid + '\')" title="Signaler cette photo">🚩</button>';
@@ -4876,14 +4878,14 @@ async function loadCmts(pid) {
       + '<div style="display:flex;align-items:center;gap:6px;">'
       + '<div class="comment-author" style="cursor:pointer;" onclick="openPublicProfile(this.dataset.u)" data-u="' + escHtml(c.user_name || '') + '">' + escHtml(c.user_name || 'Anonyme') + '</div>'
       + (d ? '<div style="font-size:10px;color:var(--text2)">' + d + '</div>' : '')
-      + (isOwn ? '<button onclick="editCmt(\'' + c.id + '\',\'' + pid + '\')" style="margin-left:auto;background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;padding:0 2px;">&#9998;</button>' : '')
+      + ((isOwn || isAdmin) ? '<button onclick="editCmt(\'' + c.id + '\',\'' + pid + '\')" style="margin-left:auto;background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;padding:0 2px;">&#9998;</button>' : '')
       + '</div>'
       + '<div class="comment-text" id="cmt-text-' + c.id + '">' + escHtml(c.content) + '</div>'
       + '<span id="trl-cmt-' + c.id + '" data-orig="' + escHtml(c.content) + '" onclick="translateText(\'cmt-text-' + c.id + '\',\'trl-cmt-' + c.id + '\',this.dataset.orig)" style="font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;text-underline-offset:2px;">Traduire</span>'
       + (currentUser ? '<div style="display:flex;align-items:center;gap:4px;margin-top:5px;">'
         + '<button onclick="voteComment(\'' + c.id + '\',true,\'' + pid + '\')" style="' + likeStyle + '">&#128077; ' + (likes[c.id] || 0) + '</button>'
         + '<button onclick="voteComment(\'' + c.id + '\',false,\'' + pid + '\')" style="' + dislikeStyle + '">&#128078; ' + (dislikes[c.id] || 0) + '</button>'
-        + (!isOwn ? '<button onclick="reportComment(\'' + c.id + '\')" title="Signaler" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text2);padding:2px 4px;margin-left:auto;">&#9888;&#65039;</button>' : '')
+        + (isAdmin ? '<button onclick="adminDeleteComment(\'' + c.id + '\',\'' + pid + '\')" title="Supprimer" style="background:none;border:none;cursor:pointer;font-size:12px;color:#e74c3c;padding:2px 4px;margin-left:auto;">&#128465;&#65039;</button>' : (!isOwn ? '<button onclick="reportComment(\'' + c.id + '\')" title="Signaler" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--text2);padding:2px 4px;margin-left:auto;">&#9888;&#65039;</button>' : ''))
         + '</div>' : '')
       + '</div>';
   }).join('');
@@ -5146,9 +5148,22 @@ async function saveCmt(cid, pid) {
   var input = document.getElementById('cmt-edit-' + cid);
   var content = input.value.trim();
   if (!content) return;
-  await db.from('comments').update({ content: content }).eq('id', cid).eq('user_id', currentUser.id);
+  var q = db.from('comments').update({ content: content }).eq('id', cid);
+  if (!isAdmin) q = q.eq('user_id', currentUser.id);
+  await q;
   loadCmts(pid);
   showToast('Commentaire modifié !', 'success');
+}
+
+async function adminDeleteComment(cid, pid) {
+  if (!isAdmin) return;
+  await Promise.all([
+    db.from('comments').delete().eq('id', cid),
+    db.from('comment_reports').delete().eq('comment_id', cid)
+  ]);
+  showToast('Commentaire supprimé', 'success');
+  loadCmts(pid);
+  loadModReportsCount();
 }
 
 async function addCmt(pid) {
