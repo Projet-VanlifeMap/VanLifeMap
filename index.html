@@ -95,7 +95,9 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 #places-count{position:absolute;top:14px;right:14px;z-index:999;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;font-size:12px;color:var(--text2);}
 #places-count span{color:var(--accent);font-weight:600;}
 #btn-locate{position:fixed;bottom:90px;right:14px;z-index:1200;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
-#btn-compass{position:fixed;bottom:144px;right:14px;z-index:1200;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:44px;height:44px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;transition:opacity 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+#btn-compass-mode{position:fixed;bottom:144px;right:14px;z-index:1200;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:44px;height:44px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,0.3);transition:background 0.2s,border-color 0.2s;}
+#btn-compass-mode.active{background:#4285f4;border-color:#4285f4;color:#fff;}
+#btn-compass{position:fixed;bottom:198px;right:14px;z-index:1200;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);width:44px;height:44px;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700;transition:opacity 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
 .my-loc-wrap{width:40px;height:40px;position:relative;transform-origin:center center;}
 .my-loc-cone{position:absolute;left:50%;bottom:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:22px solid rgba(66,133,244,0.5);border-radius:2px;}
 .my-loc-dot{position:absolute;width:16px;height:16px;background:#4285f4;border:2.5px solid #fff;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 2px 8px rgba(0,0,0,0.4);}
@@ -406,7 +408,8 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   #bottom-nav{display:block;}
   #map-wrap{height:100%;}
   #btn-locate{bottom:calc(var(--nav-h) + 14px);}
-  #btn-compass{bottom:calc(var(--nav-h) + 68px);}
+  #btn-compass-mode{bottom:calc(var(--nav-h) + 68px);}
+  #btn-compass{bottom:calc(var(--nav-h) + 122px);}
   #places-count{top:10px;right:10px;font-size:11px;padding:5px 10px;}
   #toast{bottom:calc(var(--nav-h) + 12px);}
   #radius-bar{top:auto;bottom:calc(var(--nav-h) + 120px);left:50%;transform:translateX(-50%);}
@@ -531,6 +534,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
     <div id="map"></div>
     <div id="info-adding">&#128205; Clique sur la carte pour placer le lieu</div>
     <button id="btn-compass" onclick="resetBearing()" title="Réinitialiser le nord"><span id="btn-compass-arrow" style="display:inline-block;transition:transform 0.3s;">&#8593; N</span></button>
+    <button id="btn-compass-mode" onclick="toggleCompassMode()" title="Mode boussole">&#129514;</button>
     <button id="btn-locate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><line x1="12" y1="1" x2="12" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <div id="places-count">Lieux : <span id="count-num">0</span></div>
     <div id="solo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1500;background:var(--surface);border-top:2px solid var(--accent);height:var(--nav-h);align-items:stretch;">
@@ -1927,28 +1931,6 @@ async function init() {
     }
     updateLiveMarkerHeading();
   });
-  // Touch rotate custom — delta incrémental pour éviter les sauts
-  var _lastRotateAngle = null;
-  var ROTATE_SENSITIVITY = 0.39;
-  map.getContainer().addEventListener('touchstart', function(e) {
-    if (e.touches.length === 2) {
-      var dx = e.touches[1].clientX - e.touches[0].clientX;
-      var dy = e.touches[1].clientY - e.touches[0].clientY;
-      _lastRotateAngle = Math.atan2(dy, dx);
-    } else { _lastRotateAngle = null; }
-  }, { passive: true });
-  map.getContainer().addEventListener('touchmove', function(e) {
-    if (e.touches.length !== 2 || _lastRotateAngle === null) return;
-    var dx = e.touches[1].clientX - e.touches[0].clientX;
-    var dy = e.touches[1].clientY - e.touches[0].clientY;
-    var angle = Math.atan2(dy, dx);
-    var delta = (angle - _lastRotateAngle) * (180 / Math.PI);
-    _lastRotateAngle = angle;
-    if (map.setBearing) map.setBearing((map.getBearing() || 0) + delta * ROTATE_SENSITIVITY);
-  }, { passive: true });
-  map.getContainer().addEventListener('touchend', function(e) {
-    if (e.touches.length < 2) _lastRotateAngle = null;
-  }, { passive: true });
   layerStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
   layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', maxZoom: 19 });
   layerLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, opacity: 0.9 });
@@ -2032,7 +2014,18 @@ function applySat(on) {
   }
 }
 
+function toggleCompassMode() {
+  if (!liveTrackActive) return;
+  compassModeActive = !compassModeActive;
+  var btn = document.getElementById('btn-compass-mode');
+  if (btn) btn.classList.toggle('active', compassModeActive);
+  if (!compassModeActive && map.setBearing) map.setBearing(0);
+}
+
 function resetBearing() {
+  compassModeActive = false;
+  var bcm = document.getElementById('btn-compass-mode');
+  if (bcm) bcm.classList.remove('active');
   if (map.setBearing) {
     map.setBearing(0);
     document.getElementById('btn-compass').style.display = 'none';
@@ -5555,6 +5548,7 @@ var liveMarker = null;
 var liveAccCircle = null;
 var liveHeading = null;
 var _orientListenerAdded = false;
+var compassModeActive = false;
 
 function toggleLiveTracking() {
   if (liveTrackActive) { stopLiveTracking(); } else { startLiveTracking(); }
@@ -5574,6 +5568,8 @@ function startLiveTracking() {
   } else { addOrient(); }
   liveTrackActive = true;
   document.getElementById('btn-locate').classList.add('live');
+  var bcm = document.getElementById('btn-compass-mode');
+  if (bcm) bcm.style.display = 'flex';
   liveWatchId = navigator.geolocation.watchPosition(function(pos) {
     var latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
     var acc = pos.coords.accuracy;
@@ -5606,6 +5602,10 @@ function stopLiveTracking() {
   if (liveAccCircle) { map.removeLayer(liveAccCircle); liveAccCircle = null; }
   liveTrackActive = false;
   liveHeading = null;
+  compassModeActive = false;
+  var bcm = document.getElementById('btn-compass-mode');
+  if (bcm) { bcm.style.display = 'none'; bcm.classList.remove('active'); }
+  if (map.setBearing) map.setBearing(0);
   document.getElementById('btn-locate').classList.remove('live');
 }
 
@@ -5617,6 +5617,7 @@ function onDeviceOrientation(e) {
     h = (360 - e.alpha) % 360;
   } else { return; }
   liveHeading = h;
+  if (compassModeActive && map.setBearing) map.setBearing(h);
   updateLiveMarkerHeading();
 }
 
