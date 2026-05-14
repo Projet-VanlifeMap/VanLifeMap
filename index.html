@@ -724,13 +724,13 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 <div id="modal-auth" class="modal-overlay" style="display:none">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('modal-auth')">&#10005;</button>
-    <h2 id="auth-title">Connexion</h2>
-    <div class="form-group"><label>Email</label><input type="email" id="auth-email" placeholder="votre@email.com"></div>
-    <div class="form-group"><label>Mot de passe</label><input type="password" id="auth-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
-    <div id="forgot-pass-row" style="text-align:right;margin:-6px 0 12px;"><button onclick="forgotPassword()" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--font-body);">Mot de passe oubli&#233; ?</button></div>
-    <div class="form-group" id="confirm-pass-group" style="display:none"><label>Confirmer le mot de passe</label><input type="password" id="auth-password-confirm" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
-    <button class="btn-p" onclick="handleAuth()">Se connecter</button>
-    <button class="btn-s" onclick="switchAuthMode()">Cr&#233;er un compte</button>
+    <h2 id="auth-title" data-i18n="auth_title_login">Connexion</h2>
+    <div class="form-group"><label data-i18n="auth_email">Email</label><input type="email" id="auth-email" placeholder="votre@email.com"></div>
+    <div class="form-group"><label data-i18n="auth_password">Mot de passe</label><input type="password" id="auth-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
+    <div id="forgot-pass-row" style="text-align:right;margin:-6px 0 12px;"><button onclick="forgotPassword()" data-i18n="auth_forgot" style="background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--font-body);">Mot de passe oubli&#233; ?</button></div>
+    <div class="form-group" id="confirm-pass-group" style="display:none"><label data-i18n="auth_confirm_password">Confirmer le mot de passe</label><input type="password" id="auth-password-confirm" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;"></div>
+    <button class="btn-p" onclick="handleAuth()" data-i18n="auth_login_btn">Se connecter</button>
+    <button class="btn-s" onclick="switchAuthMode()" data-i18n="auth_switch_signup">Cr&#233;er un compte</button>
   </div>
 </div>
 
@@ -1168,7 +1168,18 @@ fr:{
   dash_trusted_desc:'Leur vote valide un lieu instantanément', btn_confirm:'Confirmer',
   btn_add_mod:'+ Ajouter modérateur', btn_add_trusted:'+ Ajouter membre de confiance',
   dash_banned_members:'Membres bannis', ph_username:'Pseudo de l\'utilisateur...',
-  ph_ban_username:'Pseudo à bannir...', ph_ban_reason:'Raison (optionnel)...'
+  ph_ban_username:'Pseudo à bannir...', ph_ban_reason:'Raison (optionnel)...',
+  auth_forgot:'Mot de passe oublié ?',
+  username_invalid:'✗ 3-20 caractères, lettres, chiffres, _ et espaces',
+  username_checking:'Vérification...', username_taken:'✗ Pseudo déjà utilisé',
+  username_available:'✓ Disponible', username_saving:'Enregistrement...',
+  lbl_default_ban_reason:'Violation des règles', toast_user_banned:'a été banni',
+  val_confirmed_by_me:'Confirmé par moi', val_confirm_btn:'Confirmer ce lieu',
+  val_first_confirm:'Soyez le premier à confirmer ce lieu !',
+  val_community_confirmed:'Lieu confirmé par la communauté',
+  val_votes:'votes de validation', val_confirmation_one:'confirmation', val_confirmation_many:'confirmations',
+  profile_thanks_received:'Merci reçus', dash_history_mod:'Historique de modération',
+  dash_categories:'Catégories', dash_comm_types:'Types communauté'
 },
 en:{
   nav_filters:'Filters', nav_search:'Search', nav_add:'Add a place', nav_community:'Community', nav_profile:'Profile', nav_dashboard:'Dashboard',
@@ -1334,7 +1345,18 @@ en:{
   dash_trusted_desc:'Their vote instantly validates a place', btn_confirm:'Confirm',
   btn_add_mod:'+ Add moderator', btn_add_trusted:'+ Add trusted member',
   dash_banned_members:'Banned members', ph_username:'Username...',
-  ph_ban_username:'Username to ban...', ph_ban_reason:'Reason (optional)...'
+  ph_ban_username:'Username to ban...', ph_ban_reason:'Reason (optional)...',
+  auth_forgot:'Forgot password?',
+  username_invalid:'✗ 3-20 characters, letters, numbers, _ and spaces',
+  username_checking:'Checking...', username_taken:'✗ Username already taken',
+  username_available:'✓ Available', username_saving:'Saving...',
+  lbl_default_ban_reason:'Rules violation', toast_user_banned:'has been banned',
+  val_confirmed_by_me:'Confirmed by me', val_confirm_btn:'Confirm this place',
+  val_first_confirm:'Be the first to confirm this place!',
+  val_community_confirmed:'Place confirmed by the community',
+  val_votes:'validation votes', val_confirmation_one:'confirmation', val_confirmation_many:'confirmations',
+  profile_thanks_received:'Thanks received', dash_history_mod:'Moderation history',
+  dash_categories:'Categories', dash_comm_types:'Community types'
 },
 es:{
   nav_filters:'Filtros', nav_search:'Buscar', nav_add:'Añadir lugar', nav_community:'Comunidad', nav_profile:'Perfil', nav_dashboard:'Panel',
@@ -1500,7 +1522,18 @@ es:{
   dash_trusted_desc:'Su voto valida un lugar al instante', btn_confirm:'Confirmar',
   btn_add_mod:'+ Añadir moderador', btn_add_trusted:'+ Añadir miembro de confianza',
   dash_banned_members:'Miembros baneados', ph_username:'Nombre de usuario...',
-  ph_ban_username:'Usuario a bannear...', ph_ban_reason:'Razón (opcional)...'
+  ph_ban_username:'Usuario a bannear...', ph_ban_reason:'Razón (opcional)...',
+  auth_forgot:'¿Contraseña olvidada?',
+  username_invalid:'✗ 3-20 caracteres, letras, números, _ y espacios',
+  username_checking:'Verificando...', username_taken:'✗ Nombre de usuario ya en uso',
+  username_available:'✓ Disponible', username_saving:'Guardando...',
+  lbl_default_ban_reason:'Violación de las reglas', toast_user_banned:'ha sido baneado',
+  val_confirmed_by_me:'Confirmado por mí', val_confirm_btn:'Confirmar este lugar',
+  val_first_confirm:'¡Sé el primero en confirmar este lugar!',
+  val_community_confirmed:'Lugar confirmado por la comunidad',
+  val_votes:'votos de validación', val_confirmation_one:'confirmación', val_confirmation_many:'confirmaciones',
+  profile_thanks_received:'Gracias recibidos', dash_history_mod:'Historial de moderación',
+  dash_categories:'Categorías', dash_comm_types:'Tipos comunidad'
 },
 de:{
   nav_filters:'Filter', nav_search:'Suche', nav_add:'Ort hinzufügen', nav_community:'Community', nav_profile:'Profil', nav_dashboard:'Dashboard',
@@ -1666,7 +1699,18 @@ de:{
   dash_trusted_desc:'Ihre Stimme validiert einen Ort sofort', btn_confirm:'Bestätigen',
   btn_add_mod:'+ Moderator hinzufügen', btn_add_trusted:'+ Vertrauensmitglied hinzufügen',
   dash_banned_members:'Gesperrte Mitglieder', ph_username:'Benutzername...',
-  ph_ban_username:'Zu sperrenden Benutzer...', ph_ban_reason:'Grund (optional)...'
+  ph_ban_username:'Zu sperrenden Benutzer...', ph_ban_reason:'Grund (optional)...',
+  auth_forgot:'Passwort vergessen?',
+  username_invalid:'✗ 3-20 Zeichen, Buchstaben, Zahlen, _ und Leerzeichen',
+  username_checking:'Prüfung...', username_taken:'✗ Benutzername bereits vergeben',
+  username_available:'✓ Verfügbar', username_saving:'Speichern...',
+  lbl_default_ban_reason:'Regelverstoß', toast_user_banned:'wurde gesperrt',
+  val_confirmed_by_me:'Von mir bestätigt', val_confirm_btn:'Diesen Ort bestätigen',
+  val_first_confirm:'Sei der Erste, der diesen Ort bestätigt!',
+  val_community_confirmed:'Ort von der Community bestätigt',
+  val_votes:'Validierungsstimmen', val_confirmation_one:'Bestätigung', val_confirmation_many:'Bestätigungen',
+  profile_thanks_received:'Danke erhalten', dash_history_mod:'Moderationsverlauf',
+  dash_categories:'Kategorien', dash_comm_types:'Community-Typen'
 },
 it:{
   nav_filters:'Filtri', nav_search:'Cerca', nav_add:'Aggiungi luogo', nav_community:'Comunità', nav_profile:'Profilo', nav_dashboard:'Dashboard',
@@ -1832,7 +1876,18 @@ it:{
   dash_trusted_desc:'Il loro voto valida istantaneamente un luogo', btn_confirm:'Conferma',
   btn_add_mod:'+ Aggiungi moderatore', btn_add_trusted:'+ Aggiungi membro di fiducia',
   dash_banned_members:'Membri banniti', ph_username:'Nome utente...',
-  ph_ban_username:'Utente da bannare...', ph_ban_reason:'Motivo (facoltativo)...'
+  ph_ban_username:'Utente da bannare...', ph_ban_reason:'Motivo (facoltativo)...',
+  auth_forgot:'Password dimenticata?',
+  username_invalid:'✗ 3-20 caratteri, lettere, numeri, _ e spazi',
+  username_checking:'Verifica...', username_taken:'✗ Nome utente già in uso',
+  username_available:'✓ Disponibile', username_saving:'Salvataggio...',
+  lbl_default_ban_reason:'Violazione delle regole', toast_user_banned:'è stato bannato',
+  val_confirmed_by_me:'Confermato da me', val_confirm_btn:'Conferma questo luogo',
+  val_first_confirm:'Sii il primo a confermare questo luogo!',
+  val_community_confirmed:'Luogo confermato dalla comunità',
+  val_votes:'voti di validazione', val_confirmation_one:'conferma', val_confirmation_many:'conferme',
+  profile_thanks_received:'Grazie ricevuti', dash_history_mod:'Storico moderazione',
+  dash_categories:'Categorie', dash_comm_types:'Tipi comunità'
 },
 pt:{
   nav_filters:'Filtros', nav_search:'Pesquisar', nav_add:'Adicionar local', nav_community:'Comunidade', nav_profile:'Perfil', nav_dashboard:'Painel',
@@ -1998,7 +2053,18 @@ pt:{
   dash_trusted_desc:'O voto deles valida um local instantaneamente', btn_confirm:'Confirmar',
   btn_add_mod:'+ Adicionar moderador', btn_add_trusted:'+ Adicionar membro de confiança',
   dash_banned_members:'Membros banidos', ph_username:'Nome de usuário...',
-  ph_ban_username:'Usuário a banir...', ph_ban_reason:'Motivo (opcional)...'
+  ph_ban_username:'Usuário a banir...', ph_ban_reason:'Motivo (opcional)...',
+  auth_forgot:'Esqueceu a senha?',
+  username_invalid:'✗ 3-20 caracteres, letras, números, _ e espaços',
+  username_checking:'Verificando...', username_taken:'✗ Nome de usuário já em uso',
+  username_available:'✓ Disponível', username_saving:'Guardando...',
+  lbl_default_ban_reason:'Violação das regras', toast_user_banned:'foi banido',
+  val_confirmed_by_me:'Confirmado por mim', val_confirm_btn:'Confirmar este local',
+  val_first_confirm:'Seja o primeiro a confirmar este local!',
+  val_community_confirmed:'Local confirmado pela comunidade',
+  val_votes:'votos de validação', val_confirmation_one:'confirmação', val_confirmation_many:'confirmações',
+  profile_thanks_received:'Obrigados recebidos', dash_history_mod:'Histórico de moderação',
+  dash_categories:'Categorias', dash_comm_types:'Tipos comunidade'
 },
 nl:{
   nav_filters:'Filters', nav_search:'Zoeken', nav_add:'Locatie toevoegen', nav_community:'Community', nav_profile:'Profiel', nav_dashboard:'Dashboard',
@@ -2164,7 +2230,18 @@ nl:{
   dash_trusted_desc:'Hun stem valideert een locatie direct', btn_confirm:'Bevestigen',
   btn_add_mod:'+ Moderator toevoegen', btn_add_trusted:'+ Vertrouwd lid toevoegen',
   dash_banned_members:'Verbannen leden', ph_username:'Gebruikersnaam...',
-  ph_ban_username:'Te verbannen gebruiker...', ph_ban_reason:'Reden (optioneel)...'
+  ph_ban_username:'Te verbannen gebruiker...', ph_ban_reason:'Reden (optioneel)...',
+  auth_forgot:'Wachtwoord vergeten?',
+  username_invalid:'✗ 3-20 tekens, letters, cijfers, _ en spaties',
+  username_checking:'Controleren...', username_taken:'✗ Gebruikersnaam al in gebruik',
+  username_available:'✓ Beschikbaar', username_saving:'Opslaan...',
+  lbl_default_ban_reason:'Regelovertreding', toast_user_banned:'is verbannen',
+  val_confirmed_by_me:'Door mij bevestigd', val_confirm_btn:'Dit adres bevestigen',
+  val_first_confirm:'Wees de eerste die dit adres bevestigt!',
+  val_community_confirmed:'Adres bevestigd door de community',
+  val_votes:'validatiestemmen', val_confirmation_one:'bevestiging', val_confirmation_many:'bevestigingen',
+  profile_thanks_received:'Ontvangen bedankjes', dash_history_mod:'Moderatiegeschiedenis',
+  dash_categories:'Categorieën', dash_comm_types:'Community-typen'
 }
 };
 
@@ -2366,7 +2443,7 @@ async function initPushToggle() {
   var sub = await reg.pushManager.getSubscription();
   toggle.classList.toggle('on', !!sub);
   var desc = document.getElementById('push-notif-desc');
-  if (desc) desc.textContent = sub ? 'Notifications actives sur cet appareil' : 'Recevez une alerte même quand l\'app est fermée';
+  if (desc) desc.textContent = sub ? t('profile_push_active') : t('profile_push_desc');
 }
 
 async function togglePushSetting() {
@@ -2380,7 +2457,7 @@ async function togglePushSetting() {
     var toggle = document.getElementById('toggle-push');
     if (toggle) toggle.classList.remove('on');
     var desc = document.getElementById('push-notif-desc');
-    if (desc) desc.textContent = "Recevez une alerte même quand l'app est fermée";
+    if (desc) desc.textContent = t('profile_push_desc');
     showToast(t('toast_push_off'), '');
   } else {
     var perm = await Notification.requestPermission();
@@ -2392,7 +2469,7 @@ async function togglePushSetting() {
       var toggle2 = document.getElementById('toggle-push');
       if (toggle2) toggle2.classList.add('on');
       var desc2 = document.getElementById('push-notif-desc');
-      if (desc2) desc2.textContent = 'Notifications actives sur cet appareil';
+      if (desc2) desc2.textContent = t('profile_push_active');
       showToast(t('toast_push_on'), 'success');
     } catch(e) { showToast(t('lbl_err_generic') + e.message, 'error'); }
   }
@@ -2637,7 +2714,7 @@ function getZoneBlock() {
     + '<div style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Zone actuelle</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + flagsHtml + '</div>'
     + '</div>'
-    + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">&#127758; Changer ou ajouter un pays</button>';
+    + '<button class="btn-s" onclick="closeSheet(\'sheet-profile\');openCountryPicker()" style="margin-bottom:16px;">' + t('btn_change_country') + '</button>';
 }
 
 async function renderProfile() {
@@ -2645,9 +2722,9 @@ async function renderProfile() {
   if (!currentUser) {
     el.innerHTML = '<div style="text-align:center;padding:20px 16px">'
       + '<div style="font-size:48px;margin-bottom:16px">&#128100;</div>'
-      + '<p style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px">Rejoindre la communaut&#233;</p>'
-      + '<p style="font-size:13px;color:var(--text2);margin-bottom:20px">Connecte-toi pour ajouter des lieux, voter, commenter et acc&#233;der &#224; la vue satellite</p>'
-      + '<button id="prof-login-btn" class="btn-p" style="margin-bottom:16px">Se connecter / S&#39;inscrire</button>'
+      + '<p style="font-family:var(--font-head);font-size:18px;font-weight:700;margin-bottom:8px">' + t('profile_join') + '</p>'
+      + '<p style="font-size:13px;color:var(--text2);margin-bottom:20px">' + t('profile_join_desc') + '</p>'
+      + '<button id="prof-login-btn" class="btn-p" style="margin-bottom:16px">' + t('profile_login_btn') + '</button>'
       + '</div>'
       + getZoneBlock();
     var lb = document.getElementById('prof-login-btn');
@@ -2681,7 +2758,7 @@ async function renderProfile() {
     + '<div class="prof-banner-picker" id="prof-banner-picker">'
     + '<div class="prof-swatches" id="prof-swatches">' + swatchesHtml + '</div>'
     + '<div class="prof-picker-btns">'
-    + '<button class="prof-picker-btn" id="prof-picker-close">&#10005; Fermer</button>'
+    + '<button class="prof-picker-btn" id="prof-picker-close">' + t('profile_banner_close') + '</button>'
     + '</div></div>'
     + '<div class="prof-avatar" id="prof-avatar">' + avatarInner + '</div>'
     + '</div>'
@@ -2689,16 +2766,16 @@ async function renderProfile() {
     + '<div class="prof-username">' + username + '</div>'
     + '<div class="prof-meta" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">'
     + '<span id="prof-role-label" style="font-size:13px;font-weight:600;color:var(--accent);"></span>'
-    + '<span style="font-size:12px;color:var(--text2);">&#128197; Inscrit le ' + dateStr + ' &nbsp;&middot;&nbsp; <span id="prof-member-num"></span></span>'
+    + '<span style="font-size:12px;color:var(--text2);">&#128197; ' + t('profile_member_since') + ' ' + dateStr + ' &nbsp;&middot;&nbsp; <span id="prof-member-num"></span></span>'
     + '</div>'
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
-    + '<div class="prof-stat" onclick="toggleProfPlaces()" style="cursor:pointer;" title="Voir mes lieux"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">Lieux ajout\u00e9s</div></div><span id="prof-places-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat" onclick="toggleProfValidated()" style="cursor:pointer;" title="Voir mes confirmations de lieux"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val" id="prof-validated">\u2014</div><div class="prof-stat-lbl">Confirmations</div></div><span id="prof-validated-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">Commentaires</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">Remerciements donn\u00e9s</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">Favoris</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
-    + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val" id="prof-merci">\u2014</div><div class="prof-stat-lbl">Merci re\u00e7us</div></div></div>'
+    + '<div class="prof-stat" onclick="toggleProfPlaces()" style="cursor:pointer;" title="Voir mes lieux"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val" id="prof-places">\u2014</div><div class="prof-stat-lbl">' + t('profile_places_added') + '</div></div><span id="prof-places-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfValidated()" style="cursor:pointer;" title="Voir mes confirmations de lieux"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val" id="prof-validated">\u2014</div><div class="prof-stat-lbl">' + t('profile_validated') + '</div></div><span id="prof-validated-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfComments()" style="cursor:pointer;" title="Voir mes commentaires"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val" id="prof-comments">\u2014</div><div class="prof-stat-lbl">' + t('profile_comments') + '</div></div><span id="prof-cmts-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfVotes()" style="cursor:pointer;" title="Voir mes votes"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val" id="prof-votes">\u2014</div><div class="prof-stat-lbl">' + t('profile_votes') + '</div></div><span id="prof-votes-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat" onclick="toggleProfFavs()" style="cursor:pointer;" title="Voir mes favoris"><div class="prof-stat-icon" style="background:rgba(231,76,60,0.12);">&#10084;</div><div style="flex:1"><div class="prof-stat-val" id="prof-favs-count">\u2014</div><div class="prof-stat-lbl">' + t('profile_favorites') + '</div></div><span id="prof-favs-arrow" style="color:var(--text2);font-size:16px;">\u203a</span></div>'
+    + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val" id="prof-merci">\u2014</div><div class="prof-stat-lbl">' + t('profile_thanks_received') + '</div></div></div>'
     + '</div></div>'
     + '<div id="prof-places-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div id="prof-validated-panel" style="display:none;padding:0 16px 4px;"></div>'
@@ -2706,34 +2783,34 @@ async function renderProfile() {
     + '<div id="prof-votes-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div class="prof-ranking" onclick="toggleProfRank()" style="cursor:pointer;" title="Voir le classement g\u00e9n\u00e9ral">'
     + '<div class="prof-rank-icon">&#127942;</div>'
-    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">Classement communaut\u00e9</div>'
+    + '<div class="prof-rank-bar-wrap"><div class="prof-rank-label">' + t('profile_ranking') + '</div>'
     + '<div class="prof-rank-val" id="prof-rank">\u2014</div>'
     + '<div class="prof-rank-bar"><div class="prof-rank-fill" id="prof-rank-fill" style="width:0%"></div></div></div>'
     + '<span id="prof-rank-arrow" style="color:var(--text2);font-size:20px;">\u203a</span>'
     + '</div>'
     + '<div id="prof-rank-panel" style="display:none;padding:0 16px 12px;">'
     + '<div style="display:flex;gap:8px;margin-bottom:10px;">'
-    + '<button id="rank-tab-places" onclick="switchRankTab(\'places\')" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;">&#128205; Ajouts</button>'
-    + '<button id="rank-tab-ratings" onclick="switchRankTab(\'ratings\')" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px;font-size:12px;cursor:pointer;">&#11088; Notes</button>'
+    + '<button id="rank-tab-places" onclick="switchRankTab(\'places\')" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;">' + t('profile_tab_places') + '</button>'
+    + '<button id="rank-tab-ratings" onclick="switchRankTab(\'ratings\')" style="flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px;font-size:12px;cursor:pointer;">' + t('profile_tab_ratings') + '</button>'
     + '</div>'
     + '<div id="rank-list"></div>'
     + '</div>'
     + '<div id="prof-favs-panel" style="display:none;padding:0 16px 4px;"></div>'
     + '<div style="border-top:1px solid var(--border);padding:16px 20px 4px;">'
-    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:12px;">&#9881;&#65039; R&#233;glages</div>'
+    + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:12px;">' + t('profile_settings') + '</div>'
     + '<div class="setting-row" style="cursor:pointer;" onclick="closeSheet(\'sheet-profile\');openCountryPicker()">'
-    + '<div><div class="setting-label">&#127758; Changer ou ajouter un pays</div><div class="setting-desc">S&#233;lectionner les pays o&#249; chercher des lieux</div></div>'
+    + '<div><div class="setting-label">' + t('profile_change_country') + '</div><div class="setting-desc">' + t('profile_country_desc') + '</div></div>'
     + '<span style="color:var(--text2);font-size:20px;">&#8250;</span>'
     + '</div>'
-    + '<div class="setting-row"><div><div class="setting-label">&#128752; Vue satellite hybride</div><div class="setting-desc">Carte en vue a&#233;rienne avec noms de rues</div></div>'
+    + '<div class="setting-row"><div><div class="setting-label">' + t('profile_satellite') + '</div><div class="setting-desc">' + t('profile_satellite_desc') + '</div></div>'
     + '<div class="toggle" id="toggle-sat" onclick="toggleSatSetting()"></div>'
     + '</div>'
-    + '<div id="push-notif-row" class="setting-row" style="display:none;"><div><div class="setting-label">&#128276; Notifications push</div><div class="setting-desc" id="push-notif-desc">Recevez une alerte m&#234;me quand l\'app est ferm&#233;e</div></div>'
+    + '<div id="push-notif-row" class="setting-row" style="display:none;"><div><div class="setting-label">' + t('profile_push') + '</div><div class="setting-desc" id="push-notif-desc">' + t('profile_push_desc') + '</div></div>'
     + '<div class="toggle" id="toggle-push" onclick="togglePushSetting()"></div>'
     + '</div>'
     + '</div>'
     + '<div style="padding:16px;">'
-    + '<button onclick="showConfirm(t(\'confirm_logout_title\'),t(\'confirm_logout_msg\'),t(\'confirm_logout_btn\'),\'#e74c3c\',signOut)" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128682; Se d&#233;connecter</button>'
+    + '<button onclick="showConfirm(t(\'confirm_logout_title\'),t(\'confirm_logout_msg\'),t(\'confirm_logout_btn\'),\'#e74c3c\',signOut)" style="width:100%;background:none;border:1px solid #e74c3c;color:#e74c3c;border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">' + t('profile_signout') + '</button>'
     + '</div>'
     + '</div>';
 
@@ -2956,15 +3033,15 @@ async function openPublicProfile(username) {
     + '<div class="prof-meta" style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">'
     + '<span style="font-size:13px;font-weight:600;color:var(--accent);">' + communityRole + '</span>'
     + '<span style="font-size:12px;color:var(--text2);">'
-    + (joinDate ? '&#128197; Inscrit le ' + joinDate : '')
+    + (joinDate ? '&#128197; ' + t('member_registered') + ' ' + joinDate : '')
     + (memberNum ? (joinDate ? ' &nbsp;&middot;&nbsp; ' : '') + '&#128100; Membre #' + memberNum : '')
     + '</span>'
     + '</div>'
     + '</div>'
     + '<div class="prof-stats"><div class="prof-stats-grid">'
     + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
-    + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">Confirmations</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
-    + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">Commentaires</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">' + t('profile_validated') + '</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
+    + '<div class="prof-stat" onclick="togglePubComments()" style="cursor:pointer;"><div class="prof-stat-icon pic-blue">&#128172;</div><div style="flex:1"><div class="prof-stat-val">' + commentsCount + '</div><div class="prof-stat-lbl">' + t('profile_comments') + '</div></div><span id="pub-cmts-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon pic-yellow">&#128077;</div><div style="flex:1"><div class="prof-stat-val">' + votesCount + '</div><div class="prof-stat-lbl">Remerciements donn&eacute;s</div></div></div>'
     + '<div class="prof-stat"><div class="prof-stat-icon" style="background:rgba(147,51,234,0.12);">&#128591;</div><div style="flex:1"><div class="prof-stat-val">' + merciCount + '</div><div class="prof-stat-lbl">Merci re&ccedil;us</div></div></div>'
     + '</div></div>'
@@ -3095,8 +3172,8 @@ function signOut() {
   userPrefs = { satellite: false };
   applySat(false);
   updateSatBtn();
-  document.getElementById('auth-info').textContent = 'Non connect\u00e9';
-  document.getElementById('btn-auth').textContent = 'Connexion';
+  document.getElementById('auth-info').textContent = t('auth_not_connected');
+  document.getElementById('btn-auth').textContent = t('btn_connect');
   closeSheet('sheet-profile');
   showToast(t('toast_disconnected'), 'success');
   setTimeout(function() { openModal('modal-auth'); }, 300);
@@ -3165,21 +3242,21 @@ function openUsernameModal() {
     if (!v) { status.textContent = ''; btn.disabled = true; btn.style.opacity = '0.5'; return; }
     if (!/^[a-zA-Z0-9À-ɏ_ ]{3,20}$/.test(v) || /  /.test(v)) {
       status.style.color = '#e74c3c';
-      status.textContent = '✗ 3-20 caractères, lettres, chiffres, _ et espaces';
+      status.textContent = t('username_invalid');
       btn.disabled = true; btn.style.opacity = '0.5'; return;
     }
     status.style.color = 'var(--text2)';
-    status.textContent = 'Vérification...';
+    status.textContent = t('username_checking');
     timer = setTimeout(async function() {
       // Check uniqueness in places table (existing contributors)
       var chk = await db.from('places').select('user_name').eq('user_name', v).limit(1);
       if (chk.data && chk.data.length > 0) {
         status.style.color = '#e74c3c';
-        status.textContent = '✗ Pseudo déjà utilisé';
+        status.textContent = t('username_taken');
         btn.disabled = true; btn.style.opacity = '0.5';
       } else {
         status.style.color = '#27ae60';
-        status.textContent = '✓ Disponible';
+        status.textContent = t('username_available');
         btn.disabled = false; btn.style.opacity = '1';
       }
     }, 400);
@@ -3192,12 +3269,12 @@ async function saveUsername() {
   if (!v || !/^[a-zA-Z0-9À-ɏ_ ]{3,20}$/.test(v) || /  /.test(v)) return;
   var btn = document.getElementById('username-confirm-btn');
   var status = document.getElementById('username-status');
-  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.textContent = 'Enregistrement...'; }
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; btn.textContent = t('username_saving'); }
   // Save in auth user_metadata
   var res = await db.auth.updateUser({ data: { username: v } });
   if (res.error) {
     if (status) { status.style.color = '#e74c3c'; status.textContent = '✗ Erreur : ' + res.error.message; }
-    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Confirmer'; }
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = t('btn_confirm'); }
     return;
   }
   // Refresh currentUser with updated metadata
@@ -3636,7 +3713,7 @@ async function checkAuth() {
   if (result.data && result.data.session) {
     currentUser = result.data.session.user;
     // auth-info updated in loadUserProfile
-    document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
+    document.getElementById('btn-auth').textContent = t('btn_disconnect');
     updateSatBtn();
     await loadPrefs();
     await loadUserProfile();
@@ -3681,7 +3758,7 @@ async function handleAuth() {
     }
     currentUser = user;
     // auth-info updated in loadUserProfile
-    document.getElementById('btn-auth').textContent = 'D\u00e9connexion';
+    document.getElementById('btn-auth').textContent = t('btn_disconnect');
     closeModal('modal-auth');
     updateSatBtn();
     await loadPrefs();
@@ -3704,9 +3781,9 @@ function showUnconfirmedMessage(email) {
 
 function switchAuthMode() {
   isLogin = !isLogin;
-  document.getElementById('auth-title').textContent = isLogin ? 'Connexion' : 'Cr\u00e9er un compte';
-  document.querySelector('#modal-auth .btn-p').textContent = isLogin ? 'Se connecter' : 'Cr\u00e9er le compte';
-  document.querySelector('#modal-auth .btn-s').textContent = isLogin ? 'Cr\u00e9er un compte' : "J'ai d\u00e9j\u00e0 un compte";
+  document.getElementById('auth-title').textContent = isLogin ? t('auth_title_login') : t('auth_title_signup');
+  document.querySelector('#modal-auth .btn-p').textContent = isLogin ? t('auth_login_btn') : t('auth_signup_btn');
+  document.querySelector('#modal-auth .btn-s').textContent = isLogin ? t('auth_switch_signup') : t('auth_switch_login');
   document.getElementById('confirm-pass-group').style.display = isLogin ? 'none' : 'block';
   document.getElementById('forgot-pass-row').style.display = isLogin ? 'block' : 'none';
   document.getElementById('auth-password-confirm').value = '';
@@ -4086,7 +4163,7 @@ function makePopup(p) {
     + (currentUser && (currentUser.id === p.user_id || isAdmin || isModerator) ? '<button onclick="openEditPlace()" class="pv2-nav-btn pv2-btn-edit" title="Modifier">&#9998;</button>' : '')
     + '<button onclick="sharePlace(\'' + safeId + '\',\'' + safeName + '\',' + p.latitude + ',' + p.longitude + ')" class="pv2-nav-btn pv2-btn-share" title="Partager"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>'
     + '</div>'
-    + (currentUser && (p.status === 'pending' || !p.user_id) ? '<div id="validation-box-' + safeId + '" class="pv2-validation-box" style="' + (!p.user_id ? 'border-top-color:rgba(52,152,219,0.3);background:rgba(52,152,219,0.05);' : '') + '"><div id="validation-info-' + safeId + '" style="font-size:12px;color:' + (!p.user_id ? '#3498db' : '#f59e0b') + ';margin-bottom:8px;">' + (!p.user_id ? '&#127758; Lieu importé — Chargement...' : '⏳ Chargement des votes...') + '</div><button class="pv2-mod-btn pv2-mod-show" onclick="voteValidation(\'' + safeId + '\')">' + (!p.user_id ? '&#10003; Confirmer ce lieu' : '&#128077; Valider ce lieu') + '</button></div>' : '')
+    + (currentUser && (p.status === 'pending' || !p.user_id) ? '<div id="validation-box-' + safeId + '" class="pv2-validation-box" style="' + (!p.user_id ? 'border-top-color:rgba(52,152,219,0.3);background:rgba(52,152,219,0.05);' : '') + '"><div id="validation-info-' + safeId + '" style="font-size:12px;color:' + (!p.user_id ? '#3498db' : '#f59e0b') + ';margin-bottom:8px;">' + (!p.user_id ? '🌍 ' + t('lbl_loading') : '⏳ ' + t('val_loading')) + '</div><button class="pv2-mod-btn pv2-mod-show" onclick="voteValidation(\'' + safeId + '\')">' + (!p.user_id ? '✓ ' + t('val_confirm_btn') : t('val_validate_btn')) + '</button></div>' : '')
     + (currentUser ? '<div id="val-section-' + safeId + '" class="pv2-val-section"><div class="pv2-val-loading">&#8230;</div></div>' : '')
     + '<div class="pv2-apps" id="nav-' + safeId + '" style="display:none;">'
     + '<a href="https://waze.com/ul?ll=' + p.latitude + ',' + p.longitude + '&navigate=yes" target="_blank" class="pv2-app-btn pv2-app-waze">→ Waze</a>'
@@ -4332,7 +4409,7 @@ async function loadValidationSection(pid) {
   var btnStyle = hasValidated
     ? 'background:rgba(39,174,96,0.15);color:#27ae60;border:1px solid rgba(39,174,96,0.4);'
     : 'background:var(--surface2);color:var(--text2);border:1px solid var(--border);';
-  var btnLabel = hasValidated ? '&#9989; Confirmé par moi' : '&#9989; Confirmer ce lieu';
+  var btnLabel = hasValidated ? '✅ ' + t('val_confirmed_by_me') : '✅ ' + t('val_confirm_btn');
   var onclick = hasValidated ? 'unvalidatePlace(\'' + pid + '\')' : 'validatePlace(\'' + pid + '\')';
   el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">'
     + '<span style="font-size:12px;color:' + (validated ? '#27ae60' : 'var(--text2)') + ';">&#9989; ' + count + '/' + THRESHOLD + ' confirmations</span>'
@@ -4391,9 +4468,9 @@ async function loadValidationCount(pid) {
     if (isImport) {
       var done = n >= threshold;
       info.style.color = done ? '#27ae60' : '#3498db';
-      info.textContent = n === 0 ? '&#127758; Soyez le premier à confirmer ce lieu !' : (done ? '&#10003; Lieu confirmé par la communauté (' + n + '/' + threshold + ')' : '&#10003; ' + n + '/' + threshold + ' confirmation' + (n > 1 ? 's' : ''));
+      info.textContent = n === 0 ? t('val_first_confirm') : (done ? '✓ ' + t('val_community_confirmed') + ' (' + n + '/' + threshold + ')' : '✓ ' + n + '/' + threshold + ' ' + (n > 1 ? t('val_confirmation_many') : t('val_confirmation_one')));
     } else {
-      info.textContent = '⏳ ' + n + '/' + threshold + ' votes de validation';
+      info.textContent = '⏳ ' + n + '/' + threshold + ' ' + t('val_votes');
     }
   }
   if (!currentUser) return;
@@ -4809,8 +4886,8 @@ async function banUser(userId, username) {
   if (!isAdmin) return;
   var reason = prompt('Raison du bannissement de ' + username + ' (optionnel) :');
   if (reason === null) return;
-  await db.from('banned_users').upsert({ user_id: userId, banned_by_name: currentUsername || '', reason: reason || 'Violation des règles' }, { onConflict: 'user_id' });
-  showToast('&#128683; ' + username + ' a été banni', 'success');
+  await db.from('banned_users').upsert({ user_id: userId, banned_by_name: currentUsername || '', reason: reason || t('lbl_default_ban_reason') }, { onConflict: 'user_id' });
+  showToast('🚫 ' + username + ' ' + t('toast_user_banned'), 'success');
   closeSheet('sheet-pub-profile');
   loadBannedList();
 }
@@ -4908,8 +4985,8 @@ async function confirmBan() {
   if (!isAdmin || !_banPendingUserId) return;
   var reasonInp = document.getElementById('ban-reason-input');
   var reason = reasonInp ? reasonInp.value.trim() : '';
-  await db.from('banned_users').insert({ user_id: _banPendingUserId, banned_by_name: currentUsername || '', reason: reason || 'Violation des règles' });
-  showToast('&#128683; ' + _banPendingUsername + ' a été banni', 'success');
+  await db.from('banned_users').insert({ user_id: _banPendingUserId, banned_by_name: currentUsername || '', reason: reason || t('lbl_default_ban_reason') });
+  showToast('🚫 ' + _banPendingUsername + ' ' + t('toast_user_banned'), 'success');
   var inp = document.getElementById('ban-username-input');
   if (inp) inp.value = '';
   cancelBan();
@@ -4980,7 +5057,7 @@ async function loadMembersList() {
         + '<div style="font-size:12px;font-weight:700;color:var(--text2);min-width:24px;text-align:right;">#' + (i + 1) + '</div>'
         + '<div style="flex:1;min-width:0;">'
         + '<div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(uname) + '</div>'
-        + '<div style="font-size:11px;color:var(--text2);">Inscrit le ' + dateStr + '</div>'
+        + '<div style="font-size:11px;color:var(--text2);">' + t('member_registered') + ' ' + dateStr + '</div>'
         + '</div>'
         + '<span style="color:var(--text2);font-size:14px;">&#8250;</span>'
         + '</div>';
@@ -5423,7 +5500,7 @@ async function loadReportedPlaces() {
     if (!grouped[r.place_id]) grouped[r.place_id] = { place: r.places, reports: [] };
     grouped[r.place_id].reports.push({ id: r.id, reason: r.reason, details: r.details, photo_url: r.photo_url, user: usernameMap[r.user_id] || r.user_id, suggested_lat: r.suggested_lat, suggested_lng: r.suggested_lng });
   });
-  var reasons = { closed: 'Fermé', wrong_info: 'Infos incorrectes', duplicate: 'Doublon', inappropriate: 'Inapproprié', bad_photo: 'Photo inappropriée', other: 'Autre', maintenance: 'En maintenance', wrong_location: 'Emplacement incorrect' };
+  var reasons = { closed: t('report_reason_closed'), wrong_info: t('report_reason_info'), duplicate: t('report_reason_duplicate'), inappropriate: t('report_reason_inappropriate'), bad_photo: t('report_reason_bad_photo'), other: t('report_reason_other'), maintenance: t('report_reason_maintenance'), wrong_location: t('report_reason_location') };
   el.innerHTML = Object.entries(grouped).map(function(entry) {
     var pid = entry[0], g = entry[1];
     var place = g.place || {};
@@ -5671,7 +5748,7 @@ async function submitClosedHS() {
   var reportPayload = { place_id: pid, user_id: currentUser.id, reason: reason };
   if (details) reportPayload.details = details;
   await db.from('reports').insert(reportPayload);
-  var reasonLabels = { closed: 'Fermé définitivement', maintenance: 'En maintenance', other: 'Autre' };
+  var reasonLabels = { closed: t('report_reason_closed'), maintenance: t('report_reason_maintenance'), other: t('report_reason_other') };
   var placeName = place ? place.name : pid;
   notifyMods('closed_vote', '🚫 Fermé/HS — « ' + placeName + ' » — ' + (reasonLabels[reason] || reason) + (details ? ' : ' + details.slice(0, 60) : ''), pid);
   _closedHSPendingId = null;
@@ -6024,7 +6101,7 @@ async function submitReport() {
   closeModal('modal-report');
   showToast(t('toast_report_sent'), 'success');
   var placeNameForNotif = document.getElementById('report-place-name').textContent || reportPlaceId;
-  var reasonLabels = { closed:'Ferm\u00e9 d\u00e9finitivement', maintenance:'En maintenance', wrong_location:'Emplacement incorrect', duplicate:'Doublon', wrong_info:'Infos incorrectes', inappropriate:'Contenu inappropri\u00e9', other:'Autre' };
+  var reasonLabels = { closed:t('report_reason_closed'), maintenance:t('report_reason_maintenance'), wrong_location:t('report_reason_location'), duplicate:t('report_reason_duplicate'), wrong_info:t('report_reason_info'), inappropriate:t('report_reason_inappropriate'), other:t('report_reason_other') };
   notifyMods('signalement', '&#9888;&#65039; Signalement re\u00e7u \u2014 ' + (reasonLabels[reason] || reason) + ' \u2014 \u00ab ' + placeNameForNotif + ' \u00bb', reportPlaceId);
   if (reason === 'wrong_location' && insertedReportId) {
     _locationSuggestionReportId = insertedReportId;
@@ -6733,51 +6810,51 @@ async function loadDashboardTiles() {
     + tile('&#127381;', t('dash_new_members'), newMembers, 'showDashNewMembers()', 0, 'week', t('lbl_this_week'))
     + tile('&#128205;', t('dash_validated_total'), totalPlaces, 'showDashValidatedPlaces()')
     + tile('&#10024;', t('dash_new_places'), newPlaces, 'showDashNewPlaces()', 0, 'week', t('lbl_this_week'))
-    + tile('&#9888;&#65039;', 'Lieux signal&eacute;s', reportedPlaces, 'showDashReportedPlaces()', reportedPlaces, reportedPlaces > 0 ? 'urgent' : '')
-    + tile('&#128172;', 'Commentaires signal&eacute;s', reportedCmts, 'showDashReportedComments()', reportedCmts, reportedCmts > 0 ? 'urgent' : '');
+    + tile('&#9888;&#65039;', t('dash_reported_places'), reportedPlaces, 'showDashReportedPlaces()', reportedPlaces, reportedPlaces > 0 ? 'urgent' : '')
+    + tile('&#128172;', t('dash_reported_comments'), reportedCmts, 'showDashReportedComments()', reportedCmts, reportedCmts > 0 ? 'urgent' : '');
   // Ligne 4 : lieux en attente + statistiques globales
-  html += tile('&#9203;', '&Agrave; valider', pendingCount, 'showDashPending()', pendingCount, pendingCount > 0 ? 'urgent' : '')
+  html += tile('&#9203;', t('dash_pending'), pendingCount, 'showDashPending()', pendingCount, pendingCount > 0 ? 'urgent' : '')
     + tile('&#128202;', t('dash_global_stats'), '', 'showDashStats()', 0, '');
   // Ligne 5 admin : équipe + sanctions
   if (isAdmin) {
-    html += tile('&#128737;&#65039;', '&Eacute;quipe', '', 'showDashTeam()', 0, 'admin-only')
-      + tile('&#128296;', 'Sanctions', '', 'showDashBan()', 0, 'admin-only')
-      + tile('&#128221;', 'Historique mod&eacute;ration', '', 'showDashReportHistory()', 0, 'admin-only')
-      + tile('&#128193;', 'Cat&eacute;gories', '', 'showDashCategories()', 0, 'admin-only')
-      + tile('&#128172;', 'Types communaut&eacute;', '', 'showDashCommTypes()', 0, 'admin-only');
+    html += tile('&#128737;&#65039;', t('dash_team'), '', 'showDashTeam()', 0, 'admin-only')
+      + tile('&#128296;', t('dash_bans'), '', 'showDashBan()', 0, 'admin-only')
+      + tile('&#128221;', t('dash_history_mod'), '', 'showDashReportHistory()', 0, 'admin-only')
+      + tile('&#128193;', t('dash_categories'), '', 'showDashCategories()', 0, 'admin-only')
+      + tile('&#128172;', t('dash_comm_types'), '', 'showDashCommTypes()', 0, 'admin-only');
   }
   grid.innerHTML = html;
 }
 
 function showDashPending() {
-  showDashDetail('&#9203; Lieux à valider', function() {
+  showDashDetail('⏳ ' + t('dash_pending'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div id="pending-places-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div id="pending-places-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadPendingPlaces();
   });
 }
 
 function showDashReportedPlaces() {
-  showDashDetail('&#9888;&#65039; Lieux signalés', function() {
+  showDashDetail(t('dash_reported_places'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div id="reported-places-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div id="reported-places-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadReportedPlaces();
   });
 }
 
 function showDashReportedComments() {
-  showDashDetail('&#128172; Commentaires signalés', function() {
+  showDashDetail(t('dash_reported_comments'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div id="reported-comments-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div id="reported-comments-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadReportedComments();
   });
 }
 
 function showDashReportHistory() {
   if (!isAdmin) return;
-  showDashDetail('&#128221; Historique de modération', function() {
+  showDashDetail('📋 ' + t('dash_history_mod'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div id="report-history-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div id="report-history-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadReportHistory();
   });
 }
@@ -6789,7 +6866,7 @@ async function loadReportHistory() {
   if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:12px;">Erreur : ' + escHtml(res.error.message) + '</div>'; return; }
   var data = res.data || [];
   if (!data.length) { el.innerHTML = '<div style="color:var(--text2);padding:16px;text-align:center;">' + t('lbl_no_action_mod') + '</div>'; return; }
-  var reasonLabels = { closed:'Fermé définitivement', maintenance:'En maintenance', wrong_location:'Emplacement incorrect', duplicate:'Doublon', wrong_info:'Infos incorrectes', inappropriate:'Contenu inapproprié', bad_photo:'Photo inappropriée', other:'Autre' };
+  var reasonLabels = { closed:t('report_reason_closed'), maintenance:t('report_reason_maintenance'), wrong_location:t('report_reason_location'), duplicate:t('report_reason_duplicate'), wrong_info:t('report_reason_info'), inappropriate:t('report_reason_inappropriate'), bad_photo:t('report_reason_bad_photo'), other:t('report_reason_other') };
   el.innerHTML = data.map(function(h) {
     var actionColor = h.action === 'hidden' ? '#e74c3c' : '#27ae60';
     var actionIcon = h.action === 'hidden' ? '&#128683;' : '&#10003;';
@@ -6886,21 +6963,21 @@ function showDashNewPlaces() {
 }
 
 function showDashReports() {
-  showDashDetail('&#9888;&#65039; Signalements', function() {
+  showDashDetail('⚠️ ' + t('dash_reports'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">&#128205; Lieux signalés</div>'
-      + '<div id="reported-places-list"><div style="color:var(--text2);">Chargement...</div></div>'
-      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 10px;">&#128172; Commentaires signalés</div>'
-      + '<div id="reported-comments-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">' + t('dash_reported_places') + '</div>'
+      + '<div id="reported-places-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 10px;">' + t('dash_reported_comments') + '</div>'
+      + '<div id="reported-comments-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadReportedPlaces();
     loadReportedComments();
   });
 }
 
 function showDashMembers() {
-  showDashDetail('&#128101; Membres', function() {
+  showDashDetail('👥 ' + t('dash_members'), function() {
     var c = document.getElementById('dash-detail-content');
-    c.innerHTML = '<div id="dash-members-list"><div style="color:var(--text2);">Chargement...</div></div>';
+    c.innerHTML = '<div id="dash-members-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadDashMembersList();
   });
 }
@@ -6914,8 +6991,8 @@ async function loadDashMembersList() {
   var rolesRes = await db.from('trusted_users').select('user_id,role');
   var rolesMap = {};
   (rolesRes.data || []).forEach(function(r) { rolesMap[r.user_id] = r.role; });
-  if (!members.length) { el.innerHTML = '<div style="color:var(--text2);">Aucun membre</div>'; return; }
-  el.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">' + members.length + ' membres inscrits</div>'
+  if (!members.length) { el.innerHTML = '<div style="color:var(--text2);">' + t('lbl_no_member') + '</div>'; return; }
+  el.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">' + members.length + ' ' + t('dash_registered_members').toLowerCase() + '</div>'
     + members.map(function(m, i) {
       var role = rolesMap[m.user_id] || null;
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
@@ -6923,15 +7000,15 @@ async function loadDashMembersList() {
       return '<div onclick="closeSheet(\'sheet-dashboard\');openPublicProfile(\'' + escHtml(m.username).replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
         + '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,208,79,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;">' + (i + 1) + '</div>'
         + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(m.username) + '</div>'
-        + (date ? '<div style="font-size:11px;color:var(--text2);">Inscrit le ' + date + '</div>' : '') + '</div>'
+        + (date ? '<div style="font-size:11px;color:var(--text2);">' + t('member_registered') + ' ' + date + '</div>' : '') + '</div>'
         + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
     }).join('');
 }
 
 function showDashValidatedPlaces() {
-  showDashDetail('&#128205; Lieux validés', function() {
+  showDashDetail('📍 ' + t('dash_validated_total'), function() {
     var el = document.getElementById('dash-detail-content');
-    el.innerHTML = '<div id="validated-places-list"><div style="color:var(--text2);font-size:13px;">Chargement...</div></div>';
+    el.innerHTML = '<div id="validated-places-list"><div style="color:var(--text2);font-size:13px;">' + t('dash_loading') + '</div></div>';
     (async function() {
       var listEl = document.getElementById('validated-places-list');
       if (!listEl) return;
@@ -6957,7 +7034,7 @@ function showDashValidatedPlaces() {
 }
 
 function showDashStats() {
-  showDashDetail('&#128202; Statistiques', async function() {
+  showDashDetail('📊 ' + t('dash_global_stats'), async function() {
     var results = await Promise.all([
       db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
       db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active'),
