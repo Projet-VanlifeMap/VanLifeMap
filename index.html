@@ -1956,6 +1956,7 @@ async function init() {
 
   await checkAuth();
   await loadCats();
+  await loadCommTypes();
 
   document.getElementById('loading').style.display = 'none';
 
@@ -5788,8 +5789,53 @@ window.addEventListener('appinstalled', function() {
 // ===== COMMUNITY =====
 var commFilter = 'all';
 var commPosts = [];
+var commTypes = [];
 var newPostType = 'message';
 var newPostPlace = null;
+var editPostId = null;
+
+// ===== TYPES COMMUNAUTÉ =====
+async function loadCommTypes() {
+  var res = await db.from('community_types').select('*').order('sort_order');
+  commTypes = res.data || [];
+  renderCommFilters();
+  renderNewPostTypeSelector();
+}
+
+function getTypeInfo(slug) {
+  var t = commTypes.find(function(t) { return t.slug === slug; });
+  return t || { name: slug, icon: '💬', color: '#ffd04f', bg_color: 'rgba(255,208,79,0.12)', pinned: false };
+}
+
+function renderTypeBadge(slug) {
+  var t = getTypeInfo(slug);
+  return '<span class="comm-badge" style="color:' + t.color + ';background:' + t.bg_color + ';">' + t.icon + ' ' + t.name + '</span>';
+}
+
+function renderCommFilters() {
+  var el = document.querySelector('.comm-filters');
+  if (!el) return;
+  var html = '<button class="comm-filter' + (commFilter === 'all' ? ' active' : '') + '" data-filter="all" onclick="filterComm(\'all\',this)">Tout</button>';
+  commTypes.forEach(function(t) {
+    html += '<button class="comm-filter' + (commFilter === t.slug ? ' active' : '') + '" data-filter="' + t.slug + '" onclick="filterComm(\'' + t.slug + '\',this)">' + t.icon + ' ' + t.name + '</button>';
+  });
+  html += '<button class="comm-filter' + (commFilter === 'notifs' ? ' active' : '') + '" data-filter="notifs" onclick="filterComm(\'notifs\',this)" id="notif-filter-btn">🔔 Notifications</button>';
+  el.innerHTML = html;
+}
+
+function renderNewPostTypeSelector() {
+  var el = document.querySelector('.comm-type-selector');
+  if (!el) return;
+  var html = '';
+  commTypes.forEach(function(t) {
+    var canPost = t.min_role === 'public'
+      || (t.min_role === 'moderator' && (isAdmin || isModerator))
+      || (t.min_role === 'admin' && isAdmin);
+    if (!canPost) return;
+    html += '<button class="comm-type-btn" data-type="' + t.slug + '" onclick="selectPostType(\'' + t.slug + '\',this)">' + t.icon + ' ' + t.name + '</button>';
+  });
+  el.innerHTML = html;
+}
 
 async function loadCommunity() {
   var feed = document.getElementById('comm-feed');
@@ -5797,16 +5843,22 @@ async function loadCommunity() {
   detail.style.display = 'none';
   feed.style.display = 'block';
   feed.innerHTML = '<div class="comm-empty">Chargement...</div>';
-  var query = db.from('community_posts').select('*').order('created_at', { ascending: false }).limit(60);
   if (commFilter === 'all') {
-    var [anRes, restRes] = await Promise.all([
-      db.from('community_posts').select('*').eq('type', 'annonce').order('created_at', { ascending: false }),
-      db.from('community_posts').select('*').in('type', ['message', 'support']).order('created_at', { ascending: false }).limit(60)
-    ]);
-    commPosts = [...(anRes.data || []), ...(restRes.data || [])];
+    var pinnedSlugs = commTypes.filter(function(t) { return t.pinned; }).map(function(t) { return t.slug; });
+    var restSlugs   = commTypes.filter(function(t) { return !t.pinned; }).map(function(t) { return t.slug; });
+    if (pinnedSlugs.length && restSlugs.length) {
+      var both = await Promise.all([
+        db.from('community_posts').select('*').in('type', pinnedSlugs).order('created_at', { ascending: false }),
+        db.from('community_posts').select('*').in('type', restSlugs).order('created_at', { ascending: false }).limit(60)
+      ]);
+      commPosts = [...(both[0].data || []), ...(both[1].data || [])];
+    } else {
+      var ra = await db.from('community_posts').select('*').order('created_at', { ascending: false }).limit(60);
+      commPosts = ra.data || [];
+    }
   } else {
-    var res = await query.eq('type', commFilter);
-    commPosts = res.data || [];
+    var rf = await db.from('community_posts').select('*').eq('type', commFilter).order('created_at', { ascending: false }).limit(60);
+    commPosts = rf.data || [];
   }
   if (!commPosts.length) {
     feed.innerHTML = '<div class="comm-empty">Aucun post pour le moment.<br>Sois le premier ! 👋</div>';
@@ -5816,15 +5868,20 @@ async function loadCommunity() {
 }
 
 function renderPostCard(p) {
-  var labels = { signalement: '⚠️ Signalement', message: '💬 Message', support: '🛠️ Support', annonce: '📢 Annonce' };
+  var t = getTypeInfo(p.type);
   var date = new Date(p.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-  var statusHtml = (p.type === 'support' && p.status && p.status !== 'ouvert')
+  var statusHtml = (p.status && p.status !== 'ouvert')
     ? '<span style="font-size:10px;font-weight:700;color:var(--accent);padding:2px 8px;background:rgba(255,208,79,0.1);border-radius:8px;">' + (p.status === 'resolu' ? '✅ Résolu' : '🗓️ Prévu') + '</span>' : '';
   var placeHtml = p.place_name
     ? '<div class="comm-place-tag" onclick="goToCommPlace(' + p.place_lat + ',' + p.place_lon + ');event.stopPropagation()">📍 ' + escHtml(p.place_name) + '</div>' : '';
   var content = p.content.length > 130 ? p.content.slice(0, 130) + '…' : p.content;
-  return '<div class="comm-post ' + (p.type === 'annonce' ? 'annonce' : '') + '" onclick="openPostDetail(\'' + p.id + '\')">'
-    + '<div class="comm-post-header"><span class="comm-badge ' + p.type + '">' + (labels[p.type] || p.type) + '</span>'
+  var canEdit = currentUser && (currentUser.id === p.user_id || isAdmin || isModerator);
+  var editBtns = canEdit
+    ? '<button class="comm-action-btn" onclick="openEditPost(\'' + p.id + '\');event.stopPropagation()" title="Modifier">✏️</button>'
+      + '<button class="comm-action-btn" onclick="showConfirm(\'Supprimer ce post ?\',\'Cette action supprimera le post et toutes ses réponses.\',\'🗑 Supprimer\',\'#e74c3c\',function(){deletePost(\'' + p.id + '\')});event.stopPropagation()" title="Supprimer">🗑️</button>'
+    : '';
+  return '<div class="comm-post ' + (t.pinned ? 'annonce' : '') + '" onclick="openPostDetail(\'' + p.id + '\')">'
+    + '<div class="comm-post-header">' + renderTypeBadge(p.type)
     + statusHtml + '<span class="comm-date">' + date + '</span></div>'
     + (p.title ? '<div class="comm-title">' + escHtml(p.title) + '</div>' : '')
     + '<div class="comm-content">' + escHtml(content) + '</div>'
@@ -5833,6 +5890,7 @@ function renderPostCard(p) {
     + '<div class="comm-actions">'
     + '<button class="comm-action-btn" onclick="likePost(\'' + p.id + '\');event.stopPropagation()">👍 ' + (p.likes_count || 0) + '</button>'
     + '<button class="comm-action-btn">💬 ' + (p.replies_count || 0) + ' réponse' + ((p.replies_count || 0) > 1 ? 's' : '') + '</button>'
+    + editBtns
     + '</div></div>';
 }
 
@@ -5893,25 +5951,28 @@ async function openPostDetail(id) {
   detail.style.display = 'block';
   detail.style.flex = '1';
   detail.style.overflowY = 'auto';
-  var labels = { signalement: '⚠️ Signalement', message: '💬 Message', support: '🛠️ Support', annonce: '📢 Annonce' };
   var date = new Date(post.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
   var placeHtml = post.place_name
     ? '<div class="comm-place-tag" onclick="goToCommPlace(' + post.place_lat + ',' + post.place_lon + ')">📍 ' + escHtml(post.place_name) + '</div>' : '';
-  var isAdmin = currentUser && currentUser.email === 'mypoiuytreza@gmail.com';
-  var statusBtn = (isAdmin && post.type === 'support')
-    ? '<button onclick="cycleStatus(\'' + post.id + '\')" style="margin-left:auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;color:var(--text);font-family:var(--font-body);">Changer statut</button>' : '';
+  var statusBtn = (isAdmin && post.status !== undefined)
+    ? '<button onclick="cycleStatus(\'' + post.id + '\')" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;color:var(--text);font-family:var(--font-body);">Changer statut</button>' : '';
+  var canEdit = currentUser && (currentUser.id === post.user_id || isAdmin || isModerator);
+  var editBtns = canEdit
+    ? '<button class="comm-action-btn" onclick="openEditPost(\'' + post.id + '\')" title="Modifier">✏️</button>'
+      + '<button class="comm-action-btn" onclick="showConfirm(\'Supprimer ce post ?\',\'Cette action supprimera le post et toutes ses réponses.\',\'🗑 Supprimer\',\'#e74c3c\',function(){deletePost(\'' + post.id + '\')})" title="Supprimer">🗑️</button>'
+    : '';
   detail.innerHTML = '<button onclick="backToFeed()" style="background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:10px 0;display:flex;align-items:center;gap:4px;font-family:var(--font-body);">&#8592; Retour</button>'
     + '<div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid var(--border);">'
     + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'
-    + '<span class="comm-badge ' + post.type + '">' + (labels[post.type] || post.type) + '</span>'
+    + renderTypeBadge(post.type)
     + '<span style="font-size:12px;color:var(--text2);">par <b>' + escHtml(post.author_name || 'Anonyme') + '</b> · ' + date + '</span>'
     + '</div>'
     + (post.title ? '<div style="font-size:17px;font-weight:700;margin-bottom:8px;color:var(--text);">' + escHtml(post.title) + '</div>' : '')
-    + '<div style="font-size:14px;color:var(--text);line-height:1.6;">' + escHtml(post.content) + '</div>'
+    + '<div style="font-size:14px;color:var(--text);line-height:1.6;" id="post-detail-content-' + post.id + '">' + escHtml(post.content) + '</div>'
     + placeHtml
     + '<div class="comm-actions" style="margin-top:12px;">'
     + '<button class="comm-action-btn" onclick="likePost(\'' + post.id + '\')">👍 ' + (post.likes_count || 0) + '</button>'
-    + statusBtn
+    + statusBtn + editBtns
     + '</div></div>'
     + '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px;">' + (post.replies_count || 0) + ' réponse' + ((post.replies_count || 0) > 1 ? 's' : '') + '</div>'
     + '<div id="comm-replies-list"></div>'
@@ -5932,11 +5993,14 @@ async function loadReplies(postId) {
   if (!data.length) { el.innerHTML = '<p style="font-size:12px;color:var(--text2);padding:4px 0 12px;">Aucune réponse — lance la discussion !</p>'; return; }
   el.innerHTML = data.map(function(r) {
     var d = new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    var canDel = currentUser && (currentUser.id === r.user_id || isAdmin || isModerator);
     return '<div class="comm-reply-card">'
-      + '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
       + '<span style="font-size:12px;font-weight:700;color:var(--accent);">' + escHtml(r.author_name || 'Anonyme') + '</span>'
+      + '<div style="display:flex;align-items:center;gap:6px;">'
       + '<span style="font-size:11px;color:var(--text2);">' + d + '</span>'
-      + '</div>'
+      + (canDel ? '<button onclick="showConfirm(\'Supprimer cette réponse ?\',\'\',\'🗑 Supprimer\',\'#e74c3c\',function(){deleteReply(\'' + r.id + '\',\'' + postId + '\')})" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer;padding:0 2px;" title="Supprimer">🗑️</button>' : '')
+      + '</div></div>'
       + '<div id="reply-text-' + r.id + '" style="font-size:13px;color:var(--text);line-height:1.5;">' + escHtml(r.content) + '</div>'
       + '<span id="trl-reply-' + r.id + '" data-orig="' + escHtml(r.content) + '" onclick="translateText(\'reply-text-' + r.id + '\',\'trl-reply-' + r.id + '\',this.dataset.orig)" style="font-size:11px;color:var(--text2);cursor:pointer;text-decoration:underline;text-underline-offset:2px;">Traduire</span>'
       + '</div>';
@@ -5983,18 +6047,46 @@ async function likePost(id) {
 
 function openNewPost() {
   if (!currentUser) { showToast('Connectez-vous pour poster', 'error'); return; }
+  editPostId = null;
   newPostPlace = null;
   document.getElementById('comm-place-input') && (document.getElementById('comm-place-input').value = '');
   document.getElementById('comm-place-selected').style.display = 'none';
   document.getElementById('comm-place-results').innerHTML = '';
   document.getElementById('comm-title-input').value = '';
   document.getElementById('comm-content-input').value = '';
-  var annonceBtn = document.getElementById('comm-type-annonce');
-  if (annonceBtn) annonceBtn.style.display = (isAdmin || isModerator) ? 'block' : 'none';
-  selectPostType('message', document.querySelector('.comm-type-btn[data-type="message"]'));
+  var titleEl = document.querySelector('#comm-modal [style*="font-size:17px"]') || document.querySelector('.comm-modal > div > span');
+  if (titleEl) titleEl.textContent = '💬 Nouveau post';
+  renderNewPostTypeSelector();
+  var first = document.querySelector('.comm-type-btn');
+  if (first) selectPostType(first.dataset.type, first);
   document.getElementById('comm-modal').classList.add('open');
 }
-function closeNewPost() { document.getElementById('comm-modal').classList.remove('open'); }
+
+function openEditPost(id) {
+  if (!currentUser) return;
+  var post = commPosts.find(function(p) { return p.id === id; });
+  if (!post) return;
+  if (currentUser.id !== post.user_id && !isAdmin && !isModerator) return;
+  editPostId = id;
+  newPostPlace = post.place_id ? { id: post.place_id, name: post.place_name, lat: post.place_lat, lon: post.place_lon } : null;
+  document.getElementById('comm-title-input').value = post.title || '';
+  document.getElementById('comm-content-input').value = post.content || '';
+  renderNewPostTypeSelector();
+  var btn = document.querySelector('.comm-type-btn[data-type="' + post.type + '"]');
+  selectPostType(post.type, btn);
+  if (post.place_name) {
+    document.getElementById('comm-place-selected-name').textContent = post.place_name;
+    document.getElementById('comm-place-selected').style.display = 'inline-flex';
+  }
+  var titleEl = document.querySelector('#comm-modal [style*="font-size:17px"]') || document.querySelector('.comm-modal > div > span');
+  if (titleEl) titleEl.textContent = '✏️ Modifier le post';
+  document.getElementById('comm-modal').classList.add('open');
+}
+
+function closeNewPost() {
+  document.getElementById('comm-modal').classList.remove('open');
+  editPostId = null;
+}
 
 function selectPostType(type, btn) {
   newPostType = type;
@@ -6028,18 +6120,48 @@ function clearCommPlace() {
 
 async function submitPost() {
   if (!currentUser) return;
-  if (newPostType === 'annonce' && !isAdmin && !isModerator) { showToast('Réservé aux admins et modérateurs', 'error'); return; }
   var content = (document.getElementById('comm-content-input').value || '').trim();
   var title = (document.getElementById('comm-title-input').value || '').trim();
   if (!content) { showToast('Écrivez quelque chose !', 'error'); return; }
+  if (editPostId) {
+    var res = await db.from('community_posts').update({ content: content, title: title || null, type: newPostType }).eq('id', editPostId);
+    if (res.error) { showToast('Erreur lors de la modification', 'error'); return; }
+    closeNewPost();
+    showToast('Post modifié !', 'success');
+    loadCommunity();
+    return;
+  }
+  var minRole = (getTypeInfo(newPostType)).min_role || 'public';
+  if ((minRole === 'admin' && !isAdmin) || (minRole === 'moderator' && !isAdmin && !isModerator)) {
+    showToast('Réservé aux admins/modérateurs', 'error'); return;
+  }
   var name = currentUsername || currentUser.email.split('@')[0];
   var row = { user_id: currentUser.id, author_name: name, type: newPostType, content: content, title: title || null, likes_count: 0, replies_count: 0, status: 'ouvert' };
   if (newPostPlace) { row.place_id = newPostPlace.id; row.place_name = newPostPlace.name; row.place_lat = newPostPlace.lat; row.place_lon = newPostPlace.lon; }
-  var res = await db.from('community_posts').insert(row);
-  if (res.error) { showToast('Erreur lors de la publication', 'error'); return; }
+  var res2 = await db.from('community_posts').insert(row);
+  if (res2.error) { showToast('Erreur lors de la publication', 'error'); return; }
   closeNewPost();
   showToast('Publié ! 🎉', 'success');
   loadCommunity();
+}
+
+async function deletePost(id) {
+  await db.from('community_likes').delete().eq('post_id', id);
+  await db.from('community_replies').delete().eq('post_id', id);
+  var res = await db.from('community_posts').delete().eq('id', id);
+  if (res.error) { showToast('Erreur lors de la suppression', 'error'); return; }
+  showToast('Post supprimé', 'success');
+  backToFeed();
+  loadCommunity();
+}
+
+async function deleteReply(id, postId) {
+  var res = await db.from('community_replies').delete().eq('id', id);
+  if (res.error) { showToast('Erreur lors de la suppression', 'error'); return; }
+  var cnt = await db.from('community_replies').select('id', { count: 'exact', head: true }).eq('post_id', postId);
+  await db.from('community_posts').update({ replies_count: cnt.count || 0 }).eq('id', postId);
+  showToast('Réponse supprimée', 'success');
+  loadReplies(postId);
 }
 
 function goToCommPlace(lat, lon) {
@@ -6313,7 +6435,8 @@ async function loadDashboardTiles() {
     html += tile('&#128737;&#65039;', '&Eacute;quipe', '', 'showDashTeam()', 0, 'admin-only')
       + tile('&#128296;', 'Sanctions', '', 'showDashBan()', 0, 'admin-only')
       + tile('&#128221;', 'Historique mod&eacute;ration', '', 'showDashReportHistory()', 0, 'admin-only')
-      + tile('&#128193;', 'Cat&eacute;gories', '', 'showDashCategories()', 0, 'admin-only');
+      + tile('&#128193;', 'Cat&eacute;gories', '', 'showDashCategories()', 0, 'admin-only')
+      + tile('&#128172;', 'Types communaut&eacute;', '', 'showDashCommTypes()', 0, 'admin-only');
   }
   grid.innerHTML = html;
 }
@@ -6636,6 +6759,178 @@ function showDashCategories() {
   showDashDetail('&#128193; Gestion des catégories', function() {
     renderDashCategoriesContent();
   });
+}
+
+// ===== ADMIN — TYPES COMMUNAUTÉ =====
+
+function showDashCommTypes() {
+  if (!isAdmin) return;
+  showDashDetail('&#128172; Types communauté', function() {
+    renderDashCommTypesContent();
+  });
+}
+
+async function renderDashCommTypesContent() {
+  var c = document.getElementById('dash-detail-content');
+  if (!c) return;
+  var res = await db.from('community_types').select('*').order('sort_order');
+  var types = res.data || [];
+  var html = '<div style="margin-bottom:12px;">'
+    + '<button onclick="adminShowCreateCommTypeForm()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-family:var(--font-body);cursor:pointer;">+ Nouveau type</button>'
+    + '</div>'
+    + '<div id="comm-types-list">' + renderCommTypesList(types) + '</div>';
+  c.innerHTML = html;
+}
+
+function renderCommTypesList(types) {
+  if (!types.length) return '<div style="color:var(--text2);text-align:center;padding:16px;">Aucun type configuré</div>';
+  var roleLabel = { public: 'Tous', moderator: '🛡️ Mods+', admin: '🔐 Admins' };
+  return types.map(function(t, i) {
+    return '<div id="comm-type-row-' + t.id + '" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;" ontouchstart="adminStartCTLongPress(\'' + t.id + '\')" ontouchend="adminCancelCTLongPress()" ontouchmove="adminCancelCTLongPress()" onmousedown="adminStartCTLongPress(\'' + t.id + '\')" onmouseup="adminCancelCTLongPress()" onmouseleave="adminCancelCTLongPress()">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="font-size:22px;">' + t.icon + '</span>'
+      + '<div style="flex:1;">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text);">' + escHtml(t.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--text2);">slug: ' + escHtml(t.slug) + ' · ' + roleLabel[t.min_role || 'public'] + (t.pinned ? ' · 📌 Épinglé' : '') + '</div>'
+      + '<div style="display:inline-block;margin-top:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:' + t.bg_color + ';color:' + t.color + ';">' + t.icon + ' ' + escHtml(t.name) + '</div>'
+      + '</div>'
+      + '<div id="reorder-ct-' + t.id + '" style="display:none;flex-direction:column;gap:4px;margin-right:6px;">'
+      + (i > 0 ? '<button onclick="adminMoveCommTypeOrder(\'' + t.id + '\',-1);event.stopPropagation();adminCancelCTLongPress();" style="background:var(--surface3,var(--surface));border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:14px;color:var(--text);">▲</button>' : '<span style="width:28px;"></span>')
+      + (i < types.length - 1 ? '<button onclick="adminMoveCommTypeOrder(\'' + t.id + '\',1);event.stopPropagation();adminCancelCTLongPress();" style="background:var(--surface3,var(--surface));border:1px solid var(--border);border-radius:6px;padding:2px 7px;cursor:pointer;font-size:14px;color:var(--text);">▼</button>' : '<span style="width:28px;"></span>')
+      + '</div>'
+      + '<button onclick="adminShowEditCommTypeForm(\'' + t.id + '\');event.stopPropagation();adminCancelCTLongPress();" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px;">✏️</button>'
+      + '<button onclick="showConfirm(\'Supprimer ce type ?\',\'Les posts existants garderont ce type.\',\'🗑 Supprimer\',\'#e74c3c\',function(){adminDeleteCommType(\'' + t.id + '\')});event.stopPropagation();adminCancelCTLongPress();" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px;">🗑️</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+var _ctReorderTimer = null;
+var _ctReorderActiveId = null;
+function adminStartCTLongPress(id) { adminCancelCTLongPress(); _ctReorderTimer = setTimeout(function() { _ctReorderTimer = null; adminToggleCTReorder(id); }, 600); }
+function adminCancelCTLongPress() { if (_ctReorderTimer !== null) { clearTimeout(_ctReorderTimer); _ctReorderTimer = null; } }
+function adminToggleCTReorder(id) {
+  var show = _ctReorderActiveId !== id;
+  if (_ctReorderActiveId) { var prev = document.getElementById('reorder-ct-' + _ctReorderActiveId); if (prev) prev.style.display = 'none'; }
+  _ctReorderActiveId = show ? id : null;
+  var el = document.getElementById('reorder-ct-' + id);
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+function adminShowCreateCommTypeForm() {
+  var c = document.getElementById('dash-detail-content');
+  if (!c) return;
+  c.innerHTML = '<div style="padding:4px 0;">'
+    + '<button onclick="renderDashCommTypesContent()" style="background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:0 0 12px;font-family:var(--font-body);">&#8592; Retour</button>'
+    + '<div style="font-size:16px;font-weight:700;margin-bottom:14px;">Nouveau type</div>'
+    + '<label style="font-size:12px;color:var(--text2);">Nom</label>'
+    + '<input id="ct-name" placeholder="Ex: Aide, Vente..." style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:14px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Slug (identifiant unique, minuscules)</label>'
+    + '<input id="ct-slug" placeholder="Ex: aide, vente" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:14px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Icône (emoji)</label>'
+    + '<input id="ct-icon" placeholder="💬" maxlength="4" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:20px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Couleur texte (ex: #ffd04f)</label>'
+    + '<input id="ct-color" type="color" value="#ffd04f" style="width:100%;height:38px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 8px;margin-bottom:10px;margin-top:3px;cursor:pointer;">'
+    + '<label style="font-size:12px;color:var(--text2);">Couleur fond badge (ex: rgba(255,208,79,0.12))</label>'
+    + '<input id="ct-bg" placeholder="rgba(255,208,79,0.12)" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:13px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Visibilité minimale</label>'
+    + '<select id="ct-role" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:13px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<option value="public">Tous les membres</option>'
+    + '<option value="moderator">Modérateurs et admins</option>'
+    + '<option value="admin">Admins seulement</option>'
+    + '</select>'
+    + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:14px;cursor:pointer;">'
+    + '<input id="ct-pinned" type="checkbox"> Épingler en haut (type prioritaire)'
+    + '</label>'
+    + '<button onclick="adminCreateCommType()" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-family:var(--font-body);cursor:pointer;">Créer le type</button>'
+    + '</div>';
+}
+
+async function adminCreateCommType() {
+  var name = (document.getElementById('ct-name').value || '').trim();
+  var slug = (document.getElementById('ct-slug').value || '').trim().toLowerCase().replace(/\s+/g, '_');
+  var icon = (document.getElementById('ct-icon').value || '💬').trim();
+  var color = document.getElementById('ct-color').value || '#ffd04f';
+  var bg = (document.getElementById('ct-bg').value || '').trim() || 'rgba(255,208,79,0.12)';
+  var minRole = document.getElementById('ct-role').value || 'public';
+  var pinned = document.getElementById('ct-pinned').checked;
+  if (!name || !slug) { showToast('Nom et slug requis', 'error'); return; }
+  var maxRes = await db.from('community_types').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+  var maxOrder = (maxRes.data && maxRes.data[0]) ? maxRes.data[0].sort_order + 1 : 0;
+  var res = await db.from('community_types').insert({ name: name, slug: slug, icon: icon, color: color, bg_color: bg, min_role: minRole, pinned: pinned, sort_order: maxOrder });
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('Type créé !', 'success');
+  await loadCommTypes();
+  renderDashCommTypesContent();
+}
+
+function adminShowEditCommTypeForm(id) {
+  var t = commTypes.find(function(t) { return t.id == id; });
+  if (!t) return;
+  var c = document.getElementById('dash-detail-content');
+  if (!c) return;
+  c.innerHTML = '<div style="padding:4px 0;">'
+    + '<button onclick="renderDashCommTypesContent()" style="background:none;border:none;color:var(--accent);font-size:14px;cursor:pointer;padding:0 0 12px;font-family:var(--font-body);">&#8592; Retour</button>'
+    + '<div style="font-size:16px;font-weight:700;margin-bottom:14px;">Modifier le type</div>'
+    + '<label style="font-size:12px;color:var(--text2);">Nom</label>'
+    + '<input id="ct-edit-name" value="' + escHtml(t.name) + '" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:14px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Slug (identifiant unique)</label>'
+    + '<input id="ct-edit-slug" value="' + escHtml(t.slug) + '" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:14px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Icône (emoji)</label>'
+    + '<input id="ct-edit-icon" value="' + escHtml(t.icon) + '" maxlength="4" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:20px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Couleur texte</label>'
+    + '<input id="ct-edit-color" type="color" value="' + t.color + '" style="width:100%;height:38px;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 8px;margin-bottom:10px;margin-top:3px;cursor:pointer;">'
+    + '<label style="font-size:12px;color:var(--text2);">Couleur fond badge</label>'
+    + '<input id="ct-edit-bg" value="' + escHtml(t.bg_color) + '" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:13px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<label style="font-size:12px;color:var(--text2);">Visibilité minimale</label>'
+    + '<select id="ct-edit-role" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 11px;font-size:13px;font-family:var(--font-body);margin-bottom:10px;margin-top:3px;">'
+    + '<option value="public"' + (t.min_role === 'public' ? ' selected' : '') + '>Tous les membres</option>'
+    + '<option value="moderator"' + (t.min_role === 'moderator' ? ' selected' : '') + '>Modérateurs et admins</option>'
+    + '<option value="admin"' + (t.min_role === 'admin' ? ' selected' : '') + '>Admins seulement</option>'
+    + '</select>'
+    + '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:14px;cursor:pointer;">'
+    + '<input id="ct-edit-pinned" type="checkbox"' + (t.pinned ? ' checked' : '') + '> Épingler en haut (type prioritaire)'
+    + '</label>'
+    + '<button onclick="adminSaveEditCommType(\'' + t.id + '\')" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-family:var(--font-body);cursor:pointer;">Enregistrer</button>'
+    + '</div>';
+}
+
+async function adminSaveEditCommType(id) {
+  var name = (document.getElementById('ct-edit-name').value || '').trim();
+  var slug = (document.getElementById('ct-edit-slug').value || '').trim().toLowerCase().replace(/\s+/g, '_');
+  var icon = (document.getElementById('ct-edit-icon').value || '💬').trim();
+  var color = document.getElementById('ct-edit-color').value || '#ffd04f';
+  var bg = (document.getElementById('ct-edit-bg').value || '').trim() || 'rgba(255,208,79,0.12)';
+  var minRole = document.getElementById('ct-edit-role').value || 'public';
+  var pinned = document.getElementById('ct-edit-pinned').checked;
+  if (!name || !slug) { showToast('Nom et slug requis', 'error'); return; }
+  var res = await db.from('community_types').update({ name: name, slug: slug, icon: icon, color: color, bg_color: bg, min_role: minRole, pinned: pinned }).eq('id', id);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('Type modifié !', 'success');
+  await loadCommTypes();
+  renderDashCommTypesContent();
+}
+
+async function adminMoveCommTypeOrder(id, direction) {
+  var res = await db.from('community_types').select('*').order('sort_order');
+  var types = res.data || [];
+  var idx = types.findIndex(function(t) { return t.id == id; });
+  var newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= types.length) return;
+  var a = types[idx]; var b = types[newIdx];
+  var aOrder = a.sort_order; var bOrder = b.sort_order;
+  await db.from('community_types').update({ sort_order: bOrder }).eq('id', a.id);
+  await db.from('community_types').update({ sort_order: aOrder }).eq('id', b.id);
+  await loadCommTypes();
+  renderDashCommTypesContent();
+}
+
+async function adminDeleteCommType(id) {
+  var res = await db.from('community_types').delete().eq('id', id);
+  if (res.error) { showToast('Erreur : ' + res.error.message, 'error'); return; }
+  showToast('Type supprimé', 'success');
+  await loadCommTypes();
+  renderDashCommTypesContent();
 }
 
 function adminRoleSelectHTML(id, current) {
