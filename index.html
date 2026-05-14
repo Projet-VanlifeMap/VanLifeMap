@@ -538,8 +538,8 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
     <button id="btn-locate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><line x1="12" y1="1" x2="12" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <div id="places-count">Lieux : <span id="count-num">0</span></div>
     <div id="solo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1500;background:var(--surface);border-top:2px solid var(--accent);height:var(--nav-h);align-items:stretch;">
-      <button onclick="clearSoloMode()" style="flex:1;background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#8592; Retour au Profil</button>
-      <button onclick="exitSoloToMap()" style="flex:1;background:none;border:none;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128506; Retour sur la carte</button>
+      <button onclick="clearSoloMode()" data-i18n="solo_back_profile" style="flex:1;background:none;border:none;border-right:1px solid var(--border);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#8592; Retour au Profil</button>
+      <button onclick="exitSoloToMap()" data-i18n="solo_back_map" style="flex:1;background:none;border:none;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128506; Retour sur la carte</button>
     </div>
   </div>
 </div>
@@ -617,7 +617,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
       <div id="search-results" style="display:none;"></div>
     </div>
     <div id="srch-confirm" style="display:none;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0;">
-      <button onclick="confirmSearch()" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:14px;font-family:var(--font-head);font-size:15px;font-weight:700;cursor:pointer;">&#128205; Voir sur la carte</button>
+      <button onclick="confirmSearch()" data-i18n="btn_see_map" style="width:100%;background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:14px;font-family:var(--font-head);font-size:15px;font-weight:700;cursor:pointer;">&#128205; Voir sur la carte</button>
     </div>
   </div>
 </div>
@@ -1179,7 +1179,19 @@ fr:{
   val_community_confirmed:'Lieu confirmé par la communauté',
   val_votes:'votes de validation', val_confirmation_one:'confirmation', val_confirmation_many:'confirmations',
   profile_thanks_received:'Merci reçus', dash_history_mod:'Historique de modération',
-  dash_categories:'Catégories', dash_comm_types:'Types communauté'
+  dash_categories:'Catégories', dash_comm_types:'Types communauté',
+  solo_back_pending:'← Retour aux lieux en attente',
+  solo_back_dashboard:'← Retour au tableau de bord',
+  solo_back_reports:'← Retour aux signalements',
+  solo_back_notif:'← Retour aux notifications',
+  lbl_add_as_trusted:'Ajouter comme membre de confiance',
+  lbl_add_as_mod:'Ajouter comme modérateur',
+  lbl_remove_from_trusted:'Retirer des membres de confiance',
+  lbl_remove_from_mods:'Retirer des modérateurs',
+  toast_trusted_added:'ajouté comme membre de confiance',
+  lbl_ban_prompt_reason:'Raison du bannissement (optionnel) :',
+  lbl_members_count:'membres inscrits',
+  lbl_retirer:'Retirer'
 },
 en:{
   nav_filters:'Filters', nav_search:'Search', nav_add:'Add a place', nav_community:'Community', nav_profile:'Profile', nav_dashboard:'Dashboard',
@@ -1356,7 +1368,19 @@ en:{
   val_community_confirmed:'Place confirmed by the community',
   val_votes:'validation votes', val_confirmation_one:'confirmation', val_confirmation_many:'confirmations',
   profile_thanks_received:'Thanks received', dash_history_mod:'Moderation history',
-  dash_categories:'Categories', dash_comm_types:'Community types'
+  dash_categories:'Categories', dash_comm_types:'Community types',
+  solo_back_pending:'← Back to pending places',
+  solo_back_dashboard:'← Back to dashboard',
+  solo_back_reports:'← Back to reports',
+  solo_back_notif:'← Back to notifications',
+  lbl_add_as_trusted:'Add as trusted member',
+  lbl_add_as_mod:'Add as moderator',
+  lbl_remove_from_trusted:'Remove from trusted members',
+  lbl_remove_from_mods:'Remove from moderators',
+  toast_trusted_added:'added as trusted member',
+  lbl_ban_prompt_reason:'Ban reason (optional):',
+  lbl_members_count:'members registered',
+  lbl_retirer:'Remove'
 },
 es:{
   nav_filters:'Filtros', nav_search:'Buscar', nav_add:'Añadir lugar', nav_community:'Comunidad', nav_profile:'Perfil', nav_dashboard:'Panel',
@@ -1533,7 +1557,19 @@ es:{
   val_community_confirmed:'Lugar confirmado por la comunidad',
   val_votes:'votos de validación', val_confirmation_one:'confirmación', val_confirmation_many:'confirmaciones',
   profile_thanks_received:'Gracias recibidos', dash_history_mod:'Historial de moderación',
-  dash_categories:'Categorías', dash_comm_types:'Tipos comunidad'
+  dash_categories:'Categorías', dash_comm_types:'Tipos comunidad',
+  solo_back_pending:'← Volver a lugares pendientes',
+  solo_back_dashboard:'← Volver al panel',
+  solo_back_reports:'← Volver a denuncias',
+  solo_back_notif:'← Volver a notificaciones',
+  lbl_add_as_trusted:'Añadir como miembro de confianza',
+  lbl_add_as_mod:'Añadir como moderador',
+  lbl_remove_from_trusted:'Quitar de miembros de confianza',
+  lbl_remove_from_mods:'Quitar de moderadores',
+  toast_trusted_added:'añadido como miembro de confianza',
+  lbl_ban_prompt_reason:'Razón del baneo (opcional):',
+  lbl_members_count:'miembros inscritos',
+  lbl_retirer:'Quitar'
 },
 de:{
   nav_filters:'Filter', nav_search:'Suche', nav_add:'Ort hinzufügen', nav_community:'Community', nav_profile:'Profil', nav_dashboard:'Dashboard',
@@ -1710,7 +1746,19 @@ de:{
   val_community_confirmed:'Ort von der Community bestätigt',
   val_votes:'Validierungsstimmen', val_confirmation_one:'Bestätigung', val_confirmation_many:'Bestätigungen',
   profile_thanks_received:'Danke erhalten', dash_history_mod:'Moderationsverlauf',
-  dash_categories:'Kategorien', dash_comm_types:'Community-Typen'
+  dash_categories:'Kategorien', dash_comm_types:'Community-Typen',
+  solo_back_pending:'← Zurück zu ausstehenden Orten',
+  solo_back_dashboard:'← Zurück zum Dashboard',
+  solo_back_reports:'← Zurück zu Meldungen',
+  solo_back_notif:'← Zurück zu Benachrichtigungen',
+  lbl_add_as_trusted:'Als Vertrauensmitglied hinzufügen',
+  lbl_add_as_mod:'Als Moderator hinzufügen',
+  lbl_remove_from_trusted:'Von Vertrauensmitgliedern entfernen',
+  lbl_remove_from_mods:'Von Moderatoren entfernen',
+  toast_trusted_added:'als Vertrauensmitglied hinzugefügt',
+  lbl_ban_prompt_reason:'Sperrgrund (optional):',
+  lbl_members_count:'Mitglieder registriert',
+  lbl_retirer:'Entfernen'
 },
 it:{
   nav_filters:'Filtri', nav_search:'Cerca', nav_add:'Aggiungi luogo', nav_community:'Comunità', nav_profile:'Profilo', nav_dashboard:'Dashboard',
@@ -1887,7 +1935,19 @@ it:{
   val_community_confirmed:'Luogo confermato dalla comunità',
   val_votes:'voti di validazione', val_confirmation_one:'conferma', val_confirmation_many:'conferme',
   profile_thanks_received:'Grazie ricevuti', dash_history_mod:'Storico moderazione',
-  dash_categories:'Categorie', dash_comm_types:'Tipi comunità'
+  dash_categories:'Categorie', dash_comm_types:'Tipi comunità',
+  solo_back_pending:'← Torna ai luoghi in attesa',
+  solo_back_dashboard:'← Torna al pannello',
+  solo_back_reports:'← Torna alle segnalazioni',
+  solo_back_notif:'← Torna alle notifiche',
+  lbl_add_as_trusted:'Aggiungere come membro fidato',
+  lbl_add_as_mod:'Aggiungere come moderatore',
+  lbl_remove_from_trusted:'Rimuovere dai membri fidati',
+  lbl_remove_from_mods:'Rimuovere dai moderatori',
+  toast_trusted_added:'aggiunto come membro fidato',
+  lbl_ban_prompt_reason:'Motivo del ban (opzionale):',
+  lbl_members_count:'membri registrati',
+  lbl_retirer:'Rimuovi'
 },
 pt:{
   nav_filters:'Filtros', nav_search:'Pesquisar', nav_add:'Adicionar local', nav_community:'Comunidade', nav_profile:'Perfil', nav_dashboard:'Painel',
@@ -2064,7 +2124,19 @@ pt:{
   val_community_confirmed:'Local confirmado pela comunidade',
   val_votes:'votos de validação', val_confirmation_one:'confirmação', val_confirmation_many:'confirmações',
   profile_thanks_received:'Obrigados recebidos', dash_history_mod:'Histórico de moderação',
-  dash_categories:'Categorias', dash_comm_types:'Tipos comunidade'
+  dash_categories:'Categorias', dash_comm_types:'Tipos comunidade',
+  solo_back_pending:'← Voltar aos locais pendentes',
+  solo_back_dashboard:'← Voltar ao painel',
+  solo_back_reports:'← Voltar às denúncias',
+  solo_back_notif:'← Voltar às notificações',
+  lbl_add_as_trusted:'Adicionar como membro de confiança',
+  lbl_add_as_mod:'Adicionar como moderador',
+  lbl_remove_from_trusted:'Remover dos membros de confiança',
+  lbl_remove_from_mods:'Remover dos moderadores',
+  toast_trusted_added:'adicionado como membro de confiança',
+  lbl_ban_prompt_reason:'Motivo do banimento (opcional):',
+  lbl_members_count:'membros inscritos',
+  lbl_retirer:'Remover'
 },
 nl:{
   nav_filters:'Filters', nav_search:'Zoeken', nav_add:'Locatie toevoegen', nav_community:'Community', nav_profile:'Profiel', nav_dashboard:'Dashboard',
@@ -2241,7 +2313,19 @@ nl:{
   val_community_confirmed:'Adres bevestigd door de community',
   val_votes:'validatiestemmen', val_confirmation_one:'bevestiging', val_confirmation_many:'bevestigingen',
   profile_thanks_received:'Ontvangen bedankjes', dash_history_mod:'Moderatiegeschiedenis',
-  dash_categories:'Categorieën', dash_comm_types:'Community-typen'
+  dash_categories:'Categorieën', dash_comm_types:'Community-typen',
+  solo_back_pending:'← Terug naar wachtende locaties',
+  solo_back_dashboard:'← Terug naar dashboard',
+  solo_back_reports:'← Terug naar meldingen',
+  solo_back_notif:'← Terug naar notificaties',
+  lbl_add_as_trusted:'Toevoegen als vertrouwd lid',
+  lbl_add_as_mod:'Toevoegen als moderator',
+  lbl_remove_from_trusted:'Verwijderen uit vertrouwde leden',
+  lbl_remove_from_mods:'Verwijderen uit moderatoren',
+  toast_trusted_added:'toegevoegd als vertrouwd lid',
+  lbl_ban_prompt_reason:'Reden voor verbanning (optioneel):',
+  lbl_members_count:'leden geregistreerd',
+  lbl_retirer:'Verwijderen'
 }
 };
 
@@ -2926,10 +3010,10 @@ async function loadProfileStats(username) {
         var pct = total > 1 ? Math.round((1 - (myRank - 1) / (total - 1)) * 100) : 100;
         if (rankFill) rankFill.style.width = pct + '%';
       } else {
-        rankEl.textContent = 'Non class\u00e9';
+        rankEl.textContent = t('profile_unranked');
       }
     }
-    var roleLabel = isAdmin ? '\ud83d\udc51 Administrateur' : isModerator ? '\ud83d\udee1\ufe0f Mod\u00e9rateur' : isTrusted ? '\u2b50 Membre de confiance' : placesCount >= 100 ? '\ud83e\udd47 Expert' : placesCount >= 30 ? '\ud83e\udd48 Explorateur' : placesCount >= 10 ? '\ud83e\udd49 D\u00e9butant' : placesCount >= 5 ? 'Membre actif' : 'Nouveau membre';
+    var roleLabel = isAdmin ? t('role_admin') : isModerator ? t('role_moderator') : isTrusted ? t('role_trusted') : placesCount >= 100 ? t('role_expert') : placesCount >= 30 ? t('role_explorer') : placesCount >= 10 ? t('role_beginner') : placesCount >= 5 ? t('role_active') : t('role_new');
     if (badge) badge.textContent = roleLabel;
     var roleLabelEl = document.getElementById('prof-role-label');
     if (roleLabelEl) roleLabelEl.textContent = roleLabel;
@@ -3051,8 +3135,8 @@ async function openPublicProfile(username) {
     + rankHtml
     + (isAdmin && profile && profile.id !== (currentUser && currentUser.id) ? '<div style="padding:12px 16px;border-top:1px solid var(--border);">'
       + (pubUserBanned
-        ? '<button onclick="unbanUser(\'' + profile.id + '\',\'' + escHtml(username) + '\')" style="width:100%;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);color:#6ee7b7;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">✅ Lever le bannissement</button>'
-        : '<button onclick="banUser(\'' + profile.id + '\',\'' + escHtml(username) + '\')" style="width:100%;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">🚫 Bannir cet utilisateur</button>')
+        ? '<button onclick="unbanUser(\'' + profile.id + '\',\'' + escHtml(username) + '\')" style="width:100%;background:rgba(110,231,183,0.1);border:1px solid rgba(110,231,183,0.3);color:#6ee7b7;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">✅ ' + t('lbl_unban') + '</button>'
+        : '<button onclick="banUser(\'' + profile.id + '\',\'' + escHtml(username) + '\')" style="width:100%;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);">🚫 ' + t('lbl_ban_user') + '</button>')
       + '</div>' : '')
     + '</div>';
 }
@@ -3105,7 +3189,7 @@ async function loadPubPlaces() {
 
 async function loadPubValidated() {
   var panel = document.getElementById('pub-validated-panel');
-  if (!panel || !_pubProfileData || !_pubProfileData.userId) { if (panel) panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">Non disponible</div>'; return; }
+  if (!panel || !_pubProfileData || !_pubProfileData.userId) { if (panel) panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;text-align:center;">' + t('lbl_not_available') + '</div>'; return; }
   panel.innerHTML = '<div style="padding:8px 0;color:var(--text2);font-size:13px;">Chargement...</div>';
   var res = await db.from('place_validations').select('places(id,name,latitude,longitude,categories(icon,name))').eq('user_id', _pubProfileData.userId).order('created_at', { ascending: false }).limit(50);
   var data = (res.data || []).filter(function(r) { return r.places; });
@@ -4002,7 +4086,7 @@ async function goToPubSoloPlace(placeId, lat, lng) {
   if (banner) {
     banner.style.display = 'flex';
     var btn = banner.querySelector('button:first-child');
-    if (btn) btn.textContent = '← Retour au Profil';
+    if (btn) btn.textContent = t('solo_back_profile');
   }
   map.flyTo([lat, lng], 16, { duration: 0.8 });
   var res = await db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', placeId).maybeSingle();
@@ -4833,8 +4917,8 @@ async function loadValidatorsList() {
     var uname = (u.profiles && u.profiles.username) || u.user_id;
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">'
       + '<div><span style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(uname) + '</span>'
-      + '<span style="font-size:11px;color:var(--text2);margin-left:8px;">&#128737;&#65039; Modérateur</span></div>'
-      + '<button onclick="removeValidator(\'' + u.user_id + '\',\'' + escHtml(uname).replace(/'/g,"\\'") + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Retirer</button>'
+      + '<span style="font-size:11px;color:var(--text2);margin-left:8px;">' + t('role_moderator') + '</span></div>'
+      + '<button onclick="removeValidator(\'' + u.user_id + '\',\'' + escHtml(uname).replace(/'/g,"\\'") + '\')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--font-body);">' + t('lbl_retirer') + '</button>'
       + '</div>';
   }).join(''); }
   loadTrustedList();
@@ -4863,10 +4947,10 @@ async function addTrusted() {
   if (!uname) return;
   var res = await db.from('profiles').select('user_id').eq('username', uname).maybeSingle();
   if (!res.data) { showToast(t('toast_user_not_found'), 'error'); return; }
-  showRoleConfirm('⭐ Ajouter ' + uname + ' comme membre de confiance ?', function() {
+  showRoleConfirm('⭐ ' + uname + ' — ' + t('lbl_add_as_trusted') + ' ?', function() {
     return db.from('trusted_users').upsert({ user_id: res.data.user_id, role: 'trusted' }, { onConflict: 'user_id' }).then(function() {
       if (inp) inp.value = '';
-      showToast('⭐ ' + uname + ' ajouté comme membre de confiance', 'success');
+      showToast('⭐ ' + uname + ' ' + t('toast_trusted_added'), 'success');
       loadTrustedList();
     });
   });
@@ -4874,7 +4958,7 @@ async function addTrusted() {
 
 function removeTrusted(uid, uname) {
   if (!isAdmin) return;
-  showRoleConfirm('Retirer ' + (uname || 'ce membre') + ' des membres de confiance ?', function() {
+  showRoleConfirm(t('lbl_remove_from_trusted') + (uname ? ' — ' + uname : '') + ' ?', function() {
     return db.from('trusted_users').delete().eq('user_id', uid).then(function() {
       showToast(t('toast_trusted_removed'), '');
       loadTrustedList();
@@ -4884,7 +4968,7 @@ function removeTrusted(uid, uname) {
 
 async function banUser(userId, username) {
   if (!isAdmin) return;
-  var reason = prompt('Raison du bannissement de ' + username + ' (optionnel) :');
+  var reason = prompt(username + ' — ' + t('lbl_ban_prompt_reason'));
   if (reason === null) return;
   await db.from('banned_users').upsert({ user_id: userId, banned_by_name: currentUsername || '', reason: reason || t('lbl_default_ban_reason') }, { onConflict: 'user_id' });
   showToast('🚫 ' + username + ' ' + t('toast_user_banned'), 'success');
@@ -4894,7 +4978,7 @@ async function banUser(userId, username) {
 
 async function unbanUser(userId, username) {
   if (!isAdmin) return;
-  if (!confirm('Lever le bannissement de ' + username + ' ?')) return;
+  if (!confirm(t('lbl_unban') + ' — ' + username + ' ?')) return;
   await db.from('banned_users').delete().eq('user_id', userId);
   showToast('✓ ' + t('lbl_unban') + ' — ' + username, 'success');
   closeSheet('sheet-pub-profile');
@@ -5046,8 +5130,8 @@ async function loadMembersList() {
   var rolesRes = await db.from('trusted_users').select('user_id,role');
   var rolesMap = {};
   (rolesRes.data || []).forEach(function(r) { rolesMap[r.user_id] = r.role; });
-  if (!members.length) { panel.innerHTML = '<div style="color:var(--text2);font-size:13px;">Aucun membre inscrit.</div>'; return; }
-  panel.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">' + members.length + ' membres inscrits</div>'
+  if (!members.length) { panel.innerHTML = '<div style="color:var(--text2);font-size:13px;">' + t('lbl_no_member') + '</div>'; return; }
+  panel.innerHTML = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">' + members.length + ' ' + t('lbl_members_count') + '</div>'
     + members.map(function(m, i) {
       var role = rolesMap[m.user_id] || null;
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
@@ -5070,10 +5154,10 @@ async function addValidator() {
   if (!uname) return;
   var res = await db.from('profiles').select('user_id').eq('username', uname).maybeSingle();
   if (!res.data) { showToast(t('toast_user_not_found'), 'error'); return; }
-  showRoleConfirm('🛡️ Ajouter ' + uname + ' comme modérateur ?', function() {
+  showRoleConfirm('🛡️ ' + uname + ' — ' + t('lbl_add_as_mod') + ' ?', function() {
     return db.from('trusted_users').upsert({ user_id: res.data.user_id, role: 'moderator' }, { onConflict: 'user_id' }).then(function() {
       if (inp) inp.value = '';
-      showToast(uname + ' ajouté comme modérateur', 'success');
+      showToast(uname + ' ' + t('toast_mod_added'), 'success');
       loadValidatorsList();
     });
   });
@@ -5081,7 +5165,7 @@ async function addValidator() {
 
 function removeValidator(uid, uname) {
   if (!isAdmin) return;
-  showRoleConfirm('Retirer ' + (uname || 'ce modérateur') + ' des modérateurs ?', function() {
+  showRoleConfirm(t('lbl_remove_from_mods') + (uname ? ' — ' + uname : '') + ' ?', function() {
     return db.from('trusted_users').delete().eq('user_id', uid).then(function() {
       showToast(t('toast_mod_removed'), '');
       loadValidatorsList();
@@ -5136,7 +5220,7 @@ async function loadUserVotes() {
     var hasPlace = p.latitude && p.longitude;
     return '<div ' + (hasPlace ? 'onclick="goToSoloPlace(\'' + p.id + '\',' + p.latitude + ',' + p.longitude + ')"' : '') + ' style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);' + (hasPlace ? 'cursor:pointer;' : '') + '">'
       + '<div style="width:34px;height:34px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">' + (cat.icon || '📍') + '</div>'
-      + '<div style="flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || 'Lieu inconnu') + '</div>'
+      + '<div style="flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(p.name || t('lbl_no_name')) + '</div>'
       + '<span style="font-size:18px;">' + (v.vote ? '👍' : '👎') + '</span>'
       + '</div>';
   }).join('');
@@ -5473,7 +5557,7 @@ function viewPendingPlace(pid, lat, lng) {
   if (banner) {
     banner.style.display = 'flex';
     var btnLeft = banner.querySelector('button:first-child');
-    if (btnLeft) btnLeft.textContent = '← Retour aux lieux en attente';
+    if (btnLeft) btnLeft.textContent = t('solo_back_pending');
   }
   map.flyTo([lat, lng], 16, { duration: 0.8 });
   db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
@@ -5518,7 +5602,7 @@ async function loadReportedPlaces() {
       + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">&#128205; ' + escHtml(place.name || pid) + '</div>'
       + reportsList
       + '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'
-      + (place.latitude ? '<button onclick="viewReportedPlace(\'' + pid + '\',' + place.latitude + ',' + place.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128205; Voir sur la carte</button>' : '')
+      + (place.latitude ? '<button onclick="viewReportedPlace(\'' + pid + '\',' + place.latitude + ',' + place.longitude + ')" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">&#128205; ' + t('btn_see_map') + '</button>' : '')
       + '<button onclick="hidePlace(\'' + pid + '\',\'' + escHtml(place.name||'').replace(/'/g,"\\'") + '\',true)" style="flex:1;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:6px;padding:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">&#128683; Masquer</button>'
       + '<button onclick="showConfirm(t(\'confirm_ignore_report\'),t(\'confirm_ignore_report_msg\'),\'✓\',\'\',function(){dismissPlaceReport(\'' + pid + '\',\'' + escHtml((place.name||'').replace(/'/g,"\\'")) + '\',\'dismissed\')})" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#10003; Ignorer</button>'
       + (g.reports.some(function(r) { return r.suggested_lat && r.suggested_lng; }) ? (function() { var sr = g.reports.find(function(r) { return r.suggested_lat && r.suggested_lng; }); return '<div style="margin:6px 0;padding:6px 8px;background:rgba(41,128,185,0.1);border:1px solid rgba(41,128,185,0.3);border-radius:6px;font-size:11px;color:#3498db;">&#128205; Emplacement suggéré : ' + sr.suggested_lat.toFixed(5) + ', ' + sr.suggested_lng.toFixed(5) + '<br><button onclick="showConfirm(\'Approuver cet emplacement ?\',\'Les coordonnées du lieu seront mises à jour avec la suggestion.\',\'📍 Approuver\',\'#2980b9\',function(){approveLocationSuggestion(\'' + sr.id + '\',\'' + pid + '\'' + ',' + sr.suggested_lat + ',' + sr.suggested_lng + ',\'' + escHtml((place.name||'').replace(/'/g,"\'")) + '\')})" style="margin-top:4px;background:rgba(41,128,185,0.2);border:1px solid rgba(41,128,185,0.5);color:#3498db;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;">&#128205; Approuver cet emplacement</button></div>'; })() : '')
@@ -5560,7 +5644,7 @@ function viewFromDashboard(pid, lat, lng, backLabel) {
   if (banner) {
     banner.style.display = 'flex';
     var btnLeft = banner.querySelector('button:first-child');
-    if (btnLeft) btnLeft.textContent = (backLabel || '← Retour au tableau de bord');
+    if (btnLeft) btnLeft.textContent = (backLabel || t('solo_back_dashboard'));
   }
   map.flyTo([lat, lng], 16, { duration: 0.8 });
   db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
@@ -5579,7 +5663,7 @@ function viewReportedPlace(pid, lat, lng) {
   if (banner) {
     banner.style.display = 'flex';
     var btnLeft = banner.querySelector('button:first-child');
-    if (btnLeft) btnLeft.textContent = '← Retour aux signalements';
+    if (btnLeft) btnLeft.textContent = t('solo_back_reports');
   }
   map.flyTo([lat, lng], 16, { duration: 0.8 });
   db.from('places').select('*, categories(name,icon,color), main_categories(name,icon)').eq('id', pid).maybeSingle().then(function(res) {
@@ -5614,7 +5698,7 @@ async function loadReportedComments() {
   var cmts = cmtRes.data || [];
   if (!cmts.length) { el.innerHTML = '<div style="color:var(--text2);">' + t('lbl_no_comment') + '</div>'; return; }
   el.innerHTML = cmts.map(function(c) {
-    var placeName = (c.places && c.places.name) ? c.places.name : 'Lieu inconnu';
+    var placeName = (c.places && c.places.name) ? c.places.name : t('lbl_no_name');
     var n = counts[c.id] || 1;
     var reporterList = (reporters[c.id] || []).map(function(u) {
       return '<span style="display:inline-block;background:rgba(231,76,60,0.12);color:#e74c3c;border-radius:4px;padding:1px 6px;font-size:11px;margin:1px;">&#128100; ' + escHtml(u) + '</span>';
@@ -6640,7 +6724,7 @@ async function openNotifPlace(notifId, placeId) {
   if (banner) {
     banner.style.display = 'flex';
     var btnLeft = banner.querySelector('button:first-child');
-    if (btnLeft) btnLeft.textContent = '← Retour aux notifications';
+    if (btnLeft) btnLeft.textContent = t('solo_back_notif');
   }
   if (nav) nav.style.display = 'none';
   allPlaces = [res.data]; renderMarkers([res.data]);
