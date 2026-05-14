@@ -3434,7 +3434,7 @@ function catVisibleForRole(minRole) {
 
 async function loadCats() {
   var resM = await db.from('main_categories').select('*').order('sort_order');
-  var resS = await db.from('categories').select('*').order('name');
+  var resS = await db.from('categories').select('*').order('sort_order').order('name');
   mainCats = (resM.data || []).filter(function(mc) { return catVisibleForRole(mc.min_role); });
   allCats  = (resS.data || []).filter(function(c)  { return catVisibleForRole(c.min_role); });
   mainCats.forEach(function(mc) {
@@ -6604,6 +6604,32 @@ function showDashBan() {
 }
 
 // ===== ADMIN — GESTION CATÉGORIES =====
+var _reorderTimer = null;
+var _reorderActiveId = null;
+
+function adminStartLongPress(id) {
+  adminCancelLongPress();
+  _reorderTimer = setTimeout(function() {
+    _reorderTimer = null;
+    adminToggleReorder(id);
+  }, 600);
+}
+
+function adminCancelLongPress() {
+  if (_reorderTimer !== null) { clearTimeout(_reorderTimer); _reorderTimer = null; }
+}
+
+function adminToggleReorder(id) {
+  if (_reorderActiveId && _reorderActiveId !== id) {
+    var prev = document.getElementById('reorder-' + _reorderActiveId);
+    if (prev) prev.style.display = 'none';
+  }
+  var el = document.getElementById('reorder-' + id);
+  if (!el) return;
+  var show = el.style.display === 'none' || el.style.display === '';
+  el.style.display = show ? 'flex' : 'none';
+  _reorderActiveId = show ? id : null;
+}
 
 function showDashCategories() {
   if (!isAdmin) return;
@@ -6628,29 +6654,34 @@ function adminRoleTag(role) {
 }
 
 function renderDashCategoriesContent() {
+  _reorderActiveId = null;
   var c = document.getElementById('dash-detail-content');
-  var btnStyle = 'style="flex:1;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);"';
   var html = '<button onclick="adminShowCreateMainCatForm()" '
     + 'style="width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer;font-family:var(--font-body);font-size:13px;margin-bottom:14px;box-sizing:border-box;">+ Nouvelle grande catégorie</button>'
-    + '<div id="admin-cat-form-zone" style="margin-bottom:4px;"></div>';
+    + '<div id="admin-cat-form-zone" style="margin-bottom:4px;"></div>'
+    + '<div style="font-size:11px;color:var(--text2);text-align:center;margin-bottom:10px;">Appui long sur un élément pour le réordonner</div>';
 
-  var arrowBtn = 'style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:2px 7px;font-size:14px;cursor:pointer;font-family:var(--font-body);line-height:1.4;"';
-  var arrowBtnOff = 'style="background:transparent;border:1px solid transparent;color:transparent;border-radius:6px;padding:2px 7px;font-size:14px;cursor:default;line-height:1.4;" disabled';
+  var lpBtn  = 'style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 10px;font-size:13px;cursor:pointer;font-family:var(--font-body);font-weight:700;"';
+  var stopProp = 'onmousedown="event.stopPropagation();adminCancelLongPress()" ontouchstart="event.stopPropagation();adminCancelLongPress()"';
+
   mainCats.forEach(function(mc, idx) {
     var allSubsRaw = allCats.filter(function(s) { return s.main_category_id === mc.id; });
     var isFirst = idx === 0, isLast = idx === mainCats.length - 1;
+    var mcLpId = 'mc-' + mc.id;
+
     html += '<div style="border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px;">'
-      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
-      + '<div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">'
-      + '<button ' + (isFirst ? arrowBtnOff : arrowBtn) + ' onclick="adminMoveCatOrder(\'' + mc.id + '\',-1)">&#8593;</button>'
-      + '<button ' + (isLast  ? arrowBtnOff : arrowBtn) + ' onclick="adminMoveCatOrder(\'' + mc.id + '\',1)">&#8595;</button>'
-      + '</div>'
+      // Header — appui long pour réordonner
+      + '<div onmousedown="adminStartLongPress(\'' + mcLpId + '\')" onmouseup="adminCancelLongPress()" onmouseleave="adminCancelLongPress()" ontouchstart="adminStartLongPress(\'' + mcLpId + '\')" ontouchend="adminCancelLongPress()" ontouchmove="adminCancelLongPress()" oncontextmenu="return false" style="display:flex;align-items:center;gap:6px;margin-bottom:4px;user-select:none;-webkit-user-select:none;">'
       + '<span style="font-size:18px;">' + mc.icon + '</span>'
       + '<span style="font-size:14px;font-weight:700;flex:1;color:var(--text);">' + mc.name + adminRoleTag(mc.min_role) + '</span>'
-      + '<button onclick="adminShowEditMainCatForm(\'' + mc.id + '\')" '
-      + 'style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#9998;</button>'
-      + '<button onclick="adminShowCreateSubCatForm(\'' + mc.id + '\')" '
-      + 'style="background:rgba(255,208,79,0.12);color:var(--accent);border:1px solid rgba(255,208,79,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap;">+ Sous-cat</button>'
+      + '<button ' + stopProp + ' onclick="adminShowEditMainCatForm(\'' + mc.id + '\')" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;font-family:var(--font-body);">&#9998;</button>'
+      + '<button ' + stopProp + ' onclick="adminShowCreateSubCatForm(\'' + mc.id + '\')" style="background:rgba(255,208,79,0.12);color:var(--accent);border:1px solid rgba(255,208,79,0.3);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);white-space:nowrap;">+ Sous-cat</button>'
+      + '</div>'
+      // Barre de réordonnement (cachée, révélée sur appui long)
+      + '<div id="reorder-' + mcLpId + '" style="display:none;align-items:center;gap:8px;padding:6px 0;margin-bottom:4px;border-top:1px dashed var(--border);">'
+      + '<span style="font-size:11px;color:var(--text2);flex:1;">Déplacer :</span>'
+      + (isFirst ? '' : '<button ' + lpBtn + ' onclick="adminMoveCatOrder(\'' + mc.id + '\',-1)">&#8593; Monter</button>')
+      + (isLast  ? '' : '<button ' + lpBtn + ' onclick="adminMoveCatOrder(\'' + mc.id + '\',1)">&#8595; Descendre</button>')
       + '</div>'
       + '<div id="admin-edit-maincat-' + mc.id + '"></div>'
       + '<div id="admin-subcat-form-' + mc.id + '"></div>';
@@ -6658,20 +6689,26 @@ function renderDashCategoriesContent() {
     if (allSubsRaw.length === 0) {
       html += '<div style="font-size:12px;color:var(--text2);padding-left:4px;">Aucune sous-catégorie</div>';
     } else {
-      allSubsRaw.forEach(function(s) {
+      allSubsRaw.forEach(function(s, sIdx) {
+        var isFirstS = sIdx === 0, isLastS = sIdx === allSubsRaw.length - 1;
+        var scLpId = 'sc-' + s.id;
         var opts = '<option value="">Déplacer vers...</option>';
         mainCats.forEach(function(m) {
           if (m.id !== mc.id) opts += '<option value="' + m.id + '">' + m.icon + ' ' + m.name + '</option>';
         });
         html += '<div style="border-top:1px solid var(--border);padding:5px 0;">'
-          + '<div style="display:flex;align-items:center;gap:8px;">'
+          + '<div onmousedown="adminStartLongPress(\'' + scLpId + '\')" onmouseup="adminCancelLongPress()" onmouseleave="adminCancelLongPress()" ontouchstart="adminStartLongPress(\'' + scLpId + '\')" ontouchend="adminCancelLongPress()" ontouchmove="adminCancelLongPress()" oncontextmenu="return false" style="display:flex;align-items:center;gap:8px;user-select:none;-webkit-user-select:none;">'
           + '<span style="font-size:14px;">' + s.icon + '</span>'
           + '<span style="font-size:12px;flex:1;color:var(--text2);">' + s.name + adminRoleTag(s.min_role) + '</span>'
-          + '<button onclick="adminShowEditSubCatForm(\'' + s.id + '\',\'' + mc.id + '\')" '
-          + 'style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:var(--font-body);">&#9998;</button>'
-          + '<select onchange="adminMoveSubCat(\'' + s.id + '\',this.value,this)" '
+          + '<button ' + stopProp + ' onclick="adminShowEditSubCatForm(\'' + s.id + '\',\'' + mc.id + '\')" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:var(--font-body);">&#9998;</button>'
+          + '<select ' + stopProp + ' onchange="adminMoveSubCat(\'' + s.id + '\',this.value,this)" '
           + 'style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:11px;font-family:var(--font-body);max-width:130px;">'
           + opts + '</select>'
+          + '</div>'
+          + '<div id="reorder-' + scLpId + '" style="display:none;align-items:center;gap:8px;padding:4px 0 2px;border-top:1px dashed var(--border);">'
+          + '<span style="font-size:11px;color:var(--text2);flex:1;">Déplacer :</span>'
+          + (isFirstS ? '' : '<button ' + lpBtn + ' onclick="adminMoveSubCatOrder(\'' + s.id + '\',-1,\'' + mc.id + '\')">&#8593;</button>')
+          + (isLastS  ? '' : '<button ' + lpBtn + ' onclick="adminMoveSubCatOrder(\'' + s.id + '\',1,\'' + mc.id + '\')">&#8595;</button>')
           + '</div>'
           + '<div id="admin-edit-subcat-' + s.id + '"></div>'
           + '</div>';
@@ -6818,6 +6855,25 @@ async function adminMoveCatOrder(mcId, dir) {
   var res = await Promise.all([
     db.from('main_categories').update({ sort_order: sortB }).eq('id', mc.id),
     db.from('main_categories').update({ sort_order: sortA }).eq('id', swap.id)
+  ]);
+  if (res[0].error || res[1].error) { showToast('Erreur lors du déplacement'); return; }
+  await loadCats();
+  renderDashCategoriesContent();
+}
+
+// ---- Réordonner sous-catégories ----
+async function adminMoveSubCatOrder(subId, dir, mainCatId) {
+  if (!isAdmin) return;
+  var siblings = allCats.filter(function(c) { return c.main_category_id === mainCatId; });
+  var idx = siblings.findIndex(function(s) { return s.id === subId; });
+  var swapIdx = idx + dir;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= siblings.length) return;
+  var s1 = siblings[idx], s2 = siblings[swapIdx];
+  var sortA = s1.sort_order, sortB = s2.sort_order;
+  if (sortA === sortB) { sortA = idx; sortB = swapIdx; }
+  var res = await Promise.all([
+    db.from('categories').update({ sort_order: sortB }).eq('id', s1.id),
+    db.from('categories').update({ sort_order: sortA }).eq('id', s2.id)
   ]);
   if (res[0].error || res[1].error) { showToast('Erreur lors du déplacement'); return; }
   await loadCats();
