@@ -1972,8 +1972,8 @@ async function init() {
   window.addEventListener('resize', function() { map.invalidateSize(); });
   setTimeout(function() { map.invalidateSize(); }, 200);
 
-  await loadCats();
   await checkAuth();
+  await loadCats();
 
   document.getElementById('loading').style.display = 'none';
 
