@@ -2299,14 +2299,14 @@ function renderSheetCats() {
       return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
         + '<div class="chk-sm' + (isOn ? ' on' : '') + '" id="chk-ss-' + s.id + '">' + (isOn ? '&#10003;' : '') + '</div>'
         + '<span class="sub-cat-icon">' + fluentImg(s.icon, 18) + '</span>'
-        + '<span class="sub-cat-name">' + s.name + '</span>'
+        + '<span class="sub-cat-name">' + s.name + adminRoleTag(s.min_role) + '</span>'
         + '</div>';
     }).join('');
     var isMainOn = filters[mc.id] && filters[mc.id].on;
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatSheet(\'' + mc.id + '\',this)">'
       + '<div class="chk' + (isMainOn ? ' on' : '') + '" id="chk-sm-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')">' + (isMainOn ? '&#10003;' : '') + '</div>'
       + '<span class="main-cat-icon">' + fluentImg(mc.icon, 20) + '</span>'
-      + '<span class="main-cat-name">' + mc.name + '</span>'
+      + '<span class="main-cat-name">' + mc.name + adminRoleTag(mc.min_role) + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
       + '<div class="sub-cats" id="subs-sm-' + mc.id + '">' + subsHTML + '</div>';
@@ -3509,13 +3509,13 @@ function renderCats() {
       return '<div class="sub-cat-item" onclick="toggleSubF(\'' + mc.id + '\',\'' + s.id + '\')">'
         + '<div class="chk-sm" id="chk-sub-' + s.id + '"></div>'
         + '<span class="sub-cat-icon">' + fluentImg(s.icon, 18) + '</span>'
-        + '<span class="sub-cat-name">' + s.name + '</span>'
+        + '<span class="sub-cat-name">' + s.name + adminRoleTag(s.min_role) + '</span>'
         + '</div>';
     }).join('');
     d.innerHTML = '<div class="main-cat-header" onclick="toggleCatDesk(\'' + mc.id + '\',this)">'
       + '<div class="chk" id="chk-' + mc.id + '" onclick="event.stopPropagation();toggleMainF(\'' + mc.id + '\')"></div>'
       + '<span class="main-cat-icon">' + fluentImg(mc.icon, 20) + '</span>'
-      + '<span class="main-cat-name">' + mc.name + '</span>'
+      + '<span class="main-cat-name">' + mc.name + adminRoleTag(mc.min_role) + '</span>'
       + '<span class="main-cat-arrow">&#9654;</span>'
       + '</div>'
       + '<div class="sub-cats" id="subs-' + mc.id + '">' + subsHTML + '</div>';
