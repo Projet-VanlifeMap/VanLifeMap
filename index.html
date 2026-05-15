@@ -380,15 +380,18 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 #install-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:var(--surface);border-radius:20px 20px 0 0;overflow:hidden;flex-direction:column;animation:slideUp 0.3s ease;box-shadow:0 -6px 32px rgba(0,0,0,0.5);}
 #install-banner.show{display:flex;}
 .ib-hero{background:linear-gradient(135deg,#0ba6b3 0%,#0480b3 100%);padding:16px 16px 14px;display:flex;align-items:center;gap:14px;}
-.ib-hero-icon{width:50px;height:50px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.ib-hero-icon{width:54px;height:54px;border-radius:14px;overflow:hidden;flex-shrink:0;}
+.ib-hero-icon img{width:100%;height:100%;display:block;}
 .ib-hero-text{flex:1;min-width:0;}
-.ib-hero-name{font-family:var(--font-head);font-size:18px;font-weight:900;color:#fff;line-height:1.1;}
-.ib-hero-tag{font-size:11px;color:rgba(255,255,255,0.75);margin-top:4px;letter-spacing:0.2px;}
+.ib-hero-name{color:#fff;line-height:1.1;}
+.ib-hero-name .ib-label{display:block;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:0.75;margin-bottom:2px;}
+.ib-hero-name .ib-appname{display:block;font-family:var(--font-head);font-size:26px;font-weight:900;letter-spacing:1px;}
+.ib-hero-tag{font-size:11px;color:rgba(255,255,255,0.72);margin-top:5px;letter-spacing:0.2px;}
 .ib-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .ib-body{padding:14px 16px 22px;display:flex;flex-direction:column;gap:10px;}
 .ib-steps{display:flex;flex-direction:column;gap:9px;}
 .ib-step{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--text);line-height:1.35;}
-.ib-step-icon{font-size:20px;width:30px;text-align:center;flex-shrink:0;}
+.ib-step-icon{width:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--accent);}
 .ib-btn{width:100%;background:linear-gradient(135deg,#0ba6b3,#0480b3);color:#fff;border:none;border-radius:12px;padding:14px;font-family:var(--font-head);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:0.3px;}
 
 /* TOAST */
@@ -1022,18 +1025,30 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 
 <div id="install-banner">
   <div class="ib-hero">
-    <div class="ib-hero-icon">&#128205;</div>
+    <div class="ib-hero-icon"><img src="icon-192.png" alt="ANY"></div>
     <div class="ib-hero-text">
-      <div class="ib-hero-name">Installer ANY</div>
+      <div class="ib-hero-name">
+        <span class="ib-label">Installer</span>
+        <span class="ib-appname">ANY</span>
+      </div>
       <div class="ib-hero-tag">Gratuit &middot; Acc&egrave;s rapide &middot; Fonctionne hors ligne</div>
     </div>
     <button class="ib-close" onclick="dismissInstall()">&#10005;</button>
   </div>
   <div class="ib-body">
     <div class="ib-steps" id="install-steps-ios" style="display:none">
-      <div class="ib-step"><div class="ib-step-icon">&#128228;</div><span>Touchez <strong>Partager</strong> en bas de Safari</span></div>
-      <div class="ib-step"><div class="ib-step-icon">&#10133;</div><span>S&eacute;lectionnez <strong>&laquo;&nbsp;Sur l&rsquo;&eacute;cran d&rsquo;accueil&nbsp;&raquo;</strong></span></div>
-      <div class="ib-step"><div class="ib-step-icon">&#10003;</div><span>Appuyez sur <strong>&laquo;&nbsp;Ajouter&nbsp;&raquo;</strong> — c&rsquo;est install&eacute;&nbsp;!</span></div>
+      <div class="ib-step">
+        <div class="ib-step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13"/><path d="M8 6l4-4 4 4"/><path d="M20 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6"/></svg></div>
+        <span>Touchez <strong>Partager</strong> en bas de Safari</span>
+      </div>
+      <div class="ib-step">
+        <div class="ib-step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg></div>
+        <span>S&eacute;lectionnez <strong>&laquo;&nbsp;Sur l&rsquo;&eacute;cran d&rsquo;accueil&nbsp;&raquo;</strong></span>
+      </div>
+      <div class="ib-step">
+        <div class="ib-step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+        <span>Appuyez sur <strong>&laquo;&nbsp;Ajouter&nbsp;&raquo;</strong> &mdash; c&rsquo;est install&eacute;&nbsp;!</span>
+      </div>
     </div>
     <div id="install-steps-android" style="display:none">
       <button class="ib-btn" id="install-btn">&#11015; Ajouter &agrave; l&rsquo;&eacute;cran d&rsquo;accueil &mdash; Gratuit</button>
