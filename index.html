@@ -408,13 +408,7 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   #toast{bottom:calc(var(--nav-h) + 12px);}
 }
 /* ── PROFILE CARD ── */
-.prof-banner{height:110px;background:linear-gradient(to right,#0ba6b3 0%,#0480b3 55%,#5bb5cc 78%,#cce9f2 93%,#ffffff 100%);position:relative;}
-.prof-banner-content{position:absolute;top:0;bottom:0;left:16px;right:0;display:flex;align-items:center;gap:12px;padding-right:12px;}
-.pbc-logo-img{width:52px;height:52px;border-radius:12px;flex-shrink:0;display:block;}
-.pbc-taglines{display:flex;flex-direction:column;gap:5px;}
-.pbc-line{display:flex;flex-direction:column;line-height:1;}
-.pbc-en{font-size:12px;font-weight:700;color:#fff;letter-spacing:0.3px;-webkit-text-stroke:0.4px rgba(0,0,0,0.55);text-stroke:0.4px rgba(0,0,0,0.55);}
-.pbc-fr{font-size:9px;font-style:italic;color:rgba(255,255,255,0.82);margin-top:1px;text-shadow:0 1px 3px rgba(0,0,0,0.7);}
+.prof-banner{height:110px;background:url('any_banniere.jpeg') center/cover no-repeat;position:relative;}
 .prof-xp-wrap{background:var(--surface);padding:14px 20px;border-bottom:1px solid var(--border);}
 .prof-xp-bar{height:8px;background:var(--bg);border-radius:10px;overflow:hidden;margin-top:4px;}
 .prof-xp-fill{height:100%;background:linear-gradient(90deg,#0ba6b3,#0480b3);border-radius:10px;transition:width 0.7s cubic-bezier(.4,0,.2,1);}
@@ -2795,14 +2789,6 @@ async function renderProfile() {
   var avatarInner = currentUserAvatar || localStorage.getItem('vlm_avatar') || initials;
   el.innerHTML = '<div class="prof-card">'
     + '<div class="prof-banner" id="prof-banner">'
-    + '<div class="prof-banner-content">'
-    + '<img src="icon-192.png" class="pbc-logo-img" alt="ANY">'
-    + '<div class="pbc-taglines">'
-    + '<div class="pbc-line"><span class="pbc-en">Anything</span><span class="pbc-fr">N\'importe quoi</span></div>'
-    + '<div class="pbc-line"><span class="pbc-en">Anywhere</span><span class="pbc-fr">N\'importe o\u00f9</span></div>'
-    + '<div class="pbc-line"><span class="pbc-en">Anytime</span><span class="pbc-fr">N\'importe quand</span></div>'
-    + '</div>'
-    + '</div>'
     + '<div class="prof-avatar" id="prof-avatar">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
     + '</div>'
     + '<div class="prof-identity">'
@@ -3147,14 +3133,6 @@ async function openPublicProfile(username) {
 
   content.innerHTML = '<div class="prof-card">'
     + '<div class="prof-banner">'
-    + '<div class="prof-banner-content">'
-    + '<img src="icon-192.png" class="pbc-logo-img" alt="ANY">'
-    + '<div class="pbc-taglines">'
-    + '<div class="pbc-line"><span class="pbc-en">Anything</span><span class="pbc-fr">N\'importe quoi</span></div>'
-    + '<div class="pbc-line"><span class="pbc-en">Anywhere</span><span class="pbc-fr">N\'importe où</span></div>'
-    + '<div class="pbc-line"><span class="pbc-en">Anytime</span><span class="pbc-fr">N\'importe quand</span></div>'
-    + '</div>'
-    + '</div>'
     + '<div class="prof-avatar" style="cursor:default;">' + escHtml(pubAvatar) + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
