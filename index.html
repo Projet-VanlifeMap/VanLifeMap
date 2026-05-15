@@ -6280,6 +6280,8 @@ function renderTypeBadge(slug) {
   return '<span class="comm-badge" style="color:' + t.color + ';background:' + t.bg_color + ';">' + t.icon + ' ' + t.name + '</span>';
 }
 
+function loadNotifCount() {}
+
 async function insertNotif(userId, type, message, postId) {
   if (!userId || userId === (currentUser && currentUser.id)) return;
   await db.from('notifications').insert({ user_id: userId, type: type, message: message, post_id: postId || null, is_read: false });
