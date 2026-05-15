@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = JSON.stringify({
-      title: title || "VanLifeMap",
+      title: title || "ANY",
       body: body || "",
       url: url || "/",
     });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VanLifeMap — Admin</title>
+<title>ANY — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -61,7 +61,7 @@ header button{background:var(--surface2);border:1px solid var(--border);color:va
 <div id="loading"><div class="spinner"></div></div>
 
 <div id="login-screen" style="display:none">
-  <h2>&#128274; Admin VanLifeMap</h2>
+  <h2>&#128274; Admin ANY</h2>
   <input type="email" id="adm-email" placeholder="Email admin">
   <input type="password" id="adm-pass" placeholder="Mot de passe">
   <button onclick="adminLogin()">Se connecter</button>
@@ -193,7 +193,7 @@ function renderPlaces(data) {
       + '</div>'
       + '</div>'
       + '<div class="card-actions">'
-      + '<a class="btn-view" href="https://projet-vanlifemap.github.io/VanLifeMap" target="_blank">&#128205; Voir sur la carte</a>'
+      + '<a class="btn-view" href="https://my-projet-app.github.io/ANY/" target="_blank">&#128205; Voir sur la carte</a>'
       + '<button class="btn-del" onclick="deletePlace(\'' + p.id + '\',\'pl-' + p.id + '\')">&#128465; Supprimer</button>'
       + '</div>'
       + '</div>';

@@ -1,4 +1,4 @@
-var CACHE = 'vanlifemap-v9';
+var CACHE = 'any-v10';
 var ASSETS = [
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
@@ -29,13 +29,13 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('push', function(e) {
   if (!e.data) return;
   var data = {};
-  try { data = e.data.json(); } catch(err) { data = { title: 'VanLifeMap', body: e.data.text() }; }
+  try { data = e.data.json(); } catch(err) { data = { title: 'ANY', body: e.data.text() }; }
   e.waitUntil(
-    self.registration.showNotification(data.title || 'VanLifeMap', {
+    self.registration.showNotification(data.title || 'ANY', {
       body: data.body || '',
-      icon: '/VanLifeMap/icon-192.png',
-      badge: '/VanLifeMap/icon-192.png',
-      data: { url: data.url || '/VanLifeMap/' },
+      icon: '/ANY/icon-192.png',
+      badge: '/ANY/icon-192.png',
+      data: { url: data.url || '/ANY/' },
       vibrate: [200, 100, 200]
     })
   );
@@ -43,11 +43,11 @@ self.addEventListener('push', function(e) {
 
 self.addEventListener('notificationclick', function(e) {
   e.notification.close();
-  var target = (e.notification.data && e.notification.data.url) || '/VanLifeMap/';
+  var target = (e.notification.data && e.notification.data.url) || '/ANY/';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(list) {
       for (var i = 0; i < list.length; i++) {
-        if (list[i].url.includes('vanlifemap') || list[i].url.includes('github.io')) {
+        if (list[i].url.includes('my-projet-app') || list[i].url.includes('github.io')) {
           return list[i].focus();
         }
       }

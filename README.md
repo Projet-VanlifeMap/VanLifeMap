@@ -1,15 +1,15 @@
-# MapLibre — Carte Communautaire
+# ANY — Anything, Anywhere, Anytime
 
 ## Concept
-Carte communautaire interactive pour vacanciers et touristes en France.
-Les utilisateurs trouvent et partagent des services en libre-service 24h/24.
+Carte communautaire interactive des services en libre-service 24h/24.
+Trouvez un lieu utile autour de vous, peu importe où vous êtes et quand — vanlifer, vacancier, citadin ou nomade.
 
 ## Stack technique
 - **Frontend** : HTML/CSS/JS vanilla (fichier unique index.html)
 - **Carte** : Leaflet.js + OpenStreetMap + Esri satellite
 - **Base de données** : Supabase (PostgreSQL)
 - **Auth** : Supabase Auth
-- **Hébergement** : Netlify
+- **Hébergement** : GitHub Pages
 
 ## Credentials Supabase
 - URL : https://xssfehwbmvrxtxmocowc.supabase.co
@@ -17,103 +17,51 @@ Les utilisateurs trouvent et partagent des services en libre-service 24h/24.
 - Projet ID : xssfehwbmvrxtxmocowc
 
 ## URL
-- App : https://projet-vanlifemap.github.io/VanLifeMap/
-- Import : https://projet-vanlifemap.github.io/VanLifeMap/import.html
+- App : https://my-projet-app.github.io/ANY/
+- Import : https://my-projet-app.github.io/ANY/import.html
+- Admin : https://my-projet-app.github.io/ANY/admin.html
 
 ## Structure base de données
 
 ### Tables
-- `main_categories` : 3 grandes catégories (sort_order, name, icon, color)
-- `categories` : ~50 sous-catégories (main_category_id, name, icon, color)
-- `places` : lieux (name, description, latitude, longitude, main_category_id, category_id, user_id, user_name, disponible_24h, votes_positifs, votes_negatifs, approved)
+- `main_categories` : grandes catégories (sort_order, name, icon, color)
+- `categories` : sous-catégories (main_category_id, name, icon, color)
+- `places` : lieux (name, description, latitude, longitude, category_id, user_id, user_name, disponible_24h, votes_positifs, votes_negatifs, status)
 - `votes` : (place_id, user_id, vote boolean) UNIQUE(place_id, user_id)
 - `comments` : (place_id, user_id, user_name, content)
-- `profiles` : (user_id UNIQUE, preferences TEXT/JSON)
+- `profiles` : (user_id UNIQUE, username, avatar_url, registered_at)
+- `trusted_users` : (user_id, role) — admin / moderator / trusted
+- `reports` : signalements de lieux
+- `report_history` : historique des actions de modération
+- `place_photos` : photos des lieux
+- `notifications` : notifications in-app
+- `comment_reports` : signalements de commentaires
 
-### Grandes catégories (sort_order)
-1. Distributeurs & Casiers (🤖)
-2. Spots Van & Camping (🚐)
-3. Autre (📍)
+## Système XP
+- Lieu ajouté : +10 XP
+- Confirmation donnée : +3 XP
+- Commentaire : +2 XP
+- Vote : +1 XP
+- Merci reçu : +5 XP
 
-### Sous-catégories Distributeurs
-- Distributeur de pain & viennoiseries 🥖
-- Distributeur de café / boissons chaudes ☕
-- Distributeur de boissons froides / snacks 🥤
-- Distributeur de pizzas 🍕
-- Distributeur de glaçons 🧊
-- Lavomatique automatique 🫧
-- Borne de recharge électrique (voiture) 🔋
-- Borne de recharge VAE / trottinette 🛴
-- Casier fermier 🐔
-- Distributeur d'huîtres 🦪
-- Distributeur de fruits de mer 🐟
-- Distributeur de fleurs 💐
-- Photomaton 📸
-- Distributeur de croquettes animaux 🐾
-- Distributeur de livres 📚
-- Distributeur de CBD 🌿
-- Distributeur de préservatif 🛡️
-
-### Sous-catégories Spots Van & Camping
-- Aire de camping-car officielle 🅿️
-- Spot sauvage van / tente 🏕️
-- Aire de vidange camping-car 🚿
-- Borne eau potable 💧
-- Douche publique 🚿
-- Toilettes publiques 🚻
-- Aire de pique-nique 🧺
-
-### Sous-catégories Autre
-- (vide, à remplir par la communauté)
+Niveaux : 🌱 Curieux → 🗺️ Explorateur → 📍 Contributeur → ⭐ Guide → 🏆 Ambassadeur
 
 ## Fonctionnalités
-
-### Carte
-- OpenStreetMap via Leaflet.js
-- Vue satellite hybride Esri (membres connectés uniquement)
-- Préférence satellite sauvegardée en DB et restaurée à la reconnexion
-- Clusters de marqueurs automatiques
-- Géolocalisation
-
-### Filtres & Recherche
-- Cases à cocher par catégorie (clic sur texte OU sur case)
-- Tout décoché par défaut
-- Recherche textuelle
-- Recherche par périmètre : 1/2/5/10/25/50/100km ou Toute la France
-- Centre : position GPS ou clic sur carte
-- Chargement géographique (zone visible uniquement, limit 2000)
-
-### Compteur (coin haut droite)
-- Mode normal : nombre de lieux affichés
-- Mode périmètre : "83 / 5km"
-- Mode France : "247 / France"
-- 0 si rien de coché
-
-### Utilisateurs
-- Inscription/connexion email via Supabase Auth
-- Ajout de lieux (clic sur carte)
-- Votes 👍👎
-- Commentaires
-- Paramètres (toggle satellite)
-
-### Mobile
-- Barre navigation bas (iOS/Android style)
-- Bottom sheets pour catégories, recherche, profil
-- Responsive
+- Carte interactive avec clusters de marqueurs
+- Vue satellite hybride (membres connectés)
+- Filtres par catégorie + recherche textuelle + périmètre
+- Ajout de lieux avec photo obligatoire
+- Votes, commentaires, favoris
+- Profil utilisateur avec progression XP
+- Modération avancée (dashboard mods/admins)
+- Notifications push (Web Push API)
+- PWA installable (iOS + Android)
+- 7 langues (fr, en, es, de, it, pt, nl)
 
 ## Fichiers
-- `index.html` : application principale complète
-- `import.html` : outil import OpenStreetMap (25 types)
+- `index.html` : application principale complète (~6500 lignes)
+- `admin.html` : panneau d'administration
+- `sw.js` : service worker (cache + notifications push)
+- `manifest.json` : PWA manifest
+- `import.html` : outil import OpenStreetMap
 - `import-pizza.html` : outil géocodage adresses manuelles
-
-## Données importées
-- ~47 000 toilettes publiques France (OpenStreetMap)
-- Doublons possibles Nouvelle-Aquitaine (importée 2 fois)
-
-## TODO / Prochaines fonctionnalités
-- Photos pour chaque lieu
-- Panel d'administration (modération)
-- Notifications
-- Nom de domaine personnalisé
-- PWA (Progressive Web App)
-- Signalement de lieux fermés/incorrects
