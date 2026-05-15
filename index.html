@@ -133,9 +133,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 /* Apply bar */
 .srch-apply-bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border);flex-shrink:0;background:var(--surface);}
 .srch-apply-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-family:var(--font-head);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
-.radius-pills{display:flex;gap:8px;flex-wrap:wrap;}
-.radius-pill{background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);transition:all 0.15s;white-space:nowrap;min-height:40px;display:flex;align-items:center;-webkit-tap-highlight-color:transparent;}
-.radius-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 /* LOCATION SEARCH desktop */
 .loc-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--text2);margin-bottom:10px;}
 .loc-input-wrap{position:relative;display:flex;align-items:center;}
@@ -148,9 +145,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .loc-dropdown-item:active,.loc-dropdown-item:hover{background:var(--surface2);}
 .loc-dropdown-item .loc-city{font-size:15px;font-weight:600;color:var(--text);}
 .loc-dropdown-item .loc-region{font-size:12px;color:var(--text2);margin-top:3px;}
-/* SIDEBAR LOCATION PILLS */
-.rpill-desk{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--text);white-space:nowrap;}
-.rpill-desk.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 #loc-dropdown-desk .loc-dd-item{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;}
 #loc-dropdown-desk .loc-dd-item:last-child{border-bottom:none;}
 #loc-dropdown-desk .loc-dd-item:hover{background:var(--surface2);}
@@ -300,7 +294,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 /* compat */
 .vote-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:4px;}
 .leaflet-bar{display:none !important;}
-.radius-circle{stroke:var(--accent);stroke-width:2;fill:rgba(110,231,183,0.08);}
 .custom-marker{width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.5);border:2.5px solid rgba(255,255,255,0.45);}
 .custom-marker-inner{transform:rotate(45deg);font-size:17px;line-height:1;}
 
@@ -413,7 +406,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   #btn-compass{bottom:calc(var(--nav-h) + 122px);}
   #places-count{top:10px;right:10px;font-size:11px;padding:5px 10px;}
   #toast{bottom:calc(var(--nav-h) + 12px);}
-  #radius-bar{top:auto;bottom:calc(var(--nav-h) + 120px);left:50%;transform:translateX(-50%);}
 }
 /* ── PROFILE CARD ── */
 .prof-banner{height:110px;background:linear-gradient(160deg,#0ba6b3 0%,#0480b3 100%);position:relative;}
@@ -527,17 +519,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
         <div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border-radius:20px;padding:5px 8px 5px 12px;font-size:12px;font-weight:700;">
           <span>&#128205;</span><span id="loc-chip-desk-text"></span>
           <button onclick="clearLocationDesk()" style="background:rgba(0,0,0,0.18);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;color:#000;">&#10005;</button>
-        </div>
-      </div>
-      <div id="loc-radius-desk" style="display:none;margin-top:10px;">
-        <p style="font-size:10px;color:var(--text2);margin-bottom:6px;font-weight:600;">Rayon :</p>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="radius-pills-desk">
-          <button class="rpill-desk active" data-km="0" onclick="setLocationRadiusDesk(0)">Exact</button>
-          <button class="rpill-desk" data-km="10" onclick="setLocationRadiusDesk(10)">+10km</button>
-          <button class="rpill-desk" data-km="20" onclick="setLocationRadiusDesk(20)">+20km</button>
-          <button class="rpill-desk" data-km="50" onclick="setLocationRadiusDesk(50)">+50km</button>
-          <button class="rpill-desk" data-km="100" onclick="setLocationRadiusDesk(100)">+100km</button>
-          <button class="rpill-desk" data-km="200" onclick="setLocationRadiusDesk(200)">+200km</button>
         </div>
       </div>
       <button onclick="locateMeLocationDesk()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;color:var(--text);font-family:var(--font-body);display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;" data-i18n="btn_my_position">&#127759; Ma position</button>
@@ -2474,13 +2455,9 @@ function fluentImg(emoji, size) { return emoji; }
 var selectedLatLng = null;
 var add24hValue = null;
 var addingMode = false;
-var radiusMode = false;
 var isLogin = true;
 var loadTimer = null;
 var totalCount = 0;
-var radiusCenter = null;
-var radiusKm = 5;
-var radiusCircle = null;
 var userPrefs = { satellite: false };
 
 function isMobile() { return window.innerWidth <= 768; }
@@ -2529,8 +2506,8 @@ async function init() {
   });
   map.addLayer(cluster);
   map.on('click', onMapClick);
-  map.on('moveend', function() { if (!radiusCenter) scheduleLoad(); });
-  map.on('zoomend', function() { if (!radiusCenter) scheduleLoad(); if (maskLayer) maskLayer.redraw(); if (maskBorderLayer) maskBorderLayer.redraw(); });
+  map.on('moveend', function() { scheduleLoad(); });
+  map.on('zoomend', function() { scheduleLoad(); });
   window.addEventListener('resize', function() { map.invalidateSize(); });
   setTimeout(function() { map.invalidateSize(); }, 200);
 
@@ -2696,112 +2673,6 @@ async function loadPrefs() {
   }
 }
 
-// ===== RADIUS =====
-function activateRadiusMode() {
-  closeSheet('sheet-search');
-  radiusMode = true;
-  showToast(t('toast_click_center'), 'success');
-  map.getContainer().style.cursor = 'crosshair';
-}
-
-function locateMeRadius() {
-  closeSheet('sheet-search');
-  map.locate({ setView: false });
-  map.once('locationfound', function(e) {
-    setRadiusCenter(e.latlng);
-  });
-  map.once('locationerror', function() { showToast(t('toast_location_error'), 'error'); });
-}
-
-function setRadiusCenter(latlng) {
-  radiusCenter = latlng;
-  radiusKm = parseInt(document.getElementById('radius-select').value);
-  radiusMode = false;
-  map.getContainer().style.cursor = '';
-  drawRadiusCircle();
-  map.setView(latlng, getZoomForRadius(radiusKm));
-  loadPlacesInRadius();
-}
-
-function getZoomForRadius(km) {
-  if (km <= 1) return 14;
-  if (km <= 2) return 13;
-  if (km <= 5) return 12;
-  if (km <= 10) return 11;
-  if (km <= 25) return 10;
-  if (km <= 50) return 9;
-  if (km <= 100) return 8;
-  return 6;
-}
-
-function drawRadiusCircle() {
-  if (radiusCircle) map.removeLayer(radiusCircle);
-  if (!radiusCenter) return;
-  radiusCircle = L.circle(radiusCenter, {
-    radius: radiusKm * 1000,
-    className: 'radius-circle',
-    color: '#0ba6b3',
-    fillColor: '#0ba6b3',
-    fillOpacity: 0.06,
-    weight: 2
-  }).addTo(map);
-}
-
-function applyRadius() {
-  if (!radiusCenter) { showToast(t('toast_err_click_map'), 'error'); return; }
-  radiusKm = parseInt(document.getElementById('radius-select').value);
-  drawRadiusCircle();
-  map.setView(radiusCenter, getZoomForRadius(radiusKm));
-  loadPlacesInRadius();
-}
-
-function clearRadius() {
-  radiusCenter = null;
-  if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-  scheduleLoad();
-}
-
-function haversineDistance(lat1, lng1, lat2, lng2) {
-  var R = 6371;
-  var dLat = (lat2 - lat1) * Math.PI / 180;
-  var dLng = (lng2 - lng1) * Math.PI / 180;
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-async function loadPlacesInRadius() {
-  if (!radiusCenter) return;
-  var ok = new Set();
-  Object.keys(filters).forEach(function(mid) {
-    Object.keys(filters[mid].subs).forEach(function(sid) { if (filters[mid].subs[sid]) ok.add(sid); });
-  });
-  if (ok.size === 0) { cluster.clearLayers(); showHint(true); document.getElementById('count-num').textContent = '0'; return; }
-  showHint(false);
-
-  var margin = radiusKm / 111;
-  var swLat = radiusCenter.lat - margin;
-  var neLat = radiusCenter.lat + margin;
-  var swLng = radiusCenter.lng - margin * 1.5;
-  var neLng = radiusCenter.lng + margin * 1.5;
-
-  var result = await db.from('places')
-    .select('*, categories(name,icon,color), main_categories(name,icon)')
-    .in('status', ['active', 'pending'])
-    .gte('latitude', swLat).lte('latitude', neLat)
-    .gte('longitude', swLng).lte('longitude', neLng)
-    .in('category_id', Array.from(ok))
-    .limit(5000);
-
-  var raw = result.data || [];
-  allPlaces = raw.filter(function(p) {
-    if (p.hidden && !isAdmin && !isModerator) return false;
-    if (p.status === 'pending' && !isAdmin && !isModerator && (!currentUser || p.user_id !== currentUser.id)) return false;
-    return haversineDistance(radiusCenter.lat, radiusCenter.lng, p.latitude, p.longitude) <= radiusKm;
-  });
-  renderMarkers(allPlaces);
-  var label = radiusKm >= 99999 ? 'France' : radiusKm + 'km';
-  document.getElementById('count-num').textContent = allPlaces.length + ' / ' + label;
-}
 
 // ===== NAV =====
 var _filtersSnapshot = null;
@@ -3564,7 +3435,6 @@ async function saveUsername() {
 
 // ===== LOCATION SEARCH (mobile) =====
 var selectedLocation = null;
-var selectedLocRadius = 0;
 var srchTimer = null;
 var srchNominatimResults = [];
 
@@ -3706,7 +3576,6 @@ function selectSrchLocation(idx) {
   var addr = r.address || {};
   var city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || r.display_name.split(',')[0];
   selectedLocation = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
-  selectedLocRadius = 0;
   var inp = document.getElementById('search-mobile');
   if (inp) inp.value = city;
   var clearBtn = document.getElementById('srch-clear');
@@ -3721,7 +3590,6 @@ function selectSrchLocation(idx) {
 function confirmSearch() {
   applySrchCatFilters();
   if (selectedLocation) {
-    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
     map.flyTo([selectedLocation.lat, selectedLocation.lon], 13, { duration: 0.8 });
     scheduleLoad();
   }
@@ -3770,33 +3638,11 @@ function renderSrchResults(places, cities) {
   el.innerHTML = html;
 }
 
-function setLocationRadius(km) {
-  _searchCloseLocked = false;
-  selectedLocRadius = km;
-  document.querySelectorAll('.radius-pill').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === km);
-  });
-  if (!selectedLocation) return;
-  radiusCenter = L.latLng(selectedLocation.lat, selectedLocation.lon);
-  if (km === 0) {
-    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-    map.setView(radiusCenter, 13);
-    scheduleLoad();
-  } else {
-    radiusKm = km;
-    drawRadiusCircle();
-    map.setView(radiusCenter, getZoomForRadius(km));
-    loadPlacesInRadius();
-  }
-}
-
 function locateMeLocation() {
   closeSearchSheet();
   map.locate({ setView: false });
   map.once('locationfound', function(e) {
     selectedLocation = { lat: e.latlng.lat, lon: e.latlng.lng };
-    selectedLocRadius = 0;
-    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
     map.flyTo([e.latlng.lat, e.latlng.lng], 14, { duration: 0.8 });
     scheduleLoad();
   });
@@ -3806,7 +3652,6 @@ function locateMeLocation() {
 // ===== LOCATION SEARCH DESKTOP SIDEBAR =====
 var locationTimerDesk = null;
 var selectedLocationDesk = null;
-var selectedLocRadiusDesk = 0;
 
 function onLocationInputDesk(q) {
   var dd = document.getElementById('loc-dropdown-desk');
@@ -3857,43 +3702,17 @@ function selectLocationIdxDesk(idx) {
   dd.style.display = 'none';
   document.getElementById('loc-chip-desk-text').textContent = city;
   document.getElementById('loc-chip-desk').style.display = 'block';
-  document.getElementById('loc-radius-desk').style.display = 'block';
   selectedLocationDesk = { lat: parseFloat(r.lat), lon: parseFloat(r.lon) };
-  selectedLocRadiusDesk = 0;
-  document.querySelectorAll('.rpill-desk').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === 1);
-  });
   map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
 }
 
 function clearLocationDesk() {
   selectedLocationDesk = null;
-  selectedLocRadiusDesk = 0;
   document.getElementById('loc-input-desk').value = '';
   document.getElementById('loc-clear-desk').style.display = 'none';
   document.getElementById('loc-dropdown-desk').style.display = 'none';
   document.getElementById('loc-chip-desk').style.display = 'none';
-  document.getElementById('loc-radius-desk').style.display = 'none';
-  clearRadius();
-}
-
-function setLocationRadiusDesk(km) {
-  selectedLocRadiusDesk = km;
-  document.querySelectorAll('.rpill-desk').forEach(function(b) {
-    b.classList.toggle('active', parseInt(b.dataset.km) === km);
-  });
-  if (!selectedLocationDesk) return;
-  radiusCenter = L.latLng(selectedLocationDesk.lat, selectedLocationDesk.lon);
-  if (km === 0) {
-    if (radiusCircle) { map.removeLayer(radiusCircle); radiusCircle = null; }
-      map.setView(radiusCenter, 13);
-    scheduleLoad();
-  } else {
-    radiusKm = km;
-    drawRadiusCircle();
-      map.setView(radiusCenter, getZoomForRadius(km));
-    loadPlacesInRadius();
-  }
+  scheduleLoad();
 }
 
 function locateMeLocationDesk() {
@@ -3904,11 +3723,6 @@ function locateMeLocationDesk() {
     document.getElementById('loc-clear-desk').style.display = 'block';
     document.getElementById('loc-chip-desk-text').textContent = 'Ma position';
     document.getElementById('loc-chip-desk').style.display = 'block';
-    document.getElementById('loc-radius-desk').style.display = 'block';
-    selectedLocRadiusDesk = 0;
-    document.querySelectorAll('.rpill-desk').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.km) === 1);
-    });
     map.setView([selectedLocationDesk.lat, selectedLocationDesk.lon], 13);
   });
   map.once('locationerror', function() { showToast(t('toast_location_error'), 'error'); });
@@ -3952,7 +3766,6 @@ function onMapClick(e) {
   if (_moveModePlaceId) { handleMoveModeClick(e.latlng); return; }
   if (_locationSuggestionReportId) { handleLocationSuggestionClick(e.latlng); return; }
   closePlaceSheet();
-  if (radiusMode) { setRadiusCenter(e.latlng); return; }
   if (!addingMode) return;
   selectedLatLng = e.latlng;
   document.getElementById('coord-display').textContent = e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5);
@@ -4202,7 +4015,6 @@ function toggleSubF(mainId, subId) {
 
 // ===== PLACES =====
 async function loadPlaces() {
-  if (radiusCenter) { loadPlacesInRadius(); return; }
   var bounds = map.getBounds();
   var sw = bounds.getSouthWest();
   var ne = bounds.getNorthEast();
@@ -6024,7 +5836,7 @@ async function submitClosedHS() {
 }
 
 function applyFilters() {
-  if (radiusCenter) { loadPlacesInRadius(); } else { scheduleLoad(); }
+  scheduleLoad();
 }
 
 function toggleAllFilters(on) {
