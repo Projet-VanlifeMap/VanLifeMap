@@ -408,8 +408,13 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   #toast{bottom:calc(var(--nav-h) + 12px);}
 }
 /* ── PROFILE CARD ── */
-.prof-banner{height:110px;background:linear-gradient(160deg,#0ba6b3 0%,#0480b3 100%);position:relative;}
-.prof-banner::before{content:"📍";position:absolute;font-size:120px;right:-18px;bottom:-28px;opacity:0.12;pointer-events:none;}
+.prof-banner{height:110px;background:linear-gradient(to right,#0ba6b3 0%,#0480b3 35%,#5bb5cc 62%,#cce9f2 84%,#ffffff 100%);position:relative;overflow:hidden;}
+.prof-banner-content{position:absolute;top:0;bottom:0;left:104px;right:0;display:flex;align-items:center;gap:14px;padding-right:12px;}
+.pbc-logo{font-family:var(--font-head);font-size:40px;font-weight:900;color:#fff;letter-spacing:2px;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,0.25);flex-shrink:0;}
+.pbc-taglines{display:flex;flex-direction:column;gap:5px;}
+.pbc-line{display:flex;flex-direction:column;line-height:1;}
+.pbc-en{font-size:12px;font-weight:700;color:#fff;letter-spacing:0.3px;}
+.pbc-fr{font-size:9px;font-style:italic;color:rgba(255,255,255,0.72);margin-top:1px;}
 .prof-xp-wrap{background:var(--surface);padding:14px 20px;border-bottom:1px solid var(--border);}
 .prof-xp-bar{height:8px;background:var(--bg);border-radius:10px;overflow:hidden;margin-top:4px;}
 .prof-xp-fill{height:100%;background:linear-gradient(90deg,#0ba6b3,#0480b3);border-radius:10px;transition:width 0.7s cubic-bezier(.4,0,.2,1);}
@@ -429,14 +434,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .av-btn{font-size:24px;background:var(--surface2);border:2.5px solid transparent;border-radius:14px;padding:8px 4px;cursor:pointer;text-align:center;line-height:1.2;transition:border-color 0.12s,transform 0.1s;}
 .av-btn.sel{border-color:var(--accent);background:rgba(11,166,179,0.12);}
 .av-btn:active{transform:scale(0.85);}
-.prof-banner-edit{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);z-index:2;}
-.prof-banner-picker{position:absolute;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:3;border-radius:0;}
-.prof-banner-picker.open{display:flex;}
-.prof-swatches{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;}
-.prof-swatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:border-color 0.15s,transform 0.15s;flex-shrink:0;}
-.prof-swatch:hover,.prof-swatch.sel{border-color:#fff;transform:scale(1.15);}
-.prof-picker-btn{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--font-body);}
-.prof-picker-btn:hover{background:rgba(255,255,255,0.22);}
 .prof-identity{background:var(--surface);padding:46px 20px 16px;border-bottom:1px solid var(--border);}
 .prof-username{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;}
 .prof-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--text2);}
@@ -2796,40 +2793,18 @@ async function renderProfile() {
   var initials = username.slice(0, 2).toUpperCase();
   var memberSince = new Date(currentUser.created_at);
   var dateStr = memberSince.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-  // Banner style
-  var bannerData = JSON.parse(localStorage.getItem('vlm_banner') || 'null');
-  // Clear legacy dark presets (b1-b8) and image banners from old branding
-  var LEGACY_KEYS = ['b1','b2','b3','b4','b5','b6','b7','b8'];
-  if (bannerData && (bannerData.type === 'image' || LEGACY_KEYS.indexOf(bannerData.key) !== -1)) {
-    localStorage.removeItem('vlm_banner'); bannerData = null;
-  }
-  var DEFAULT_BANNER = '160deg,#0ba6b3,#0480b3';
-  var bannerStyle = 'background:linear-gradient(' + (bannerData && bannerData.value ? bannerData.value : DEFAULT_BANNER) + ')';
   var avatarInner = currentUserAvatar || localStorage.getItem('vlm_avatar') || initials;
-  // Build swatches HTML
-  var PRESETS = [
-    {"k":"logo", "g":"160deg,#0ba6b3,#0480b3"},
-    {"k":"c1",   "g":"160deg,#056070,#043d6b"},
-    {"k":"c2",   "g":"160deg,#0dd4e6,#1a95d8"},
-    {"k":"c3",   "g":"135deg,#071820,#0d2535,#1d4a60"},
-    {"k":"c4",   "g":"135deg,#0d0828,#1a1052,#2e1a82"},
-    {"k":"c5",   "g":"135deg,#0a1f0e,#193820,#2a5535"},
-    {"k":"c6",   "g":"135deg,#0a0a0a,#181818,#262626"},
-    {"k":"c7",   "g":"135deg,#0d1219,#1a2233,#263345"}
-  ];
-  var selKey = bannerData && bannerData.key ? bannerData.key : 'logo';
-  var swatchesHtml = PRESETS.map(function(p) {
-    return '<div class="prof-swatch' + (p.k === selKey ? ' sel' : '') + '" data-key="' + p.k + '" data-g="' + p.g + '" style="background:linear-gradient(' + p.g + ')"></div>';
-  }).join('');
   el.innerHTML = '<div class="prof-card">'
-    + '<div class="prof-banner" id="prof-banner" style="' + bannerStyle + '">'
+    + '<div class="prof-banner" id="prof-banner">'
     + '<div class="prof-banner-badge" id="prof-badge">\u2b50 Membre</div>'
-    + '<button class="prof-banner-edit" id="prof-banner-edit" title="Personnaliser la banni\u00e8re">&#9998;</button>'
-    + '<div class="prof-banner-picker" id="prof-banner-picker">'
-    + '<div class="prof-swatches" id="prof-swatches">' + swatchesHtml + '</div>'
-    + '<div class="prof-picker-btns">'
-    + '<button class="prof-picker-btn" id="prof-picker-close">' + t('profile_banner_close') + '</button>'
-    + '</div></div>'
+    + '<div class="prof-banner-content">'
+    + '<div class="pbc-logo">ANY</div>'
+    + '<div class="pbc-taglines">'
+    + '<div class="pbc-line"><span class="pbc-en">Anything</span><span class="pbc-fr">N\'importe quoi</span></div>'
+    + '<div class="pbc-line"><span class="pbc-en">Anywhere</span><span class="pbc-fr">N\'importe o\u00f9</span></div>'
+    + '<div class="pbc-line"><span class="pbc-en">Anytime</span><span class="pbc-fr">N\'importe quand</span></div>'
+    + '</div>'
+    + '</div>'
     + '<div class="prof-avatar" id="prof-avatar">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
     + '</div>'
     + '<div class="prof-identity">'
@@ -2899,36 +2874,7 @@ async function renderProfile() {
     + '</div>'
     + '</div>';
 
-  // Action buttons
-
-  // Banner edit button
-  document.getElementById('prof-banner-edit').addEventListener('click', function(e) {
-    e.stopPropagation();
-    var picker = document.getElementById('prof-banner-picker');
-    picker.classList.toggle('open');
-  });
-  document.getElementById('prof-picker-close').addEventListener('click', function(e) {
-    e.stopPropagation();
-    document.getElementById('prof-banner-picker').classList.remove('open');
-  });
-
-  // Color swatches
-  document.getElementById('prof-swatches').addEventListener('click', function(e) {
-    var sw = e.target.closest('.prof-swatch');
-    if (!sw) return;
-    var g = sw.dataset.g;
-    var k = sw.dataset.key;
-    document.querySelectorAll('.prof-swatch').forEach(function(s) { s.classList.remove('sel'); });
-    sw.classList.add('sel');
-    localStorage.setItem('vlm_banner', JSON.stringify({type:'color',key:k,value:g}));
-    var banner = document.getElementById('prof-banner');
-    if (banner) banner.style.background = 'linear-gradient(' + g + ')';
-  });
-
-
   document.getElementById('prof-avatar').addEventListener('click', function() {
-    var picker = document.getElementById('prof-banner-picker');
-    if (picker && picker.classList.contains('open')) return;
     openAvatarPicker();
   });
 
@@ -3193,10 +3139,6 @@ async function openPublicProfile(username) {
   var communityRole = roleBadge || t(pubXPLvl.data.key);
   var lvl = communityRole;
 
-  var BANNER_PRESETS = ['135deg,#0a0a0a,#1a1a1a,#2d2d2d','135deg,#13110a,#28230a,#3d3510','135deg,#070d1a,#0d1830,#162544','135deg,#0f0814,#1c1228,#2a1a3d','135deg,#080f08,#0f1f0e,#1a2e18','135deg,#140606,#250a0a,#361010','135deg,#060f0f,#0a1c1c,#112828','135deg,#080b12,#10151f,#1a2030'];
-  var hash = username.split('').reduce(function(a, c) { return a + c.charCodeAt(0); }, 0);
-  var bannerGrad = BANNER_PRESETS[hash % BANNER_PRESETS.length];
-
   var rankHtml = (rankPos && rankTotal) ?
     '<div class="prof-ranking" style="cursor:default;">'
     + '<div class="prof-rank-icon">&#127942;</div>'
@@ -3206,8 +3148,16 @@ async function openPublicProfile(username) {
     + '</div>' : '';
 
   content.innerHTML = '<div class="prof-card">'
-    + '<div class="prof-banner" style="background:linear-gradient(' + bannerGrad + ')">'
+    + '<div class="prof-banner">'
     + '<div class="prof-banner-badge">' + lvl + '</div>'
+    + '<div class="prof-banner-content">'
+    + '<div class="pbc-logo">ANY</div>'
+    + '<div class="pbc-taglines">'
+    + '<div class="pbc-line"><span class="pbc-en">Anything</span><span class="pbc-fr">N\'importe quoi</span></div>'
+    + '<div class="pbc-line"><span class="pbc-en">Anywhere</span><span class="pbc-fr">N\'importe où</span></div>'
+    + '<div class="pbc-line"><span class="pbc-en">Anytime</span><span class="pbc-fr">N\'importe quand</span></div>'
+    + '</div>'
+    + '</div>'
     + '<div class="prof-avatar" style="cursor:default;">' + escHtml(pubAvatar) + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
