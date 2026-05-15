@@ -439,6 +439,9 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .av-btn{font-size:24px;background:var(--surface2);border:2.5px solid transparent;border-radius:14px;padding:8px 4px;cursor:pointer;text-align:center;line-height:1.2;transition:border-color 0.12s,transform 0.1s;}
 .av-btn.sel{border-color:var(--accent);background:rgba(11,166,179,0.12);}
 .av-btn:active{transform:scale(0.85);}
+.av-bg-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.av-bg-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;flex-shrink:0;transition:border-color 0.15s,transform 0.12s;}
+.av-bg-swatch:hover,.av-bg-swatch.sel{border-color:var(--accent);transform:scale(1.15);}
 .prof-identity{background:var(--surface);padding:46px 20px 16px;border-bottom:1px solid var(--border);}
 .prof-username{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;}
 .prof-meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--text2);}
@@ -1032,6 +1035,8 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 <div id="avatar-picker" onclick="if(event.target===this)closeAvatarPicker()">
   <div class="av-panel">
     <div class="av-panel-title">Choisir un avatar</div>
+    <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;">Couleur de fond</div>
+    <div class="av-bg-row" id="av-bg-row"></div>
     <div class="av-grid" id="av-grid"></div>
   </div>
 </div>
@@ -1052,6 +1057,7 @@ var ADMINS = ['mypoiuytreza@gmail.com', 'unverredericard@gmail.com'];
 var isAdmin = false, isModerator = false, isTrusted = false;
 var userXPIdx = 0;
 var currentUserAvatar = null;
+var currentUserAvatarBg = '';
 var currentUserBio = '';
 var currentUserBannerColor = '';
 var BANNER_PRESETS = [
@@ -2813,6 +2819,8 @@ async function renderProfile() {
   var avatarInner = currentUserAvatar || localStorage.getItem('vlm_avatar') || initials;
   var bannerGrad = currentUserBannerColor || localStorage.getItem('vlm_banner_color') || BANNER_PRESETS[0].g;
   var bio = currentUserBio || localStorage.getItem('vlm_bio') || '';
+  var avatarBg = currentUserAvatarBg || localStorage.getItem('vlm_avatar_bg') || '';
+  var avatarBgStyle = avatarBg ? 'background:linear-gradient(' + avatarBg + ');' : '';
   var swatchesHtml = BANNER_PRESETS.map(function(p) {
     return '<div class="pbe-swatch' + (p.g === bannerGrad ? ' sel' : '') + '" data-g="' + p.g + '" style="background:linear-gradient(' + p.g + ')"></div>';
   }).join('');
@@ -2824,7 +2832,7 @@ async function renderProfile() {
     + '<input class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="60" value="' + escHtml(bio) + '">'
     + '<div class="pbe-row"><button class="pbe-btn pbe-btn-save" id="pbe-save">&#10003; Enregistrer</button><button class="pbe-btn pbe-btn-close" id="pbe-close">&#10005;</button></div>'
     + '</div>'
-    + '<div class="prof-avatar" id="prof-avatar">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
+    + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
     + '</div>'
     + '<div class="prof-identity">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
@@ -2955,12 +2963,32 @@ function openAvatarPicker() {
   grid.innerHTML = AVATAR_EMOJIS.map(function(e) {
     return '<button class="av-btn' + (currentUserAvatar === e ? ' sel' : '') + '" onclick="selectAvatar(\'' + e + '\')">' + e + '</button>';
   }).join('');
+  var bgRow = document.getElementById('av-bg-row');
+  if (bgRow) {
+    var curBg = currentUserAvatarBg || localStorage.getItem('vlm_avatar_bg') || '';
+    bgRow.innerHTML = BANNER_PRESETS.map(function(p) {
+      return '<div class="av-bg-swatch' + (p.g === curBg ? ' sel' : '') + '" data-g="' + p.g + '" style="background:linear-gradient(' + p.g + ')" onclick="selectAvatarBg(\'' + p.g + '\')"></div>';
+    }).join('');
+  }
   document.getElementById('avatar-picker').classList.add('show');
 }
 
 function closeAvatarPicker() {
   var p = document.getElementById('avatar-picker');
   if (p) p.classList.remove('show');
+}
+
+async function selectAvatarBg(g) {
+  if (!currentUser) return;
+  currentUserAvatarBg = g;
+  localStorage.setItem('vlm_avatar_bg', g);
+  document.querySelectorAll('.av-bg-swatch').forEach(function(s) { s.classList.toggle('sel', s.dataset.g === g); });
+  var avEl = document.getElementById('prof-avatar');
+  if (avEl) avEl.style.background = 'linear-gradient(' + g + ')';
+  var upsertData = { user_id: currentUser.id, username: currentUsername, avatar_bg: g };
+  if (currentUserAvatar) upsertData.avatar_url = currentUserAvatar;
+  var r = await db.from('profiles').upsert(upsertData, { onConflict: 'user_id' });
+  if (r.error) showToast('Erreur : ' + r.error.message, 'error');
 }
 
 async function selectAvatar(emoji) {
@@ -2971,7 +2999,7 @@ async function selectAvatar(emoji) {
   if (av) av.innerHTML = emoji + '<div class="prof-avatar-edit">&#9998;</div>';
   localStorage.setItem('vlm_avatar', emoji);
   var saveRes = await db.from('profiles').upsert(
-    { user_id: currentUser.id, username: currentUsername, avatar_url: emoji, bio: currentUserBio || null, banner_color: currentUserBannerColor || null },
+    { user_id: currentUser.id, username: currentUsername, avatar_url: emoji, bio: currentUserBio || null, banner_color: currentUserBannerColor || null, avatar_bg: currentUserAvatarBg || null },
     { onConflict: 'user_id' }
   );
   if (saveRes.error) { showToast('Erreur sauvegarde : ' + saveRes.error.message, 'error'); return; }
@@ -2988,7 +3016,7 @@ async function saveBannerProfile() {
   if (overlay) overlay.classList.remove('open');
   var bioEl = document.getElementById('prof-bio-display');
   if (bioEl) bioEl.textContent = bio;
-  var upsertData = { user_id: currentUser.id, username: currentUsername, bio: bio || null, banner_color: color };
+  var upsertData = { user_id: currentUser.id, username: currentUsername, bio: bio || null, banner_color: color, avatar_bg: currentUserAvatarBg || null };
   if (currentUserAvatar) upsertData.avatar_url = currentUserAvatar;
   var r = await db.from('profiles').upsert(upsertData, { onConflict: 'user_id' });
   if (r.error) { showToast('Erreur : ' + r.error.message, 'error'); return; }
@@ -3009,7 +3037,7 @@ async function loadProfileStats(username) {
       db.from('profiles').select('user_id', { count: 'exact', head: true }).not('username', 'is', null).lte('registered_at', currentUser.created_at),
       db.from('places').select('id', { count: 'exact', head: true }).eq('approved_by_id', uid),
       db.from('places').select('votes_positifs').eq('user_id', uid),
-      db.from('profiles').select('avatar_url,bio,banner_color').eq('user_id', uid).maybeSingle()
+      db.from('profiles').select('avatar_url,bio,banner_color,avatar_bg').eq('user_id', uid).maybeSingle()
     ]);
     var BOT_NAMES = ['Import OSM', 'OpenStreetMap', 'Prix-Carburants-gouv'];
     var lbData = (res[0].data || []).filter(function(u) { return BOT_NAMES.indexOf(u.user_name) === -1; });
@@ -3042,6 +3070,12 @@ async function loadProfileStats(username) {
       document.querySelectorAll('.pbe-swatch').forEach(function(s) {
         s.classList.toggle('sel', s.dataset.g === currentUserBannerColor);
       });
+    }
+    if (avatarData && avatarData.avatar_bg) {
+      currentUserAvatarBg = avatarData.avatar_bg;
+      localStorage.setItem('vlm_avatar_bg', currentUserAvatarBg);
+      var avBgEl = document.getElementById('prof-avatar');
+      if (avBgEl) avBgEl.style.background = 'linear-gradient(' + currentUserAvatarBg + ')';
     }
     var myIdx = lbData.findIndex(function(u) { return u.user_name === username; });
     var myRank = myIdx + 1;
@@ -3156,7 +3190,7 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
   openSheet('sheet-pub-profile');
 
-  var profileRes = await db.from('profiles').select('user_id,username,created_at,registered_at,avatar_url,bio,banner_color').eq('username', username).maybeSingle();
+  var profileRes = await db.from('profiles').select('user_id,username,created_at,registered_at,avatar_url,bio,banner_color,avatar_bg').eq('username', username).maybeSingle();
   var profile = profileRes.data;
   var placesCount = 0, commentsCount = 0, validatedCount = 0, votesCount = 0, rankPos = null, rankTotal = null;
 
@@ -3201,6 +3235,7 @@ async function openPublicProfile(username) {
   var pubAvatar = (profile && profile.avatar_url) ? profile.avatar_url : initials;
   var pubBio = (profile && profile.bio) ? profile.bio : '';
   var pubBannerGrad = (profile && profile.banner_color) ? profile.banner_color : BANNER_PRESETS[0].g;
+  var pubAvatarBg = (profile && profile.avatar_bg) ? profile.avatar_bg : '';
   var isSelf = !!(currentUser && profile && profile.user_id === currentUser.id);
   var rawDate = isSelf ? currentUser.created_at : (profile ? (profile.registered_at || profile.created_at) : (typeof firstPlaceDate !== 'undefined' ? firstPlaceDate : null));
   var joinDate = rawDate ? new Date(rawDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
@@ -3228,7 +3263,7 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div class="prof-card">'
     + '<div class="prof-banner" style="background:linear-gradient(' + pubBannerGrad + ')">'
     + (pubBio ? '<div class="prof-bio-text">' + escHtml(pubBio) + '</div>' : '')
-    + '<div class="prof-avatar" style="cursor:default;">' + escHtml(pubAvatar) + '</div>'
+    + '<div class="prof-avatar" style="cursor:default;' + (pubAvatarBg ? 'background:linear-gradient(' + pubAvatarBg + ');' : '') + '">' + escHtml(pubAvatar) + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
     + '<div class="prof-username">' + escHtml(username) + '</div>'
