@@ -4344,9 +4344,11 @@ function renderMarkers(places) {
     var icon = cat ? cat.icon : '📍';
     var isHidden = !!p.hidden;
     var isPending = p.status === 'pending';
+    var isValidated = (p.votes_positifs || 0) >= 1;
     var iconHtml = isHidden ? '🔒' : isPending ? '⏳' : fluentImg(icon, 22);
     var markerColor = isHidden ? '#555' : isPending ? '#888' : color;
-    var markerStyle = 'background:' + markerColor + (isHidden || isPending ? ';opacity:0.6' : '');
+    var extra = isHidden || isPending ? ';opacity:0.6' : isValidated ? '' : ';filter:grayscale(0.8);opacity:0.5';
+    var markerStyle = 'background:' + markerColor + extra;
     var mi = L.divIcon({
       html: '<div class="custom-marker" style="' + markerStyle + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>',
       className: '', iconSize: [36,44], iconAnchor: [18,44], popupAnchor: [0,-46]
