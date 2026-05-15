@@ -418,16 +418,16 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .prof-xp-row:last-child{border-bottom:none;}
 .prof-xp-row b{color:var(--text);}
 .prof-banner-badge{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;backdrop-filter:blur(6px);}
-.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0ba6b3,#0480b3);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;border:3px solid var(--bg);position:absolute;bottom:-36px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;}
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0ba6b3,#0480b3);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;border:3px solid var(--bg);position:absolute;bottom:-36px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;}
 .prof-avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.42);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:15px;}
 .prof-avatar:hover .prof-avatar-edit{display:flex;}
 #avatar-picker{position:fixed;inset:0;z-index:9500;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.55);}
 #avatar-picker.show{display:flex;}
-.av-panel{background:var(--surface);border-radius:20px 20px 0 0;padding:18px 16px 32px;width:100%;max-width:440px;}
+.av-panel{background:var(--surface);border-radius:20px 20px 0 0;padding:18px 16px 32px;width:100%;max-width:480px;max-height:75vh;overflow-y:auto;}
 .av-panel-title{font-family:var(--font-head);font-size:15px;font-weight:800;color:var(--text);margin-bottom:14px;text-align:center;}
-.av-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;}
-.av-btn{font-size:24px;background:var(--surface2);border:2px solid transparent;border-radius:10px;padding:7px 2px;cursor:pointer;text-align:center;line-height:1.3;transition:border-color 0.12s,transform 0.1s;}
-.av-btn.sel{border-color:var(--accent);}
+.av-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+.av-btn{font-size:48px;background:var(--surface2);border:2.5px solid transparent;border-radius:14px;padding:8px 4px;cursor:pointer;text-align:center;line-height:1.2;transition:border-color 0.12s,transform 0.1s;}
+.av-btn.sel{border-color:var(--accent);background:rgba(11,166,179,0.12);}
 .av-btn:active{transform:scale(0.85);}
 .prof-banner-edit{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.45);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);z-index:2;}
 .prof-banner-picker{position:absolute;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:3;border-radius:0;}
@@ -1050,7 +1050,20 @@ var ADMINS = ['mypoiuytreza@gmail.com', 'unverredericard@gmail.com'];
 var isAdmin = false, isModerator = false, isTrusted = false;
 var userXPIdx = 0;
 var currentUserAvatar = null;
-var AVATAR_EMOJIS = ['🐺','🦊','🐻','🦁','🐯','🦝','🦉','🐸','🐧','🦋','🌵','🌊','🏔️','🌿','🍄','🌻','🔥','⭐','💎','🌈','😎','🤠','🧗','🏄','⛵','🚵','🏕️','🎯','👾','🌙','❄️','🎪'];
+var AVATAR_EMOJIS = [
+  '🐺','🦊','🐻','🦁','🐯','🐨','🦝','🦉',
+  '🦅','🐸','🐧','🦋','🐙','🦈','🐬','🦜',
+  '🐝','🦌','🦔','🐓','🦩','🦚','🦋','🐊',
+  '🌵','🌊','🏔️','🌿','🍄','🌻','🌺','🍀',
+  '🌸','🍁','🌾','🪸','🌙','❄️','🔥','🌈',
+  '🧗','🏄','⛵','🚵','🏕️','🚀','🏍️','🪂',
+  '🤿','🎯','🛻','⛺','🗺️','🧭','🎣','🧗',
+  '😎','🤠','👾','💎','🌟','⭐','💫','🪐',
+  '🔮','✨','🌴','🏖️','🌞','🌝','🌚','🌛',
+  '🤖','🎮','🔭','🎲','🎵','🎨','🎸','🎭',
+  '🃏','🏆','🎯','🥷','🧙','🦸','🏋️','🤸',
+  '☕','🍕','🌮','🧃','🍺','🎪','🎡','🎠'
+];
 var BADGES_DEF = [
   { icon:'🗺️', key:'badge_first_place', check:function(s){ return s.places>=1; } },
   { icon:'📍', key:'badge_mapper',       check:function(s){ return s.places>=10; } },
