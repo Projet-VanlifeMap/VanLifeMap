@@ -2461,10 +2461,11 @@ async function init() {
   window.addEventListener('resize', function() { map.invalidateSize(); });
   setTimeout(function() { map.invalidateSize(); }, 200);
 
-  await checkAuth();
-  await loadCats();
-  await loadCommTypes();
-
+  var _safeHide = setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 12000);
+  try { await checkAuth(); } catch(e) { showToast('Erreur auth : ' + (e && e.message ? e.message : e), 'error'); }
+  try { await loadCats(); } catch(e) {}
+  try { await loadCommTypes(); } catch(e) {}
+  clearTimeout(_safeHide);
   document.getElementById('loading').style.display = 'none';
 
   localStorage.removeItem('vlm_countries');
@@ -2697,6 +2698,13 @@ function toggleCatSheet(id, hdr) {
 }
 
 async function renderProfile() {
+  if (!currentUser) {
+    var s = await db.auth.getSession();
+    if (s.data && s.data.session) {
+      currentUser = s.data.session.user;
+      await loadUserProfile();
+    }
+  }
   var el = document.getElementById('profile-content');
   if (!currentUser) {
     el.innerHTML = '<div style="text-align:center;padding:20px 16px">'
@@ -3830,7 +3838,15 @@ async function handleAuth() {
     updateSatBtn();
     await loadPrefs();
     await loadUserProfile();
+    await loadCats();
+    loadNotifCount();
+    loadModReportsCount();
+    startRealtimeNotifs();
+    loadUserFavorites();
     showToast(t('toast_connected'), 'success');
+    if (document.getElementById('sheet-profile').classList.contains('open')) {
+      renderProfile();
+    }
   } else {
     var confirm = document.getElementById('auth-password-confirm').value;
     if (pass !== confirm) { showToast(t('toast_err_passwords'), 'error'); return; }
@@ -4624,6 +4640,14 @@ function validatePlace(pid) {
   _pendingPlaceAction = { type: 'approve', pid: pid, source: 'popup' };
   document.getElementById('approve-place-name').textContent = '« ce lieu »';
   openModal('modal-approve-place');
+}
+
+async function unvalidatePlace(pid) {
+  if (!currentUser) return;
+  var res = await db.from('place_validations').delete().eq('place_id', pid).eq('user_id', currentUser.id);
+  if (res.error) { showToast(t('lbl_err_generic') + res.error.message, 'error'); return; }
+  showToast('Confirmation retirée', 'success');
+  loadValidationSection(pid);
 }
 
 function rejectPlace(pid, name) {
@@ -5455,6 +5479,39 @@ function updateLightbox() {
 function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
 function lbPrev() { lbIndex = (lbIndex - 1 + lbPhotos.length) % lbPhotos.length; updateLightbox(); }
 function lbNext() { lbIndex = (lbIndex + 1) % lbPhotos.length; updateLightbox(); }
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function translateText(textId, spanId, orig) {
+  var el = document.getElementById(textId);
+  var sp = document.getElementById(spanId);
+  if (!el || !sp) return;
+  if (sp.dataset.translated === '1') {
+    el.textContent = orig;
+    sp.dataset.translated = '0';
+    sp.textContent = 'Traduire';
+    return;
+  }
+  sp.textContent = '…';
+  try {
+    var lang = (navigator.language || 'fr').split('-')[0];
+    var res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(orig) + '&langpair=autodetect|' + lang);
+    var json = await res.json();
+    var translated = json.responseData && json.responseData.translatedText;
+    if (translated && translated !== orig) {
+      el.textContent = translated;
+      sp.dataset.translated = '1';
+      sp.textContent = 'Original';
+    } else {
+      sp.textContent = 'Traduire';
+    }
+  } catch(e) {
+    sp.textContent = 'Traduire';
+  }
+}
 
 async function loadCmts(pid) {
   var result = await db.from('comments').select('*').eq('place_id', pid).order('created_at', { ascending: false }).limit(5);
@@ -6319,6 +6376,7 @@ function startRealtimeNotifs() {
   }
 }
 
+var realtimeNotifChannel = null;
 var realtimeReportsChannel = null;
 
 async function loadModReportsCount() {
