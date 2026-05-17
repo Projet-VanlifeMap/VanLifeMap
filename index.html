@@ -3347,23 +3347,22 @@ async function loadUserRole() {
 async function loadUserProfile() {
   if (!currentUser) return;
   await loadUserRole();
-  // Read username from auth user_metadata (no schema cache dependency)
   var meta = currentUser.user_metadata || {};
-  if (meta.username) {
-    currentUsername = meta.username;
+  if (meta.username) currentUsername = meta.username;
+  try {
+    var res = await db.from('profiles').select('username,avatar_url,bio,banner_color,avatar_bg').eq('user_id', currentUser.id).maybeSingle();
+    if (res.data) {
+      if (res.data.username && !currentUsername) currentUsername = res.data.username;
+      if (res.data.avatar_url) { currentUserAvatar = res.data.avatar_url; localStorage.setItem('vlm_avatar', currentUserAvatar); }
+      if (res.data.bio) { currentUserBio = res.data.bio; localStorage.setItem('vlm_bio', currentUserBio); }
+      if (res.data.banner_color) { currentUserBannerColor = res.data.banner_color; localStorage.setItem('vlm_banner_color', currentUserBannerColor); }
+      if (res.data.avatar_bg) { currentUserAvatarBg = res.data.avatar_bg; localStorage.setItem('vlm_avatar_bg', currentUserAvatarBg); }
+    }
+  } catch(e) {}
+  if (currentUsername) {
     document.getElementById('auth-info').textContent = currentUsername;
     document.getElementById('btn-auth').textContent = t('btn_disconnect');
   } else {
-    // Also try profiles table as fallback
-    try {
-      var res = await db.from('profiles').select('username').eq('user_id', currentUser.id).maybeSingle();
-      if (res.data && res.data.username) {
-        currentUsername = res.data.username;
-        document.getElementById('auth-info').textContent = currentUsername;
-        document.getElementById('btn-auth').textContent = t('btn_disconnect');
-        return;
-      }
-    } catch(e) {}
     document.getElementById('btn-auth').textContent = t('btn_disconnect');
     openUsernameModal();
   }
