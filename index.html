@@ -2759,7 +2759,7 @@ async function renderProfile() {
     + '<div class="prof-banner-edit-overlay" id="prof-banner-overlay">'
     + '<div style="font-size:13px;font-weight:700;color:#fff;opacity:0.8;text-align:center;letter-spacing:0.5px;">🎨 Personnaliser la bannière</div>'
     + '<div class="pbe-swatches" id="pbe-swatches">' + swatchesHtml + '</div>'
-    + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…">' + escHtml(bio) + '</textarea>'
+    + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="70">' + escHtml(bio) + '</textarea>'
     + '<div class="pbe-row"><button class="pbe-btn pbe-btn-save" id="pbe-save">&#10003; Enregistrer</button><button class="pbe-btn pbe-btn-close" id="pbe-close">&#10005; Annuler</button></div>'
     + '</div>'
     + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
