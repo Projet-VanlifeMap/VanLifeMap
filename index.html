@@ -7493,8 +7493,6 @@ function adminShowCreateSubCatForm(mainCatId) {
     + '<input id="acs-color-' + mainCatId + '" type="color" value="#0ba6b3" title="Couleur marqueur" style="width:40px;height:35px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:var(--surface);">'
     + '</div>'
     + adminRoleSelectHTML('acs-role-' + mainCatId, 'public')
-    + '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);margin-bottom:8px;cursor:pointer;">'
-    + '<input id="acs-photos-' + mainCatId + '" type="checkbox" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"> 📷 Autoriser les photos</label>'
     + '<div style="display:flex;gap:8px;">'
     + '<button onclick="document.getElementById(\'admin-subcat-form-' + mainCatId + '\').innerHTML=\'\';" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Annuler</button>'
     + '<button onclick="adminCreateSubCat(\'' + mainCatId + '\')" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">Créer</button>'
@@ -7508,9 +7506,8 @@ async function adminCreateSubCat(mainCatId) {
   var icon  = (document.getElementById('acs-icon-' + mainCatId).value || '').trim();
   var color = document.getElementById('acs-color-' + mainCatId).value || '#0ba6b3';
   var role  = document.getElementById('acs-role-' + mainCatId).value || 'public';
-  var allowPhotos = !!(document.getElementById('acs-photos-' + mainCatId) && document.getElementById('acs-photos-' + mainCatId).checked);
   if (!name || !icon) { showToast(t('toast_err_icon'), 'error'); return; }
-  var res = await db.from('categories').insert({ name: name, icon: icon, color: color, main_category_id: mainCatId, min_role: role, allow_photos: allowPhotos }).select().single();
+  var res = await db.from('categories').insert({ name: name, icon: icon, color: color, main_category_id: mainCatId, min_role: role, allow_photos: false }).select().single();
   if (res.error) { showToast(t('lbl_err_generic') + res.error.message, 'error'); return; }
   showToast(t('toast_subcat_created'), 'success');
   await loadCats();
@@ -7529,8 +7526,6 @@ function adminShowEditSubCatForm(subId, mainCatId) {
     + '<input id="acse-color-' + subId + '" type="color" value="' + (s.color || '#0ba6b3') + '" title="Couleur marqueur" style="width:40px;height:35px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:var(--surface);">'
     + '</div>'
     + adminRoleSelectHTML('acse-role-' + subId, s.min_role)
-    + '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);margin-bottom:8px;cursor:pointer;">'
-    + '<input id="acse-photos-' + subId + '" type="checkbox"' + (s.allow_photos ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;"> 📷 Autoriser les photos</label>'
     + '<div style="display:flex;gap:8px;">'
     + '<button onclick="document.getElementById(\'admin-edit-subcat-' + subId + '\').innerHTML=\'\';" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:var(--font-body);">Annuler</button>'
     + '<button onclick="adminSaveEditSubCat(\'' + subId + '\')" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">Sauvegarder</button>'
@@ -7544,9 +7539,8 @@ async function adminSaveEditSubCat(subId) {
   var icon  = (document.getElementById('acse-icon-' + subId).value || '').trim();
   var color = document.getElementById('acse-color-' + subId).value || '#0ba6b3';
   var role  = document.getElementById('acse-role-' + subId).value || 'public';
-  var allowPhotos = !!(document.getElementById('acse-photos-' + subId) && document.getElementById('acse-photos-' + subId).checked);
   if (!name || !icon) { showToast(t('toast_err_icon'), 'error'); return; }
-  var res = await db.from('categories').update({ name: name, icon: icon, color: color, min_role: role, allow_photos: allowPhotos }).eq('id', subId);
+  var res = await db.from('categories').update({ name: name, icon: icon, color: color, min_role: role }).eq('id', subId);
   if (res.error) { showToast(t('lbl_err_generic') + res.error.message, 'error'); return; }
   showToast(t('toast_subcat_modified'), 'success');
   await loadCats();
