@@ -6217,16 +6217,20 @@ function set24h(val) {
 }
 
 async function submitPlace() {
+  var submitBtn = document.querySelector('#modal-add .btn-p');
+  if (submitBtn && submitBtn.disabled) return;
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '⏳ Publication…'; }
+  var _reEnable = function() { if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = t('btn_publish') || 'Publier le lieu'; } };
   var name = document.getElementById('add-name').value.trim();
   var mainId = document.getElementById('add-main-cat').value;
   var catId = document.getElementById('add-sub-cat').value;
   var desc = document.getElementById('add-desc').value.trim();
   var is24h = add24hValue;
-  if (!name || !mainId || !catId) { showToast(t('toast_err_fields'), 'error'); return; }
-  if (!selectedLatLng) { showToast(t('toast_err_click_map'), 'error'); return; }
-  if (add24hValue === null) { showToast(t('toast_err_24h'), 'error'); return; }
+  if (!name || !mainId || !catId) { showToast(t('toast_err_fields'), 'error'); _reEnable(); return; }
+  if (!selectedLatLng) { showToast(t('toast_err_click_map'), 'error'); _reEnable(); return; }
+  if (add24hValue === null) { showToast(t('toast_err_24h'), 'error'); _reEnable(); return; }
   var photoInput = document.getElementById('add-photo-input');
-  if (catAllowsPhotos(catId) && (!photoInput || !photoInput.files[0])) { showToast(t('toast_err_photo'), 'error'); return; }
+  if (catAllowsPhotos(catId) && (!photoInput || !photoInput.files[0])) { showToast(t('toast_err_photo'), 'error'); _reEnable(); return; }
   var placeStatus = 'pending';
   if (isAdmin || isModerator || isTrusted) {
     placeStatus = 'active';
@@ -6241,7 +6245,7 @@ async function submitPlace() {
     user_id: currentUser.id, user_name: currentUsername || currentUser.email.split('@')[0],
     disponible_24h: is24h, approved: true, status: placeStatus
   }).select('id').single();
-  if (result.error) { showToast(t('lbl_err_generic') + result.error.message, 'error'); return; }
+  if (result.error) { showToast(t('lbl_err_generic') + result.error.message, 'error'); _reEnable(); return; }
   var newId = result.data.id;
 
   var photoInput = document.getElementById('add-photo-input');
