@@ -6561,7 +6561,7 @@ async function loadDashboardTiles() {
   if (!grid) return;
   var weekStart = getWeekStartISO();
   var results = await Promise.all([
-    db.from('profiles').select('id', { count: 'exact', head: true }),
+    db.rpc('get_registered_users_count'),
     db.from('profiles').select('id', { count: 'exact', head: true }).gte('registered_at', weekStart),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active').not('user_id', 'is', null),
     db.from('places').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).not('user_id', 'is', null),
@@ -6569,7 +6569,7 @@ async function loadDashboardTiles() {
     db.from('reports').select('id', { count: 'exact', head: true }),
     db.from('comment_reports').select('id', { count: 'exact', head: true })
   ]);
-  var totalMembers   = results[0].count || 0;
+  var totalMembers   = (results[0].data != null ? Number(results[0].data) : results[0].count) || 0;
   var newMembers     = results[1].count || 0;
   var totalPlaces    = results[2].count || 0;
   var newPlaces      = results[3].count || 0;
@@ -6771,7 +6771,7 @@ function showDashMembers() {
 async function loadDashMembersList() {
   var el = document.getElementById('dash-members-list');
   if (!el) return;
-  var res = await db.from('profiles').select('user_id,username,registered_at').order('registered_at', { ascending: true });
+  var res = await db.rpc('get_all_members');
   if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:13px;">Erreur</div>'; return; }
   var members = res.data || [];
   var rolesRes = await db.from('trusted_users').select('user_id,role');
