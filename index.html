@@ -731,15 +731,9 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
     <div style="font-size:36px;margin-bottom:10px">🧭</div>
     <h2 style="margin-bottom:4px;text-align:center">M'y rendre</h2>
     <p id="modal-nav-name" style="font-size:13px;color:var(--text2);margin-bottom:18px;"></p>
-    <a id="nav-link-waze" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:#33ccff18;border:1px solid #33ccff55;color:#33ccff;border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:10px;">
-      <span style="font-size:22px;">🚗</span> Waze
-    </a>
-    <a id="nav-link-google" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:rgba(66,133,244,0.1);border:1px solid rgba(66,133,244,0.35);color:#4285f4;border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:10px;">
-      <span style="font-size:22px;">🗺️</span> Google Maps
-    </a>
-    <a id="nav-link-apple" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:16px;">
-      <span style="font-size:22px;">🍎</span> Plans (Apple)
-    </a>
+    <a id="nav-link-waze" href="#" target="_blank" onclick="navLinkClick(this)" style="display:flex;align-items:center;justify-content:center;text-decoration:none;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:10px;transition:background 0.15s,border-color 0.15s,color 0.15s;">Waze</a>
+    <a id="nav-link-google" href="#" target="_blank" onclick="navLinkClick(this)" style="display:flex;align-items:center;justify-content:center;text-decoration:none;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:10px;transition:background 0.15s,border-color 0.15s,color 0.15s;">Google Maps</a>
+    <a id="nav-link-apple" href="#" target="_blank" onclick="navLinkClick(this)" style="display:flex;align-items:center;justify-content:center;text-decoration:none;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:13px;font-size:15px;font-weight:700;font-family:var(--font-body);margin-bottom:16px;transition:background 0.15s,border-color 0.15s,color 0.15s;">Plans (Apple)</a>
     <button class="btn-s" onclick="closeModal('modal-nav')">Annuler</button>
   </div>
 </div>
@@ -5061,6 +5055,16 @@ function closeSidebar() {
 function openSidebar() {
   document.getElementById('sidebar').classList.remove('hidden');
   document.getElementById('btn-open-sidebar').classList.remove('show');
+}
+
+function navLinkClick(el) {
+  ['nav-link-waze','nav-link-google','nav-link-apple'].forEach(function(id) {
+    var a = document.getElementById(id);
+    if (a) { a.style.background = 'var(--surface2)'; a.style.borderColor = 'var(--border)'; a.style.color = 'var(--text)'; }
+  });
+  el.style.background = 'rgba(26,122,200,0.12)';
+  el.style.borderColor = '#1a7ac8';
+  el.style.color = '#1a7ac8';
 }
 
 function toggleNav(pid, lat, lng, name) {
