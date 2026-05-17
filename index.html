@@ -6561,8 +6561,8 @@ async function loadDashboardTiles() {
   if (!grid) return;
   var weekStart = getWeekStartISO();
   var results = await Promise.all([
-    db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null),
-    db.from('profiles').select('id', { count: 'exact', head: true }).not('username', 'is', null).gte('registered_at', weekStart),
+    db.from('profiles').select('id', { count: 'exact', head: true }),
+    db.from('profiles').select('id', { count: 'exact', head: true }).gte('registered_at', weekStart),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'active').not('user_id', 'is', null),
     db.from('places').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).not('user_id', 'is', null),
     db.from('places').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -6771,7 +6771,7 @@ function showDashMembers() {
 async function loadDashMembersList() {
   var el = document.getElementById('dash-members-list');
   if (!el) return;
-  var res = await db.from('profiles').select('user_id,username,registered_at').not('username', 'is', null).order('registered_at', { ascending: true });
+  var res = await db.from('profiles').select('user_id,username,registered_at').order('registered_at', { ascending: true });
   if (res.error) { el.innerHTML = '<div style="color:#e74c3c;font-size:13px;">Erreur</div>'; return; }
   var members = res.data || [];
   var rolesRes = await db.from('trusted_users').select('user_id,role');
@@ -6783,11 +6783,13 @@ async function loadDashMembersList() {
       var role = rolesMap[m.user_id] || null;
       var roleLabel = role === 'admin' ? '&#128081;' : role === 'moderator' ? '&#128737;&#65039;' : role === 'trusted' ? '&#11088;' : '';
       var date = m.registered_at ? new Date(m.registered_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'2-digit' }) : '';
-      return '<div onclick="closeSheet(\'sheet-dashboard\');openPublicProfile(\'' + escHtml(m.username).replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;">'
+      var displayName = m.username ? escHtml(m.username) : '<span style="color:var(--text2);font-style:italic;">(sans pseudo)</span>';
+      var clickable = m.username ? 'onclick="closeSheet(\'sheet-dashboard\');openPublicProfile(\'' + escHtml(m.username).replace(/'/g,"\\'") + '\')" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer;"' : 'style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);"';
+      return '<div ' + clickable + '>'
         + '<div style="width:30px;height:30px;border-radius:50%;background:rgba(11,166,179,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;">' + (i + 1) + '</div>'
-        + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + escHtml(m.username) + '</div>'
+        + '<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + roleLabel + ' ' + displayName + '</div>'
         + (date ? '<div style="font-size:11px;color:var(--text2);">' + t('member_registered') + ' ' + date + '</div>' : '') + '</div>'
-        + '<span style="color:var(--text2);font-size:16px;">&#8250;</span></div>';
+        + (m.username ? '<span style="color:var(--text2);font-size:16px;">&#8250;</span>' : '') + '</div>';
     }).join('');
 }
 
