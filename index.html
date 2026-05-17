@@ -4682,10 +4682,10 @@ async function voteValidation(pid) {
   var place = placeRes.data;
   var isImport = place && !place.user_id;
   if (!isImport && place && place.user_id === currentUser.id) { showToast('⛔ Vous ne pouvez pas valider votre propre lieu', 'error'); return; }
-  if (!isImport && isTrusted) { await validatePlace(pid); return; }
+  if (!isImport && (isAdmin || isModerator)) { await validatePlace(pid); return; }
   var existing = await db.from('place_validations').select('id').eq('place_id', pid).eq('user_id', currentUser.id).maybeSingle();
   if (existing.data) { showToast(isImport ? 'Vous avez déjà confirmé ce lieu' : 'Vous avez déjà voté pour ce lieu', 'error'); return; }
-  var weight = (isTrusted || isModerator || isAdmin) ? 2 : 1;
+  var weight = isTrusted ? 2 : 1;
   var voteRes = await db.from('place_validations').insert({ place_id: pid, user_id: currentUser.id, weight: weight });
   if (voteRes.error) { showToast(t('lbl_err_generic') + voteRes.error.message, 'error'); return; }
   var voteCount = await getWeightedCount(pid);
@@ -4822,7 +4822,7 @@ async function toggleValidatorsList(pid) {
 var _pendingPlaceAction = null;
 
 function validatePlace(pid) {
-  if (!currentUser || (!isModerator && !isAdmin && !isTrusted)) return;
+  if (!currentUser || (!isModerator && !isAdmin)) return;
   _pendingPlaceAction = { type: 'approve', pid: pid, source: 'popup' };
   document.getElementById('approve-place-name').textContent = '« ce lieu »';
   openModal('modal-approve-place');
