@@ -3131,10 +3131,10 @@ async function loadProfileStats(username) {
     if (xpFillEl) xpFillEl.style.width = Math.min(100, Math.max(2, xpPct)) + '%';
     if (xpBreakEl) xpBreakEl.innerHTML = [
       ['\ud83d\udccd', t('profile_places_added'), placesCount, 10],
+      ['\ud83d\ude4f', t('profile_thanks_received'), merciCount, 5],
       ['\u2705', t('profile_validated'), validatedCount, 3],
       ['\ud83d\udcac', t('profile_comments'), commentsCount, 2],
-      ['\ud83d\udc4d', t('profile_votes'), votesCount, 1],
-      ['\ud83d\ude4f', t('profile_thanks_received'), merciCount, 5]
+      ['\ud83d\udc4d', t('profile_votes'), votesCount, 1]
     ].map(function(r){
       var pts = r[2]*r[3];
       return '<div class="prof-xp-row"><span><b>' + r[0] + ' ' + r[2] + '</b> ' + r[1] + ' \u00d7 ' + r[3] + '</span><span style="font-weight:700;color:' + (pts>0?'#0ba6b3':'var(--text2)') + ';">+' + pts + ' XP</span></div>';
