@@ -733,7 +733,8 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
     <p style="font-size:14px;color:var(--text2);margin-bottom:8px">Un email de confirmation a été envoyé à :</p>
     <p style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:16px" id="confirm-email-addr"></p>
     <p style="font-size:13px;color:var(--text2);margin-bottom:20px">Cliquez sur le lien dans l'email pour activer votre compte, puis connectez-vous.</p>
-    <button class="btn-p" onclick="closeModal('modal-confirm-email')">J'ai compris</button>
+    <button class="btn-p" id="btn-resend-email" onclick="resendConfirmEmail()" style="margin-bottom:10px">📨 Renvoyer le lien</button>
+    <button class="btn-s" onclick="closeModal('modal-confirm-email')">Plus tard</button>
   </div>
 </div>
 
@@ -3895,6 +3896,12 @@ async function checkAuth() {
     loadModReportsCount();
     startRealtimeNotifs();
     loadUserFavorites();
+    if (!currentUser.email_confirmed_at && !sessionStorage.getItem('emailReminderShown')) {
+      sessionStorage.setItem('emailReminderShown', '1');
+      setTimeout(function() {
+        showUnconfirmedMessage(currentUser.email);
+      }, 1500);
+    }
   } else {
     updateSatBtn();
   }
@@ -3959,6 +3966,20 @@ async function handleAuth() {
 function showUnconfirmedMessage(email) {
   document.getElementById('modal-confirm-email').style.display = 'flex';
   document.getElementById('confirm-email-addr').textContent = email;
+}
+
+async function resendConfirmEmail() {
+  var btn = document.getElementById('btn-resend-email');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Envoi…'; }
+  var email = currentUser ? currentUser.email : document.getElementById('confirm-email-addr').textContent;
+  var res = await db.auth.resend({ type: 'signup', email: email });
+  if (btn) { btn.disabled = false; btn.textContent = '📨 Renvoyer le lien'; }
+  if (res.error) {
+    showToast(res.error.message, 'error');
+  } else {
+    showToast('✅ Lien de confirmation renvoyé à ' + email, 'success');
+    closeModal('modal-confirm-email');
+  }
 }
 
 function switchAuthMode() {
