@@ -363,7 +363,8 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .prof-xp-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);}
 .prof-xp-row:last-child{border-bottom:none;}
 .prof-xp-row b{color:var(--text);}
-.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0ba6b3,#0480b3);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;border:3px solid var(--bg);position:absolute;bottom:-36px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;}
+.prof-avatar-wrap{position:absolute;bottom:-36px;left:20px;width:72px;height:72px;}
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0ba6b3,#0480b3);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;border:3px solid var(--bg);box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;position:relative;}
 .prof-avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.42);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:15px;}
 .prof-avatar:hover .prof-avatar-edit{display:flex;}
 .prof-avatar-edit-badge{position:absolute;bottom:1px;right:1px;width:22px;height:22px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;border:2.5px solid var(--bg);cursor:pointer;z-index:2;color:#fff;line-height:1;}
@@ -2786,7 +2787,10 @@ async function renderProfile() {
     + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="74">' + escHtml(bio) + '</textarea>'
     + '<div class="pbe-row"><button class="pbe-btn pbe-btn-save" id="pbe-save">&#10003; Enregistrer</button><button class="pbe-btn pbe-btn-close" id="pbe-close">&#10005; Annuler</button></div>'
     + '</div>'
-    + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '<div class="prof-avatar-edit-badge" onclick="document.getElementById(\'prof-banner-overlay\').classList.add(\'open\')">&#9998;</div></div>'
+    + '<div class="prof-avatar-wrap">'
+    + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '</div>'
+    + '<div class="prof-avatar-edit-badge" onclick="document.getElementById(\'prof-banner-overlay\').classList.add(\'open\')">&#9998;</div>'
+    + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
@@ -2856,7 +2860,7 @@ async function renderProfile() {
     + '</div>';
 
   document.getElementById('prof-banner').addEventListener('click', function(e) {
-    if (e.target.closest('#prof-avatar') || e.target.closest('#prof-banner-overlay') || e.target.closest('.prof-banner-edit-btn')) return;
+    if (e.target.closest('.prof-avatar-wrap') || e.target.closest('#prof-banner-overlay') || e.target.closest('.prof-banner-edit-btn')) return;
   });
   document.getElementById('pbe-swatches').addEventListener('click', function(e) {
     e.stopPropagation();
