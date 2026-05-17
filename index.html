@@ -3913,12 +3913,14 @@ async function loadCats() {
       filters[mc.id].subs[c.id] = false;
     });
   });
+  catCounts = {};
   try {
-    var countRes = await db.from('places').select('category_id').in('status', ['active', 'pending']).limit(100000);
-    catCounts = {};
-    (countRes.data || []).forEach(function(p) {
-      catCounts[p.category_id] = (catCounts[p.category_id] || 0) + 1;
-    });
+    await Promise.all(allCats.map(function(s) {
+      return db.from('places').select('*', { count: 'exact', head: true })
+        .eq('category_id', s.id).in('status', ['active', 'pending'])
+        .then(function(res) { catCounts[s.id] = res.count || 0; })
+        .catch(function() {});
+    }));
   } catch(e) {}
   renderCats();
   renderMapFilterBar();
