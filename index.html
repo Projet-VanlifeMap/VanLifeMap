@@ -2776,20 +2776,26 @@ async function renderProfile() {
   el.innerHTML = '<div class="prof-card">'
     + '<div class="prof-banner" id="prof-banner" style="background:linear-gradient(' + bannerGrad + ')">'
     + '<div class="prof-bio-text" id="prof-bio-display">' + escHtml(bio) + '</div>'
-    + '<button class="prof-banner-edit-btn" onclick="document.getElementById(\'prof-banner-overlay\').classList.add(\'open\')">&#9998;</button>'
+    + '<button class="prof-banner-edit-btn" onclick="openPersonalizeOverlay(\'banner\')">&#9998;</button>'
     + '<div class="prof-banner-edit-overlay" id="prof-banner-overlay">'
-    + '<div style="font-size:14px;font-weight:800;color:#fff;text-align:center;letter-spacing:0.5px;">🎨 Personnaliser le profil</div>'
-    + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px;align-self:flex-start;">Avatar</div>'
+    + '<div id="pbe-section-avatar">'
+    + '<div style="font-size:14px;font-weight:800;color:#fff;text-align:center;letter-spacing:0.5px;margin-bottom:4px;">🧑 Personnaliser l\'avatar</div>'
+    + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px;align-self:flex-start;">Couleur de fond</div>'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">' + avBgSwatchesHtml + '</div>'
     + '<div class="pbe-av-grid" id="pbe-av-grid">' + avGridHtml + '</div>'
-    + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px;align-self:flex-start;margin-top:4px;">Bannière &amp; Devise</div>'
+    + '</div>'
+    + '<div id="pbe-section-banner">'
+    + '<div style="font-size:14px;font-weight:800;color:#fff;text-align:center;letter-spacing:0.5px;margin-bottom:4px;">🎨 Personnaliser la bannière</div>'
+    + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px;align-self:flex-start;">Couleur</div>'
     + '<div class="pbe-swatches" id="pbe-swatches">' + swatchesHtml + '</div>'
+    + '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.8px;align-self:flex-start;margin-top:4px;">Devise</div>'
     + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="74">' + escHtml(bio) + '</textarea>'
     + '<div class="pbe-row"><button class="pbe-btn pbe-btn-save" id="pbe-save">&#10003; Enregistrer</button><button class="pbe-btn pbe-btn-close" id="pbe-close">&#10005; Annuler</button></div>'
     + '</div>'
+    + '</div>'
     + '<div class="prof-avatar-wrap">'
     + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '</div>'
-    + '<div class="prof-avatar-edit-badge" onclick="document.getElementById(\'prof-banner-overlay\').classList.add(\'open\')">&#9998;</div>'
+    + '<div class="prof-avatar-edit-badge" onclick="openPersonalizeOverlay(\'avatar\')">&#9998;</div>'
     + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
@@ -2891,6 +2897,14 @@ async function renderProfile() {
   loadProfileStats(username);
 }
 
+
+function openPersonalizeOverlay(mode) {
+  var av = document.getElementById('pbe-section-avatar');
+  var bn = document.getElementById('pbe-section-banner');
+  if (av) av.style.display = (mode === 'avatar') ? '' : 'none';
+  if (bn) bn.style.display = (mode === 'banner') ? '' : 'none';
+  document.getElementById('prof-banner-overlay').classList.add('open');
+}
 
 function shareProfile() {
   var url = window.location.origin + window.location.pathname + '?profil=' + encodeURIComponent(currentUsername);
