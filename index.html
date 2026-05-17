@@ -3275,7 +3275,7 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text2);">Chargement...</div>';
   openSheet('sheet-pub-profile');
 
-  var profileRes = await db.from('profiles').select('user_id,username,created_at,registered_at,avatar_url,bio,banner_color,avatar_bg').eq('username', username).maybeSingle();
+  var profileRes = await db.from('profiles').select('user_id,username,created_at,registered_at,avatar_url,bio,banner_color,avatar_bg,pays,ville').eq('username', username).maybeSingle();
   var profile = profileRes.data;
   var placesCount = 0, commentsCount = 0, validatedCount = 0, votesCount = 0, rankPos = null, rankTotal = null;
 
@@ -3360,6 +3360,16 @@ async function openPublicProfile(username) {
     + '</span>'
     + '</div>'
     + '</div>'
+    + (function() {
+        var pubPays = (profile && profile.pays) || '';
+        var pubVille = (profile && profile.ville) || '';
+        if (!pubPays && !pubVille) return '';
+        var locTxt = formatLocText(pubPays, pubVille);
+        return '<div style="border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:10px 20px;">'
+          + '<span style="font-size:15px;">&#128205;</span>'
+          + '<span style="font-size:13px;color:var(--text);">' + escHtml(locTxt) + '</span>'
+          + '</div>';
+      })()
     + '<div class="prof-stats"><div class="prof-stats-grid">'
     + '<div class="prof-stat" onclick="togglePubPlaces()" style="cursor:pointer;"><div class="prof-stat-icon pic-green">&#128205;</div><div style="flex:1"><div class="prof-stat-val">' + placesCount + '</div><div class="prof-stat-lbl">Lieux ajout&eacute;s</div></div><span id="pub-places-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
     + '<div class="prof-stat" onclick="togglePubValidated()" style="cursor:pointer;"><div class="prof-stat-icon pic-teal">&#9989;</div><div style="flex:1"><div class="prof-stat-val">' + validatedCount + '</div><div class="prof-stat-lbl">' + t('profile_validated') + '</div></div><span id="pub-validated-arrow" style="color:var(--text2);font-size:16px;">&#8250;</span></div>'
