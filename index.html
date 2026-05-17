@@ -366,13 +366,13 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .prof-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#0ba6b3,#0480b3);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:900;color:#fff;border:3px solid var(--bg);position:absolute;bottom:-36px;left:20px;box-shadow:0 4px 16px rgba(0,0,0,0.4);cursor:pointer;overflow:hidden;}
 .prof-avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.42);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:15px;}
 .prof-avatar:hover .prof-avatar-edit{display:flex;}
-.prof-bio-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:13px;font-style:italic;font-weight:600;text-align:center;text-shadow:0 1px 5px rgba(0,0,0,0.65);max-width:85%;white-space:pre-line;pointer-events:none;letter-spacing:0.2px;}
+.prof-bio-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:12px;font-style:italic;font-weight:600;text-align:center;text-shadow:0 1px 5px rgba(0,0,0,0.65);width:92%;white-space:pre-line;pointer-events:none;letter-spacing:0.2px;word-break:break-word;}
 .prof-banner-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);display:none;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;z-index:10000;padding:24px 20px 30px;overflow-y:auto;box-sizing:border-box;}
 .prof-banner-edit-overlay.open{display:flex;}
 .pbe-swatches{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
 .pbe-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;flex-shrink:0;transition:border-color 0.15s,transform 0.12s;}
 .pbe-swatch:hover,.pbe-swatch.sel{border-color:#fff;transform:scale(1.18);}
-.pbe-bio-input{width:100%;max-width:320px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.32);color:#fff;border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;resize:none;height:72px;line-height:1.5;}
+.pbe-bio-input{width:100%;max-width:340px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.32);color:#fff;border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;resize:none;height:80px;line-height:1.6;}
 .pbe-bio-input::placeholder{color:rgba(255,255,255,0.45);}
 .pbe-row{display:flex;gap:8px;}
 .pbe-btn{border:none;border-radius:8px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-head);}
@@ -2759,7 +2759,7 @@ async function renderProfile() {
     + '<div class="prof-banner-edit-overlay" id="prof-banner-overlay">'
     + '<div style="font-size:13px;font-weight:700;color:#fff;opacity:0.8;text-align:center;letter-spacing:0.5px;">🎨 Personnaliser la bannière</div>'
     + '<div class="pbe-swatches" id="pbe-swatches">' + swatchesHtml + '</div>'
-    + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="70">' + escHtml(bio) + '</textarea>'
+    + '<textarea class="pbe-bio-input" id="pbe-bio-input" placeholder="Ta devise…" maxlength="74">' + escHtml(bio) + '</textarea>'
     + '<div class="pbe-row"><button class="pbe-btn pbe-btn-save" id="pbe-save">&#10003; Enregistrer</button><button class="pbe-btn pbe-btn-close" id="pbe-close">&#10005; Annuler</button></div>'
     + '</div>'
     + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '<div class="prof-avatar-edit">&#9998;</div></div>'
