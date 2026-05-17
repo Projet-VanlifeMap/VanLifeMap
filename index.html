@@ -1223,7 +1223,7 @@ fr:{
   confirm_del_type:'Supprimer ce type ?', confirm_del_type_msg:'Les posts existants garderont ce type.',
   lbl_anonymous:'Anonyme', lbl_by:'par', lbl_comment_author:'Auteur du commentaire', lbl_reported_by:'Signalé par', lbl_no_name:'Sans nom',
   lbl_no_new_member_week:'Aucun nouveau membre cette semaine', lbl_no_new_place_week:'Aucun lieu ajouté cette semaine', lbl_this_week:'cette semaine',
-  dash_registered_members:'Membres inscrits', dash_new_members:'Nouveaux membres', dash_validated_total:'Lieux validés total',
+  dash_registered_members:'Membres total inscrits', dash_new_members:'Nouveaux membres', dash_validated_total:'Lieux validés total',
   dash_new_places:'Nouveaux lieux', dash_global_stats:'Statistiques globales',
   lbl_report_one:'signalement', lbl_report_many:'signalements',
   lbl_status_active:'Actif', lbl_status_pending:'En attente', lbl_status_hidden:'Masqué', lbl_status_hiddens:'Masqués',
@@ -6760,7 +6760,7 @@ function showDashReports() {
 }
 
 function showDashMembers() {
-  showDashDetail('👥 ' + t('dash_members'), function() {
+  showDashDetail('👥 ' + t('dash_registered_members'), function() {
     var c = document.getElementById('dash-detail-content');
     c.innerHTML = '<div id="dash-members-list"><div style="color:var(--text2);">' + t('dash_loading') + '</div></div>';
     loadDashMembersList();
