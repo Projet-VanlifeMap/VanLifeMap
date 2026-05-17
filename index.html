@@ -3348,6 +3348,8 @@ async function openPublicProfile(username) {
   content.innerHTML = '<div class="prof-card">'
     + '<div class="prof-banner" style="background:linear-gradient(' + pubBannerGrad + ')">'
     + (pubBio ? '<div class="prof-bio-text" style="white-space:pre-line">' + escHtml(pubBio) + '</div>' : '')
+    + '</div>'
+    + '<div class="prof-avatar-wrap">'
     + '<div class="prof-avatar" style="cursor:default;' + (pubAvatarBg ? 'background:linear-gradient(' + pubAvatarBg + ');' : '') + '">' + escHtml(pubAvatar) + '</div>'
     + '</div>'
     + '<div class="prof-identity">'
