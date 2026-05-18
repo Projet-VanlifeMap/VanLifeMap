@@ -2834,6 +2834,7 @@ async function renderProfile() {
     + '<div class="prof-avatar" id="prof-avatar" style="' + avatarBgStyle + '">' + avatarInner + '</div>'
     + '<div class="prof-avatar-edit-badge" onclick="openPersonalizeOverlay(\'avatar\')">&#9998;</div>'
     + '</div>'
+    + '<span id="prof-role-label" style="position:absolute;bottom:-22px;left:100px;font-size:12px;font-weight:700;color:#fff;background:rgba(11,166,179,0.85);border-radius:20px;padding:3px 10px;white-space:nowrap;"></span>'
     + '</div>'
     + (function() {
         var locText = formatLocText(currentUserPays, currentUserVille);
@@ -2846,7 +2847,6 @@ async function renderProfile() {
           + '<div class="prof-username">' + username + '</div>'
           + '<button onclick="inviteApp()" style="' + invBtnStyle + '">📨 Inviter un ami</button>'
           + '</div>'
-          + '<span id="prof-role-label" style="font-size:13px;font-weight:600;color:var(--accent);display:block;margin-top:4px;"></span>'
           + '<span style="font-size:12px;color:var(--text2);">&#128197; ' + t('profile_member_since') + ' ' + dateStr + ' &nbsp;&middot;&nbsp; <span id="prof-member-num"></span></span>'
           + '<div id="prof-loc-display" style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;" onclick="toggleLocEdit()">'
           + '<span style="font-size:14px;">&#128205;</span>'
@@ -3347,6 +3347,7 @@ async function openPublicProfile(username) {
     + '<div class="prof-avatar-wrap">'
     + '<div class="prof-avatar" style="cursor:default;' + (pubAvatarBg ? 'background:linear-gradient(' + pubAvatarBg + ');' : '') + '">' + escHtml(pubAvatar) + '</div>'
     + '</div>'
+    + '<span style="position:absolute;bottom:-22px;left:100px;font-size:12px;font-weight:700;color:#fff;background:rgba(11,166,179,0.85);border-radius:20px;padding:3px 10px;white-space:nowrap;">' + communityRole + '</span>'
     + '</div>'
     + (function() {
         var pubPays = (profile && profile.pays) || '';
@@ -3355,7 +3356,6 @@ async function openPublicProfile(username) {
         var hasLoc = !!(pubPays || pubVille);
         return '<div class="prof-identity">'
           + '<div class="prof-username">' + escHtml(username) + '</div>'
-          + '<span style="font-size:13px;font-weight:600;color:var(--accent);display:block;margin-top:4px;">' + communityRole + '</span>'
           + '<span style="font-size:12px;color:var(--text2);">'
           + (joinDate ? '&#128197; ' + t('member_registered') + ' ' + joinDate : '')
           + (memberNum ? (joinDate ? ' &nbsp;&middot;&nbsp; ' : '') + '&#128100; Membre #' + memberNum : '')
