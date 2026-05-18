@@ -6485,7 +6485,7 @@ function startLiveTracking() {
       });
       liveMarker = L.marker(latlng, { icon: icon, zIndexOffset: 1000, interactive: false }).addTo(map);
       liveAccCircle = L.circle(latlng, { radius: Math.max(acc / 2, 8), color: '#4285f4', weight: 1, fillColor: '#4285f4', fillOpacity: 0.12 }).addTo(map);
-      map.setView(latlng, Math.max(map.getZoom(), 16));
+      map.setView(latlng, Math.max(map.getZoom(), 15));
     } else {
       liveMarker.setLatLng(latlng);
       liveAccCircle.setLatLng(latlng).setRadius(Math.max(acc / 2, 8));
