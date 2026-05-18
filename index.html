@@ -4301,18 +4301,25 @@ async function loadPlaces() {
   if (ok.size === 0) { cluster.clearLayers(); showHint(true); document.getElementById('count-num').textContent = '0'; return; }
   showHint(false);
 
-  var result = await db.from('places')
-    .select('*, categories(name,icon,color), main_categories(name,icon)')
-    .in('status', ['active', 'pending'])
-    .gte('latitude', sw.lat).lte('latitude', ne.lat)
-    .gte('longitude', sw.lng).lte('longitude', ne.lng)
-    .in('category_id', Array.from(ok))
-    .limit(2000);
+  var center = map.getCenter();
+  var result = await db.rpc('load_places_near', {
+    sw_lat: sw.lat, sw_lng: sw.lng,
+    ne_lat: ne.lat, ne_lng: ne.lng,
+    c_lat: center.lat, c_lng: center.lng,
+    cat_ids: Array.from(ok),
+    row_limit: 2000
+  });
 
   allPlaces = (result.data || []).filter(function(p) {
     if (p.hidden && !isAdmin && !isModerator) return false;
     if (p.status === 'pending' && !isAdmin && !isModerator && (!currentUser || p.user_id !== currentUser.id)) return false;
     return true;
+  }).map(function(p) {
+    var cat = allCats.find(function(c) { return c.id === p.category_id; });
+    var mc = cat ? mainCats.find(function(m) { return m.id === cat.main_category_id; }) : null;
+    p.categories = cat ? { name: cat.name, icon: cat.icon, color: cat.color } : null;
+    p.main_categories = mc ? { name: mc.name, icon: mc.icon } : null;
+    return p;
   });
   renderMarkers(allPlaces);
   document.getElementById('count-num').textContent = allPlaces.length;
