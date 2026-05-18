@@ -459,6 +459,27 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
 .prof-perk-name{font-size:12px;font-weight:700;color:var(--text);}
 .prof-perk-desc{font-size:11px;color:var(--text2);margin-top:1px;}
 .prof-perk-check{font-size:14px;flex-shrink:0;}
+/* MAP SEARCH BAR */
+#map-search-bar{display:none;}
+@media(max-width:768px){
+  #map-search-bar{display:block;position:fixed;top:0;left:0;right:0;z-index:1100;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;pointer-events:none;}
+  #places-count{display:none;}
+}
+.map-srch-row{display:flex;gap:8px;align-items:center;pointer-events:all;}
+.map-srch-wrap{flex:1;position:relative;}
+.map-srch-field{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:10px 13px;box-shadow:0 4px 20px rgba(0,0,0,0.35);transition:border-color 0.2s;}
+.map-srch-field:focus-within{border-color:var(--accent);}
+#map-srch-input{flex:1;background:none;border:none;color:var(--text);font-size:14px;outline:none;font-family:var(--font-body);}
+#map-srch-input::placeholder{color:var(--text2);}
+#map-srch-clear{background:none;border:none;color:var(--text2);font-size:16px;cursor:pointer;padding:0;line-height:1;display:none;flex-shrink:0;}
+.map-srch-dropdown{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;max-height:260px;overflow-y:auto;display:none;z-index:10;}
+.map-srch-dropdown.open{display:block;}
+.map-srch-result{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);}
+.map-srch-result:active{background:var(--surface2);}
+.map-srch-result:last-child{border-bottom:none;}
+.map-srch-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text2);padding:10px 14px 4px;}
+.map-srch-locate{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);pointer-events:all;}
+.map-srch-locate-btn{display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);padding:4px 0;}
 </style>
 </head>
 <body>
@@ -516,6 +537,22 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
     <div id="info-adding">&#128205; Clique sur la carte pour placer le lieu</div>
     <button id="btn-compass" onclick="resetBearing()" title="Réinitialiser le nord"><span id="btn-compass-arrow" style="display:inline-block;transition:transform 0.3s;">&#8593; N</span></button>
     <button id="btn-compass-mode" onclick="toggleCompassMode()" title="Mode boussole"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><polygon points="12,4 14.5,12 12,10.5 9.5,12" fill="currentColor"/><polygon points="12,20 9.5,12 12,13.5 14.5,12" fill="currentColor" opacity="0.4"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg></button>
+    <div id="map-search-bar">
+      <div class="map-srch-row">
+        <div class="map-srch-wrap">
+          <div class="map-srch-field">
+            <span style="font-size:16px;color:var(--text2);flex-shrink:0;">&#128269;</span>
+            <input type="text" id="map-srch-input" placeholder="Rechercher un lieu, une ville…" autocomplete="off">
+            <button id="map-srch-clear" onclick="clearMapSearch()">&#10005;</button>
+          </div>
+          <div class="map-srch-dropdown" id="map-srch-dropdown">
+            <div class="map-srch-locate">
+              <button class="map-srch-locate-btn" onclick="locateMeLocation()">&#127919; Ma position actuelle</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <button id="btn-locate"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><line x1="12" y1="1" x2="12" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <div id="places-count">Lieux : <span id="count-num">0</span></div>
     <div id="solo-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1500;background:var(--surface);border-top:2px solid var(--accent);height:var(--nav-h);align-items:stretch;">
@@ -530,9 +567,6 @@ html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;font-f
   <div id="bottom-nav-inner">
     <button class="nav-item active" id="nav-cats" onclick="navTo('cats')">
       <span class="nav-item-icon">&#128193;</span><span data-i18n="nav_filters">Filtres</span>
-    </button>
-    <button class="nav-item" id="nav-search" onclick="navTo('search')">
-      <span class="nav-item-icon">&#128269;</span><span data-i18n="nav_search">Recherche</span>
     </button>
     <div class="nav-item-add" onclick="onAddBtn()">
       <div class="nav-add-btn">&#65291;</div>
@@ -2549,6 +2583,18 @@ function setupListeners(hasSharedLocation, sharedLat, sharedLon, sharedZoom) {
     window.history.replaceState({}, '', window.location.pathname);
   }
   document.getElementById('search-mobile').addEventListener('input', onSearchMobile);
+  var mapSrchInput = document.getElementById('map-srch-input');
+  if (mapSrchInput) {
+    mapSrchInput.addEventListener('input', onMapSrchInput);
+    mapSrchInput.addEventListener('focus', function() {
+      var dd = document.getElementById('map-srch-dropdown');
+      if (dd) dd.classList.add('open');
+    });
+  }
+  document.addEventListener('click', function(e) {
+    var bar = document.getElementById('map-search-bar');
+    if (bar && !bar.contains(e.target)) clearMapSearch();
+  });
   document.getElementById('btn-auth').addEventListener('click', onAuthBtn);
   document.getElementById('btn-add-desk').addEventListener('click', onAddBtn);
   document.getElementById('btn-locate').addEventListener('click', toggleLiveTracking);
@@ -3857,7 +3903,86 @@ function renderSrchResults(places, cities) {
   el.innerHTML = html;
 }
 
+function onMapSrchInput(e) {
+  var q = (e.target ? e.target.value : '').trim();
+  var clearBtn = document.getElementById('map-srch-clear');
+  var dropdown = document.getElementById('map-srch-dropdown');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+  if (!q) { renderMapSrchDropdown([], []); return; }
+  var ql = q.toLowerCase();
+  var found = allPlaces.filter(function(p) { return p.name.toLowerCase().indexOf(ql) >= 0; }).slice(0, 5);
+  renderMapSrchDropdown(found, []);
+  if (srchTimer) clearTimeout(srchTimer);
+  srchTimer = setTimeout(async function() {
+    var cities = await srchNominatim(q);
+    var freshFound = allPlaces.filter(function(p) { return p.name.toLowerCase().indexOf(ql) >= 0; }).slice(0, 5);
+    renderMapSrchDropdown(freshFound, cities);
+  }, 400);
+}
+
+function renderMapSrchDropdown(places, cities) {
+  var dropdown = document.getElementById('map-srch-dropdown');
+  if (!dropdown) return;
+  srchNominatimResults = cities;
+  var html = '<div class="map-srch-locate"><button class="map-srch-locate-btn" onclick="locateMeLocation()">&#127919; Ma position actuelle</button></div>';
+  if (places.length) {
+    html += '<div class="map-srch-section">Lieux sur la carte</div>';
+    html += places.map(function(p) {
+      var cat = p.categories;
+      return '<div class="map-srch-result" onclick="goToPlaceAndClose(' + p.latitude + ',' + p.longitude + ')">'
+        + '<span style="font-size:20px;">' + (cat ? cat.icon : '&#128205;') + '</span>'
+        + '<div><div style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(p.name) + '</div>'
+        + (cat ? '<div style="font-size:11px;color:var(--text2);">' + escHtml(cat.name) + '</div>' : '')
+        + '</div></div>';
+    }).join('');
+  }
+  if (cities.length) {
+    html += '<div class="map-srch-section">Villes &amp; communes</div>';
+    html += cities.slice(0, 5).map(function(r, i) {
+      var addr = r.address || {};
+      var city = addr.city || addr.town || addr.village || addr.municipality || r.display_name.split(',')[0];
+      var sub = (addr.county || addr.state || '');
+      return '<div class="map-srch-result" onclick="selectMapSrchCity(' + i + ')">'
+        + '<span style="font-size:20px;">&#128205;</span>'
+        + '<div><div style="font-size:13px;font-weight:600;color:var(--text);">' + escHtml(city) + '</div>'
+        + (sub ? '<div style="font-size:11px;color:var(--text2);">' + escHtml(sub) + '</div>' : '')
+        + '</div></div>';
+    }).join('');
+  }
+  if (!places.length && !cities.length) {
+    html += '<div style="padding:16px;text-align:center;color:var(--text2);font-size:13px;">Aucun résultat</div>';
+  }
+  dropdown.innerHTML = html;
+  dropdown.classList.add('open');
+}
+
+function goToPlaceAndClose(lat, lng) {
+  map.flyTo([lat, lng], 16, { duration: 0.8 });
+  clearMapSearch();
+}
+
+function selectMapSrchCity(i) {
+  var r = srchNominatimResults[i];
+  if (!r) return;
+  map.flyTo([parseFloat(r.lat), parseFloat(r.lon)], 13, { duration: 0.8 });
+  scheduleLoad();
+  clearMapSearch();
+}
+
+function clearMapSearch() {
+  var inp = document.getElementById('map-srch-input');
+  var clearBtn = document.getElementById('map-srch-clear');
+  var dropdown = document.getElementById('map-srch-dropdown');
+  if (inp) inp.value = '';
+  if (clearBtn) clearBtn.style.display = 'none';
+  if (dropdown) {
+    dropdown.classList.remove('open');
+    dropdown.innerHTML = '<div class="map-srch-locate"><button class="map-srch-locate-btn" onclick="locateMeLocation()">&#127919; Ma position actuelle</button></div>';
+  }
+}
+
 function locateMeLocation() {
+  clearMapSearch();
   closeSearchSheet();
   map.locate({ setView: false });
   map.once('locationfound', function(e) {
