@@ -4416,7 +4416,9 @@ function renderMarkers(places) {
     var markerColor = isHidden ? '#555' : isPending ? '#888' : color;
     var extra = isHidden || isPending ? ';opacity:0.6' : isValidated ? '' : ';filter:grayscale(1)';
     var markerStyle = 'background:' + markerColor + extra;
-    var badgeHtml = (!isValidated && !isPending && !isHidden) ? '<div class="marker-unverified-badge">À vérifier</div>' : '';
+    var vw = p.validation_weight || 0;
+    var vThreshold = p.user_id ? 3 : 2;
+    var badgeHtml = (!isValidated && !isPending && !isHidden) ? '<div class="marker-unverified-badge">À vérifier · ' + vw + '/' + vThreshold + '</div>' : '';
     var mi = L.divIcon({
       html: '<div style="position:relative;">' +
         '<div class="custom-marker" style="' + markerStyle + '"><div class="custom-marker-inner">' + iconHtml + '</div></div>' +
@@ -4799,6 +4801,7 @@ async function voteValidation(pid) {
   var voteRes = await db.from('place_validations').insert({ place_id: pid, user_id: currentUser.id, weight: weight });
   if (voteRes.error) { showToast(t('lbl_err_generic') + voteRes.error.message, 'error'); return; }
   var voteCount = await getWeightedCount(pid);
+  await db.from('places').update({ validation_weight: voteCount }).eq('id', pid);
   var threshold = isImport ? 2 : 3;
   var weightLabel = weight === 2 ? ' ⚡×2' : '';
   if (isImport) {
